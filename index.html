@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ぷにぷにのキャラクターと遊ぶ、CPU対戦・2人対戦対応のゆるいオセロゲーム。"
+    />
+    <meta name="theme-color" content="#f6ccef" />
+    <title>ぷにっとオセロ — ゆるっと遊べるオセロゲーム</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="background-decor" aria-hidden="true">
+      <span class="floaty floaty--one"></span>
+      <span class="floaty floaty--two"></span>
+      <span class="floaty floaty--three"></span>
+      <span class="tiny-star tiny-star--one">✦</span>
+      <span class="tiny-star tiny-star--two">✦</span>
+    </div>
+
+    <main class="app-shell">
+      <header class="site-header">
+        <a class="brand-lockup" href="./" aria-label="ぷにっとオセロ ホーム">
+          <span class="brand-friends" aria-hidden="true">
+            <img src="./assets/pink-piece.png" alt="" />
+            <img src="./assets/cream-piece.png" alt="" />
+          </span>
+          <span class="brand-copy">
+            <strong>ぷにっとオセロ</strong>
+            <small>PUNITTO OTHELLO</small>
+          </span>
+        </a>
+        <p class="header-message"><span aria-hidden="true">☁</span> きょうも のんびり</p>
+      </header>
+
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">PUNI PUNI × OTHELLO</p>
+          <h1 id="page-title">ゆるっと、<br /><span>はさもう。</span></h1>
+          <p class="hero-lead">
+            ぷにぷにのふたりと、ひとやすみ。<br />むずかしく考えず、気になるマスをぽちっ。
+          </p>
+        </div>
+
+        <div class="mode-box" aria-label="ゲームモード">
+          <p class="control-label">だれと あそぶ？</p>
+          <div class="segmented-control">
+            <button class="mode-button is-active" data-mode="cpu" type="button">
+              <span aria-hidden="true">ひとりで</span>
+              <strong>CPU対戦</strong>
+            </button>
+            <button class="mode-button" data-mode="local" type="button">
+              <span aria-hidden="true">いっしょに</span>
+              <strong>2人対戦</strong>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="game-layout" aria-label="オセロゲーム">
+        <aside class="game-panel">
+          <div class="status-bubble">
+            <div class="status-friends" aria-hidden="true">
+              <img src="./assets/pink-piece.png" alt="" />
+              <img src="./assets/cream-piece.png" alt="" />
+            </div>
+            <div>
+              <p class="round-label" id="mode-label">あなた VS CPU</p>
+              <p class="turn-status" id="turn-status" aria-live="polite">
+                あなたの番だよ
+              </p>
+            </div>
+          </div>
+
+          <div class="scoreboard" aria-label="スコア">
+            <div class="score-card score-card--pink is-current" id="black-score-card">
+              <img src="./assets/pink-piece.png" alt="" aria-hidden="true" />
+              <div>
+                <span class="score-name" id="black-name">あなた</span>
+                <strong id="black-score">2</strong>
+              </div>
+            </div>
+            <div class="score-card score-card--cream" id="white-score-card">
+              <img src="./assets/cream-piece.png" alt="" aria-hidden="true" />
+              <div>
+                <span class="score-name" id="white-name">CPU</span>
+                <strong id="white-score">2</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="sidebar-actions">
+            <button class="primary-button" id="new-game" type="button">
+              <span class="button-icon" aria-hidden="true">↻</span>
+              もういっかい
+            </button>
+            <button class="secondary-button" id="undo" type="button">
+              <span class="button-icon" aria-hidden="true">↶</span>
+              ひとつもどる
+            </button>
+          </div>
+
+          <div class="tiny-tip">
+            <span aria-hidden="true">♡</span>
+            <p>ピンクの子が先手だよ。<br />小さな丸が置けるところ。</p>
+          </div>
+        </aside>
+
+        <section class="board-card" aria-label="ゲーム盤">
+          <header class="board-header">
+            <div class="board-tag"><span aria-hidden="true">●</span> ぷにっと対局中</div>
+            <p id="move-counter">4 / 64 こま</p>
+          </header>
+
+          <div class="board-frame">
+            <div
+              class="board"
+              id="board"
+              role="grid"
+              aria-label="8×8のオセロ盤"
+            ></div>
+          </div>
+
+          <footer class="game-footer">
+            <span class="hint-sparkle" aria-hidden="true">✦</span>
+            <p id="game-hint">丸のあるマスに、ぽちっと置いてね</p>
+          </footer>
+        </section>
+      </section>
+
+      <section class="rules-panel" aria-labelledby="rules-title">
+        <div class="rules-heading">
+          <p class="eyebrow">HOW TO PLAY</p>
+          <h2 id="rules-title">あそびかた</h2>
+          <p>ルールはとってもかんたん。</p>
+        </div>
+        <ol class="rules-list">
+          <li>
+            <span class="rule-number">1</span>
+            <div>
+              <strong>はさむ</strong>
+              <p>相手の子を、たて・よこ・ななめからはさもう。</p>
+            </div>
+          </li>
+          <li>
+            <span class="rule-number">2</span>
+            <div>
+              <strong>くるん</strong>
+              <p>はさんだ子は、くるんと自分の仲間になるよ。</p>
+            </div>
+          </li>
+          <li>
+            <span class="rule-number">3</span>
+            <div>
+              <strong>いっぱい</strong>
+              <p>さいごに仲間が多かった方のかち。角は大事！</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <footer class="site-footer">
+        <p>Take it easy, one move at a time.</p>
+        <span aria-hidden="true">☁︎　♡　☁︎</span>
+      </footer>
+    </main>
+
+    <script type="module" src="./src/game.js"></script>
+  </body>
+</html>

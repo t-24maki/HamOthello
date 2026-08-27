@@ -121,10 +121,70 @@ export function isGameOver(board) {
   );
 }
 
-export function chooseCpuMove(board, player) {
-  const moves = getValidMoves(board, player);
-  if (moves.size === 0) return null;
+function evaluateBoard(board, perspective) {
+  const rival = opponent(perspective);
+  const counts = countStones(board);
+  const perspectiveCount = perspective === BLACK ? counts.black : counts.white;
+  const rivalCount = perspective === BLACK ? counts.white : counts.black;
+  const emptyCount = board.filter((cell) => cell === EMPTY).length;
+  const stoneWeight = emptyCount <= 16 ? 4 : 0.45;
+  let positionScore = 0;
 
+  board.forEach((cell, index) => {
+    if (cell === perspective) positionScore += POSITION_WEIGHTS[index];
+    if (cell === rival) positionScore -= POSITION_WEIGHTS[index];
+  });
+
+  const mobility =
+    getValidMoves(board, perspective).size - getValidMoves(board, rival).size;
+
+  return (
+    positionScore +
+    mobility * 4.2 +
+    (perspectiveCount - rivalCount) * stoneWeight
+  );
+}
+
+function searchBestScore(board, player, perspective, depth, alpha, beta) {
+  if (depth <= 0 || isGameOver(board)) {
+    return evaluateBoard(board, perspective);
+  }
+
+  const moves = getValidMoves(board, player);
+  const rival = opponent(player);
+
+  if (moves.size === 0) {
+    return searchBestScore(board, rival, perspective, depth - 1, alpha, beta);
+  }
+
+  if (player === perspective) {
+    let best = Number.NEGATIVE_INFINITY;
+    for (const index of moves.keys()) {
+      const nextBoard = applyMove(board, index, player);
+      best = Math.max(
+        best,
+        searchBestScore(nextBoard, rival, perspective, depth - 1, alpha, beta),
+      );
+      alpha = Math.max(alpha, best);
+      if (beta <= alpha) break;
+    }
+    return best;
+  }
+
+  let best = Number.POSITIVE_INFINITY;
+  for (const index of moves.keys()) {
+    const nextBoard = applyMove(board, index, player);
+    best = Math.min(
+      best,
+      searchBestScore(nextBoard, rival, perspective, depth - 1, alpha, beta),
+    );
+    beta = Math.min(beta, best);
+    if (beta <= alpha) break;
+  }
+  return best;
+}
+
+function chooseNormalMove(board, player, moves) {
   const rival = opponent(player);
   let bestIndex = null;
   let bestScore = Number.NEGATIVE_INFINITY;
@@ -146,4 +206,47 @@ export function chooseCpuMove(board, player) {
   }
 
   return bestIndex;
+}
+
+function chooseStrongMove(board, player, moves) {
+  const rival = opponent(player);
+  const emptyCount = board.filter((cell) => cell === EMPTY).length;
+  const depth = emptyCount <= 8 ? emptyCount : emptyCount <= 18 ? 5 : 4;
+  let bestIndex = null;
+  let bestScore = Number.NEGATIVE_INFINITY;
+
+  for (const index of moves.keys()) {
+    const nextBoard = applyMove(board, index, player);
+    const score = searchBestScore(
+      nextBoard,
+      rival,
+      player,
+      depth - 1,
+      Number.NEGATIVE_INFINITY,
+      Number.POSITIVE_INFINITY,
+    );
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  }
+
+  return bestIndex;
+}
+
+export function chooseCpuMove(board, player, difficulty = "normal") {
+  const moves = getValidMoves(board, player);
+  if (moves.size === 0) return null;
+
+  if (difficulty === "weak") {
+    const options = [...moves.keys()];
+    return options[Math.floor(Math.random() * options.length)];
+  }
+
+  if (difficulty === "strong") {
+    return chooseStrongMove(board, player, moves);
+  }
+
+  return chooseNormalMove(board, player, moves);
 }

@@ -671,7 +671,7 @@ a {
 .setup-mode-options {
   padding: 5px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 7px;
   border-radius: 20px;
   background: rgba(246, 204, 239, 0.3);
@@ -709,6 +709,15 @@ a {
 
 .setup-mode-option strong {
   font-size: 0.75rem;
+}
+
+.setup-mode-option:disabled,
+.online-action-option:disabled,
+.hamster-option:disabled,
+.setup-start-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+  transform: none;
 }
 
 .hamster-options {
@@ -893,6 +902,145 @@ a {
   font-size: 0.67rem;
 }
 
+.online-setup {
+  margin-top: 25px;
+  padding: 18px;
+  border: 2px dashed rgba(118, 88, 121, 0.17);
+  border-radius: 27px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.online-action-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.online-action-option {
+  min-height: 55px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 2px solid transparent;
+  border-radius: 17px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 0.7rem;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.online-action-option:hover {
+  transform: translateY(-1px);
+  background: var(--white);
+}
+
+.online-action-option.is-selected {
+  border-color: var(--lavender-deep);
+  color: var(--purple);
+  background: var(--white);
+  box-shadow: 0 7px 16px rgba(138, 106, 180, 0.1);
+}
+
+.online-action-option > span {
+  color: var(--pink-deep);
+  font-size: 0.9rem;
+}
+
+.online-join-fields {
+  margin-top: 15px;
+  display: grid;
+  gap: 7px;
+}
+
+.online-join-fields label {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.online-join-fields input {
+  width: 100%;
+  min-height: 53px;
+  padding: 0 16px;
+  border: 2px solid rgba(118, 88, 121, 0.16);
+  border-radius: 16px;
+  outline: none;
+  color: var(--purple);
+  background: var(--white);
+  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.online-join-fields input:focus {
+  border-color: var(--lavender-deep);
+  box-shadow: 0 0 0 4px rgba(168, 139, 214, 0.13);
+}
+
+.online-room-card {
+  margin-top: 15px;
+  padding: 14px;
+  border-radius: 19px;
+  background: rgba(201, 234, 217, 0.48);
+  text-align: center;
+}
+
+.online-room-card p,
+.online-room-card small {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.59rem;
+}
+
+.online-room-card > div {
+  margin: 8px 0 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.online-room-card strong {
+  color: var(--purple);
+  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 1.25rem;
+  letter-spacing: 0.1em;
+}
+
+.online-room-card button {
+  min-height: 33px;
+  padding: 0 11px;
+  border: 2px solid rgba(121, 181, 157, 0.35);
+  border-radius: 999px;
+  color: #658a7b;
+  background: var(--white);
+  cursor: pointer;
+  font-size: 0.58rem;
+  font-weight: 700;
+}
+
+.online-status {
+  min-height: 1.4em;
+  margin: 11px 2px 0;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.online-status.is-error {
+  color: #c45f70;
+}
+
+.online-status.is-success {
+  color: #5c927d;
+}
+
 .setup-start-button {
   width: 100%;
   min-height: 55px;
@@ -921,7 +1069,9 @@ a {
 .setup-start-button:focus-visible,
 .setup-mode-option:focus-visible,
 .hamster-option:focus-visible,
-.difficulty-option:focus-visible {
+.difficulty-option:focus-visible,
+.online-action-option:focus-visible,
+.online-room-card button:focus-visible {
   outline: 3px solid var(--peach);
   outline-offset: 3px;
 }
@@ -1531,6 +1681,15 @@ a {
     margin-top: 21px;
   }
 
+  .setup-mode-option {
+    min-height: 59px;
+    padding: 5px 2px;
+  }
+
+  .setup-mode-option strong {
+    font-size: 0.68rem;
+  }
+
   .hamster-options {
     gap: 8px;
   }
@@ -1567,6 +1726,20 @@ a {
   .local-setup {
     padding: 13px;
     gap: 10px;
+  }
+
+  .online-setup {
+    margin-top: 21px;
+    padding: 14px 11px;
+  }
+
+  .online-action-option {
+    padding: 7px 5px;
+    font-size: 0.64rem;
+  }
+
+  .online-room-card > div {
+    flex-direction: column;
   }
 
   .local-friends {

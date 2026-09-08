@@ -1,0 +1,10 @@
+.game-menu { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 10px 24px 0; text-align: right; }
+.game-menu a { display: inline-block; padding: 7px 12px; border: 1px solid #ddccbd; border-radius: 20px; background: #fffaf1; color: #806653; font: 600 13px/1.3 'Hiragino Maru Gothic ProN', 'Hiragino Sans', sans-serif; text-decoration: none; }
+.game-menu a:hover { background: #f6ead8; }
+.game-menu a:focus-visible { outline: 3px solid #9871b8; outline-offset: 3px; }
+@media(max-width: 760px) { .game-menu { padding: 8px 16px 0; } }
+@media(orientation: landscape) and (max-height: 550px) {
+  .game-menu { padding: 3px 14px 0; }
+  .game-menu a { padding: 3px 9px; font-size: 12px; }
+  .game-page .play-stage { height: calc(100svh - 144px); min-height: 198px; }
+}

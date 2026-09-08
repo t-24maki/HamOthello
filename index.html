@@ -1,333 +1,37 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="ぷにぷにのキャラクターと遊ぶ、CPU対戦・2人対戦・通信対戦対応のゆるいオセロゲーム。"
-    />
-    <meta name="theme-color" content="#f6ccef" />
-    <title>ぷにっとオセロ — ゆるっと遊べるオセロゲーム</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#fff9ef">
+    <meta name="description" content="たくハムとめぐハムと遊ぶ、ぷにっとオセロとたくめぐのおさんぽ。スマホでもパソコンでも、のんびり遊ぼう。">
+    <title>たくめぐのあそびば</title>
+    <link rel="stylesheet" href="./hub.css">
   </head>
   <body>
-    <div class="background-decor" aria-hidden="true">
-      <span class="floaty floaty--one"></span>
-      <span class="floaty floaty--two"></span>
-      <span class="floaty floaty--three"></span>
-      <span class="tiny-star tiny-star--one">✦</span>
-      <span class="tiny-star tiny-star--two">✦</span>
-    </div>
-
-    <main class="app-shell">
-      <header class="site-header">
-        <a class="brand-lockup" id="brand-home" href="./" aria-label="ぷにっとオセロ ホーム">
-          <span class="brand-friends" aria-hidden="true">
-            <img src="./assets/pink-piece.png" alt="" />
-            <img src="./assets/cream-piece.png" alt="" />
-          </span>
-          <span class="brand-copy">
-            <strong>ぷにっとオセロ</strong>
-            <small>PUNITTO OTHELLO</small>
-          </span>
+    <div class="wrap">
+      <header class="masthead">
+        <a class="brand" href="./" aria-label="たくめぐのあそびば ホーム">
+          <span class="friends" aria-hidden="true"><img src="./assets/pink-piece.png" alt="" width="43" height="43"><img src="./assets/cream-piece.png" alt="" width="43" height="43"></span>
+          <span>たくめぐのあそびば</span>
         </a>
-        <p class="header-message"><span aria-hidden="true">☁</span> きょうも のんびり</p>
+        <span class="device-note">スマホでも、パソコンでも。</span>
       </header>
-
-      <section class="landing-screen" id="landing-screen" aria-labelledby="landing-title">
-        <div class="landing-copy">
-          <p class="eyebrow">TAKHAM × MEGHAM</p>
-          <h1 id="landing-title">ぷにっと<br /><span>オセロ</span></h1>
-          <p class="landing-lead">
-            たくハムとめぐハムを、はさんで、くるん。<br />ひとりでも、ふたりでも、ゆるっと遊ぼう。
-          </p>
-          <button class="landing-play-button" id="landing-play" type="button">
-            <span>あそぶ</span>
-            <i aria-hidden="true">→</i>
-          </button>
-          <p class="landing-note"><span aria-hidden="true">✦</span> ルールはいつものオセロと同じだよ</p>
+      <main>
+        <h1>きょうは、なにしてあそぶ？</h1>
+        <p class="intro">たくハムとめぐハムと、のんびり遊ぼう。</p>
+        <div class="games">
+          <a class="game othello" href="./othello.html" aria-label="ぷにっとオセロで遊ぶ">
+            <div class="art" aria-hidden="true"><img src="./assets/pink-piece.png" alt="" width="165" height="165" decoding="async"><img src="./assets/cream-piece.png" alt="" width="165" height="165" decoding="async"></div>
+            <div class="copy"><span class="tag">CPU・2人・通信対戦</span><h2>ぷにっとオセロ</h2><p class="description">はさんで、くるん。<br>たくハムとめぐハムのオセロ。</p><span class="play"><span>オセロであそぶ</span><span aria-hidden="true">→</span></span></div>
+          </a>
+          <a class="game sanpo" href="./sanpo/" aria-label="たくめぐのおさんぽで遊ぶ">
+            <div class="art" aria-hidden="true"><img src="./assets/tak-win.png" alt="" width="165" height="165" decoding="async"><img src="./assets/meg-win.png" alt="" width="165" height="165" decoding="async"></div>
+            <div class="copy"><span class="tag">ひとりで・横スクロール</span><h2>たくめぐのおさんぽ</h2><p class="description">ジャンプしながら、おやつを50こ。<br>ピクニックへ出かけよう。</p><span class="play"><span>おさんぽにでかける</span><span aria-hidden="true">→</span></span></div>
+          </a>
         </div>
-
-        <div class="landing-visual" aria-label="たくハムとめぐハム">
-          <span class="landing-blob" aria-hidden="true"></span>
-          <span class="landing-spark landing-spark--one" aria-hidden="true">✦</span>
-          <span class="landing-spark landing-spark--two" aria-hidden="true">♡</span>
-          <div class="landing-character landing-character--taku">
-            <span>黒番・先手</span>
-            <img src="./assets/pink-piece.png" alt="紫色のたくハム" />
-            <strong>たくハム</strong>
-          </div>
-          <div class="landing-character landing-character--megu">
-            <span>白番・後手</span>
-            <img src="./assets/cream-piece.png" alt="白色のめぐハム" />
-            <strong>めぐハム</strong>
-          </div>
-        </div>
-      </section>
-
-      <section
-        class="setup-overlay"
-        id="setup-overlay"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="setup-title"
-        hidden
-      >
-        <div class="setup-card">
-          <button class="setup-close-button" id="setup-close" type="button" aria-label="トップに戻る">
-            ×
-          </button>
-          <div class="setup-heading">
-            <span class="setup-kicker">GAME SETTING</span>
-            <h2 id="setup-title">どんなふうに あそぶ？</h2>
-            <p id="setup-description">ハムとCPUのつよさを選んだら、対局スタート！</p>
-          </div>
-
-          <div class="setup-section setup-mode-section">
-            <p class="setup-label">だれと あそぶ？</p>
-            <div class="setup-mode-options">
-              <button class="setup-mode-option is-selected" data-setup-mode="cpu" type="button">
-                <span aria-hidden="true">ひとりで</span>
-                <strong>CPU対戦</strong>
-              </button>
-              <button class="setup-mode-option" data-setup-mode="local" type="button">
-                <span aria-hidden="true">いっしょに</span>
-                <strong>2人対戦</strong>
-              </button>
-              <button class="setup-mode-option" data-setup-mode="online" type="button">
-                <span aria-hidden="true">はなれて</span>
-                <strong>通信対戦</strong>
-              </button>
-            </div>
-          </div>
-
-          <div class="setup-section" id="hamster-setup">
-            <p class="setup-label"><span>1</span> あなたのハムをえらんでね</p>
-            <div class="hamster-options">
-              <button class="hamster-option is-selected" data-player="1" type="button">
-                <img src="./assets/pink-piece.png" alt="紫色のたくハム" />
-                <span>
-                  <strong>たくハム</strong>
-                  <small>黒番・先手</small>
-                </span>
-                <i aria-hidden="true">✓</i>
-              </button>
-              <button class="hamster-option" data-player="2" type="button">
-                <img src="./assets/cream-piece.png" alt="白色のめぐハム" />
-                <span>
-                  <strong>めぐハム</strong>
-                  <small>白番・後手</small>
-                </span>
-                <i aria-hidden="true">✓</i>
-              </button>
-            </div>
-          </div>
-
-          <div class="setup-section cpu-only" id="difficulty-setup">
-            <p class="setup-label"><span>2</span> CPUのつよさは？</p>
-            <div class="difficulty-options">
-              <button class="difficulty-option" data-difficulty="weak" type="button">
-                <span aria-hidden="true">☁︎</span>
-                <strong>よわい</strong>
-                <small>のんびり</small>
-              </button>
-              <button class="difficulty-option is-selected" data-difficulty="normal" type="button">
-                <span aria-hidden="true">✦</span>
-                <strong>ふつう</strong>
-                <small>ほどよく</small>
-              </button>
-              <button class="difficulty-option" data-difficulty="strong" type="button">
-                <span aria-hidden="true">♛</span>
-                <strong>つよい</strong>
-                <small>じっくり</small>
-              </button>
-            </div>
-          </div>
-
-          <div class="local-setup" id="local-setup" hidden>
-            <div class="local-friends" aria-hidden="true">
-              <img src="./assets/pink-piece.png" alt="" />
-              <img src="./assets/cream-piece.png" alt="" />
-            </div>
-            <div>
-              <strong>ふたりで交代しながら遊ぶよ</strong>
-              <p>黒番・先手のたくハムからスタート！</p>
-            </div>
-          </div>
-
-          <div class="online-setup" id="online-setup" hidden>
-            <p class="setup-label">へやを つくる？ はいる？</p>
-            <div class="online-action-options" aria-label="通信対戦の参加方法">
-              <button class="online-action-option is-selected" data-online-action="create" type="button">
-                <span aria-hidden="true">☁︎</span>
-                <strong>へやをつくる</strong>
-              </button>
-              <button class="online-action-option" data-online-action="join" type="button">
-                <span aria-hidden="true">✦</span>
-                <strong>キーワードで参加</strong>
-              </button>
-            </div>
-
-            <div class="online-join-fields" id="online-join-fields" hidden>
-              <label for="room-code-input">もらったキーワード</label>
-              <input
-                id="room-code-input"
-                type="text"
-                inputmode="text"
-                maxlength="11"
-                autocomplete="off"
-                autocapitalize="characters"
-                spellcheck="false"
-                placeholder="HAMU-ABC234"
-              />
-            </div>
-
-            <div class="online-room-card" id="online-room-card" hidden>
-              <p>このキーワードを相手に送ってね</p>
-              <div>
-              <strong id="room-code-display">HAMU-ABC234</strong>
-                <button id="copy-room-code" type="button">コピー</button>
-              </div>
-              <small>相手が入るまで、この画面を開いたまま待ってね。</small>
-            </div>
-
-            <p class="online-status" id="online-status" aria-live="polite"></p>
-          </div>
-
-          <button class="setup-start-button" id="setup-start" type="button">
-            <b id="setup-start-label">この設定ではじめる</b>
-            <span aria-hidden="true">→</span>
-          </button>
-        </div>
-      </section>
-
-      <div class="game-screen" id="game-screen" hidden>
-      <section class="hero game-heading" aria-labelledby="page-title">
-        <div class="hero-copy">
-          <p class="eyebrow">NOW PLAYING</p>
-          <h1 id="page-title">ぷにっと対局</h1>
-          <p class="hero-lead">
-            たくハムとめぐハム、どっちがたくさんになるかな？
-          </p>
-        </div>
-        <button class="back-home-button" id="back-home" type="button">
-          <span aria-hidden="true">←</span> トップにもどる
-        </button>
-      </section>
-
-      <section class="game-layout" aria-label="オセロゲーム">
-        <aside class="game-panel">
-          <div class="status-bubble">
-            <div class="status-friends" aria-hidden="true">
-              <img id="status-taku-image" src="./assets/pink-piece.png" alt="" />
-              <img id="status-megu-image" src="./assets/cream-piece.png" alt="" />
-            </div>
-            <div>
-              <p class="round-label" id="mode-label">あなた VS CPU</p>
-              <p class="turn-status" id="turn-status" aria-live="polite">
-                あなたの番だよ
-              </p>
-            </div>
-          </div>
-
-          <div class="scoreboard" aria-label="スコア">
-            <div class="score-card score-card--pink is-current" id="black-score-card">
-              <img id="black-score-image" src="./assets/pink-piece.png" alt="" aria-hidden="true" />
-              <div>
-                <span class="score-name" id="black-name">たくハム（あなた）</span>
-                <strong id="black-score">2</strong>
-              </div>
-            </div>
-            <div class="score-card score-card--cream" id="white-score-card">
-              <img id="white-score-image" src="./assets/cream-piece.png" alt="" aria-hidden="true" />
-              <div>
-                <span class="score-name" id="white-name">めぐハム（CPU）</span>
-                <strong id="white-score">2</strong>
-              </div>
-            </div>
-          </div>
-
-          <div class="sidebar-actions">
-            <button class="primary-button" id="new-game" type="button">
-              <span class="button-icon" aria-hidden="true">↻</span>
-              ゲームをえらぶ
-            </button>
-            <button class="secondary-button" id="undo" type="button">
-              <span class="button-icon" aria-hidden="true">↶</span>
-              ひとつもどる
-            </button>
-          </div>
-
-          <div class="tiny-tip">
-            <span aria-hidden="true">♡</span>
-            <p>たくハムは黒番・先手。<br />めぐハムは白番・後手だよ。</p>
-          </div>
-        </aside>
-
-        <section class="board-card" aria-label="ゲーム盤">
-          <header class="board-header">
-            <div class="board-tag">
-              <span aria-hidden="true">●</span>
-              <b id="game-settings-label">CPU：ふつう</b>
-            </div>
-            <p id="move-counter">4 / 64 こま</p>
-          </header>
-
-          <div class="board-frame">
-            <div
-              class="board"
-              id="board"
-              role="grid"
-              aria-label="8×8のオセロ盤"
-            ></div>
-          </div>
-
-          <footer class="game-footer">
-            <span class="hint-sparkle" aria-hidden="true">✦</span>
-            <p id="game-hint">丸のあるマスに、ぽちっと置いてね</p>
-          </footer>
-        </section>
-      </section>
-
-      <section class="rules-panel" aria-labelledby="rules-title">
-        <div class="rules-heading">
-          <p class="eyebrow">HOW TO PLAY</p>
-          <h2 id="rules-title">あそびかた</h2>
-          <p>ルールはとってもかんたん。</p>
-        </div>
-        <ol class="rules-list">
-          <li>
-            <span class="rule-number">1</span>
-            <div>
-              <strong>はさむ</strong>
-              <p>相手のハムを、たて・よこ・ななめからはさもう。</p>
-            </div>
-          </li>
-          <li>
-            <span class="rule-number">2</span>
-            <div>
-              <strong>くるん</strong>
-              <p>はさんだハムは、くるんと自分の仲間になるよ。</p>
-            </div>
-          </li>
-          <li>
-            <span class="rule-number">3</span>
-            <div>
-              <strong>いっぱい</strong>
-              <p>さいごに仲間が多かった方のかち。角は大事！</p>
-            </div>
-          </li>
-        </ol>
-      </section>
-      </div>
-
-      <footer class="site-footer">
-        <p>Take it easy, one move at a time.</p>
-        <span aria-hidden="true">☁︎　♡　☁︎</span>
-      </footer>
-    </main>
-
-    <script type="module" src="./src/game.js?v=20260827-3"></script>
+      </main>
+      <footer>すきなゲームで、ひとやすみ。</footer>
+    </div>
   </body>
 </html>

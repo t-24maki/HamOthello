@@ -9,7 +9,7 @@
     />
     <meta name="theme-color" content="#f6ccef" />
     <title>ぷにっとオセロ — ゆるっと遊べるオセロゲーム</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=cards-20260908-r2" />
     <link rel="stylesheet" href="./game-menu.css" />
   </head>
   <body>
@@ -24,7 +24,12 @@
 
     <main class="app-shell">
       <header class="site-header">
-        <a class="brand-lockup" id="brand-home" href="./othello.html" aria-label="ぷにっとオセロ ホーム">
+        <a
+          class="brand-lockup"
+          id="brand-home"
+          href="./othello.html"
+          aria-label="ぷにっとオセロ ホーム"
+        >
           <span class="brand-friends" aria-hidden="true">
             <img src="./assets/pink-piece.png" alt="" />
             <img src="./assets/cream-piece.png" alt="" />
@@ -48,7 +53,9 @@
             <span>あそぶ</span>
             <i aria-hidden="true">→</i>
           </button>
-          <p class="landing-note"><span aria-hidden="true">✦</span> ルールはいつものオセロと同じだよ</p>
+          <p class="landing-note">
+            <span aria-hidden="true">✦</span> いつものルールも、カードありも選べるよ
+          </p>
         </div>
 
         <div class="landing-visual" aria-label="たくハムとめぐハム">
@@ -77,7 +84,12 @@
         hidden
       >
         <div class="setup-card">
-          <button class="setup-close-button" id="setup-close" type="button" aria-label="トップに戻る">
+          <button
+            class="setup-close-button"
+            id="setup-close"
+            type="button"
+            aria-label="トップに戻る"
+          >
             ×
           </button>
           <div class="setup-heading">
@@ -103,6 +115,37 @@
               </button>
             </div>
           </div>
+
+          <section class="setup-section" id="rule-setup" aria-labelledby="rule-setup-title">
+            <p class="setup-label" id="rule-setup-title">どのルールで あそぶ？</p>
+            <div class="rule-options">
+              <button
+                class="rule-option is-selected"
+                data-rule="classic"
+                type="button"
+                aria-pressed="true"
+              >
+                <strong>いつものルール</strong><small>はさんで、くるん。</small>
+              </button>
+              <button class="rule-option" data-rule="cards" type="button" aria-pressed="false">
+                <strong>カードあり</strong><small>とっておきの2枚つき！</small>
+              </button>
+            </div>
+            <div id="setup-card-guide" class="card-guide" hidden>
+              <p>
+                <strong>どこでもカード</strong
+                >：あいているマスに、ぽん。はさめたハムは、いつもどおり返すよ。
+              </p>
+              <p>
+                <strong>くるんカード</strong
+                >：好きな相手のハムを1こだけ返すよ。まわりのハムはそのまま。
+              </p>
+              <p>それぞれ1枚ずつ、使いきり。自分の番に使うと、それで1手だよ。角にも使えるよ！</p>
+            </div>
+          </section>
+          <p id="join-rule-note" class="join-rule-note" hidden>
+            ルールは、へやをつくる人がえらぶよ。
+          </p>
 
           <div class="setup-section" id="hamster-setup">
             <p class="setup-label"><span>1</span> あなたのハムをえらんでね</p>
@@ -161,7 +204,11 @@
           <div class="online-setup" id="online-setup" hidden>
             <p class="setup-label">へやを つくる？ はいる？</p>
             <div class="online-action-options" aria-label="通信対戦の参加方法">
-              <button class="online-action-option is-selected" data-online-action="create" type="button">
+              <button
+                class="online-action-option is-selected"
+                data-online-action="create"
+                type="button"
+              >
                 <span aria-hidden="true">☁︎</span>
                 <strong>へやをつくる</strong>
               </button>
@@ -188,7 +235,7 @@
             <div class="online-room-card" id="online-room-card" hidden>
               <p>このキーワードを相手に送ってね</p>
               <div>
-              <strong id="room-code-display">HAMU-ABC234</strong>
+                <strong id="room-code-display">HAMU-ABC234</strong>
                 <button id="copy-room-code" type="button">コピー</button>
               </div>
               <small>相手が入るまで、この画面を開いたまま待ってね。</small>
@@ -205,123 +252,175 @@
       </section>
 
       <div class="game-screen" id="game-screen" hidden>
-      <section class="hero game-heading" aria-labelledby="page-title">
-        <div class="hero-copy">
-          <p class="eyebrow">NOW PLAYING</p>
-          <h1 id="page-title">ぷにっと対局</h1>
-          <p class="hero-lead">
-            たくハムとめぐハム、どっちがたくさんになるかな？
-          </p>
-        </div>
-        <button class="back-home-button" id="back-home" type="button">
-          <span aria-hidden="true">←</span> トップにもどる
-        </button>
-      </section>
-
-      <section class="game-layout" aria-label="オセロゲーム">
-        <aside class="game-panel">
-          <div class="status-bubble">
-            <div class="status-friends" aria-hidden="true">
-              <img id="status-taku-image" src="./assets/pink-piece.png" alt="" />
-              <img id="status-megu-image" src="./assets/cream-piece.png" alt="" />
-            </div>
-            <div>
-              <p class="round-label" id="mode-label">あなた VS CPU</p>
-              <p class="turn-status" id="turn-status" aria-live="polite">
-                あなたの番だよ
-              </p>
-            </div>
+        <section class="hero game-heading" aria-labelledby="page-title">
+          <div class="hero-copy">
+            <p class="eyebrow">NOW PLAYING</p>
+            <h1 id="page-title">ぷにっと対局</h1>
+            <p class="hero-lead">たくハムとめぐハム、どっちがたくさんになるかな？</p>
           </div>
-
-          <div class="scoreboard" aria-label="スコア">
-            <div class="score-card score-card--pink is-current" id="black-score-card">
-              <img id="black-score-image" src="./assets/pink-piece.png" alt="" aria-hidden="true" />
-              <div>
-                <span class="score-name" id="black-name">たくハム（あなた）</span>
-                <strong id="black-score">2</strong>
-              </div>
-            </div>
-            <div class="score-card score-card--cream" id="white-score-card">
-              <img id="white-score-image" src="./assets/cream-piece.png" alt="" aria-hidden="true" />
-              <div>
-                <span class="score-name" id="white-name">めぐハム（CPU）</span>
-                <strong id="white-score">2</strong>
-              </div>
-            </div>
-          </div>
-
-          <div class="sidebar-actions">
-            <button class="primary-button" id="new-game" type="button">
-              <span class="button-icon" aria-hidden="true">↻</span>
-              ゲームをえらぶ
-            </button>
-            <button class="secondary-button" id="undo" type="button">
-              <span class="button-icon" aria-hidden="true">↶</span>
-              ひとつもどる
-            </button>
-          </div>
-
-          <div class="tiny-tip">
-            <span aria-hidden="true">♡</span>
-            <p>たくハムは黒番・先手。<br />めぐハムは白番・後手だよ。</p>
-          </div>
-        </aside>
-
-        <section class="board-card" aria-label="ゲーム盤">
-          <header class="board-header">
-            <div class="board-tag">
-              <span aria-hidden="true">●</span>
-              <b id="game-settings-label">CPU：ふつう</b>
-            </div>
-            <p id="move-counter">4 / 64 こま</p>
-          </header>
-
-          <div class="board-frame">
-            <div
-              class="board"
-              id="board"
-              role="grid"
-              aria-label="8×8のオセロ盤"
-            ></div>
-          </div>
-
-          <footer class="game-footer">
-            <span class="hint-sparkle" aria-hidden="true">✦</span>
-            <p id="game-hint">丸のあるマスに、ぽちっと置いてね</p>
-          </footer>
+          <button class="back-home-button" id="back-home" type="button">
+            <span aria-hidden="true">←</span> トップにもどる
+          </button>
         </section>
-      </section>
 
-      <section class="rules-panel" aria-labelledby="rules-title">
-        <div class="rules-heading">
-          <p class="eyebrow">HOW TO PLAY</p>
-          <h2 id="rules-title">あそびかた</h2>
-          <p>ルールはとってもかんたん。</p>
-        </div>
-        <ol class="rules-list">
-          <li>
-            <span class="rule-number">1</span>
-            <div>
-              <strong>はさむ</strong>
-              <p>相手のハムを、たて・よこ・ななめからはさもう。</p>
+        <section class="game-layout" aria-label="オセロゲーム">
+          <aside class="game-panel">
+            <div class="status-bubble">
+              <div class="status-friends" aria-hidden="true">
+                <img id="status-taku-image" src="./assets/pink-piece.png" alt="" />
+                <img id="status-megu-image" src="./assets/cream-piece.png" alt="" />
+              </div>
+              <div>
+                <p class="round-label" id="mode-label">あなた VS CPU</p>
+                <p class="turn-status" id="turn-status" aria-live="polite">あなたの番だよ</p>
+              </div>
             </div>
-          </li>
-          <li>
-            <span class="rule-number">2</span>
-            <div>
-              <strong>くるん</strong>
-              <p>はさんだハムは、くるんと自分の仲間になるよ。</p>
+
+            <div class="scoreboard" aria-label="スコア">
+              <div class="score-card score-card--pink is-current" id="black-score-card">
+                <img
+                  id="black-score-image"
+                  src="./assets/pink-piece.png"
+                  alt=""
+                  aria-hidden="true"
+                />
+                <div>
+                  <span class="score-name" id="black-name">たくハム（あなた）</span>
+                  <strong id="black-score">2</strong>
+                </div>
+              </div>
+              <div class="score-card score-card--cream" id="white-score-card">
+                <img
+                  id="white-score-image"
+                  src="./assets/cream-piece.png"
+                  alt=""
+                  aria-hidden="true"
+                />
+                <div>
+                  <span class="score-name" id="white-name">めぐハム（CPU）</span>
+                  <strong id="white-score">2</strong>
+                </div>
+              </div>
             </div>
-          </li>
-          <li>
-            <span class="rule-number">3</span>
-            <div>
-              <strong>いっぱい</strong>
-              <p>さいごに仲間が多かった方のかち。角は大事！</p>
+
+            <div class="sidebar-actions">
+              <button class="primary-button" id="new-game" type="button">
+                <span class="button-icon" aria-hidden="true">↻</span>
+                ゲームをえらぶ
+              </button>
+              <button class="secondary-button" id="undo" type="button">
+                <span class="button-icon" aria-hidden="true">↶</span>
+                ひとつもどる
+              </button>
             </div>
-          </li>
-        </ol>
-      </section>
+
+            <div class="tiny-tip">
+              <span aria-hidden="true">♡</span>
+              <p>たくハムは黒番・先手。<br />めぐハムは白番・後手だよ。</p>
+            </div>
+          </aside>
+
+          <section class="board-card" aria-label="ゲーム盤">
+            <header class="board-header">
+              <div class="board-tag">
+                <span aria-hidden="true">●</span>
+                <b id="game-settings-label">CPU：ふつう</b>
+              </div>
+              <p id="move-counter">4 / 64 こま</p>
+            </header>
+
+            <section id="card-panel" class="card-panel" aria-labelledby="card-panel-title" hidden>
+              <div class="card-panel-heading">
+                <h2 id="card-panel-title">とっておきのカード</h2>
+                <button id="cancel-card" type="button" hidden>えらびなおす</button>
+              </div>
+              <div class="card-stock" aria-label="ふたりの残りカード">
+                <p id="black-card-stock"></p>
+                <p id="white-card-stock"></p>
+              </div>
+              <div class="power-cards">
+                <button type="button" class="power-card" data-card="anywhere" aria-pressed="false">
+                  <span class="card-symbol" aria-hidden="true">＋</span
+                  ><strong>どこでもカード</strong><small>あいているマスに、ぽん</small
+                  ><span class="card-remaining">のこり1枚</span>
+                </button>
+                <button type="button" class="power-card" data-card="flip" aria-pressed="false">
+                  <span class="card-symbol" aria-hidden="true">↻</span><strong>くるんカード</strong
+                  ><small>相手のハムを1こ、くるん</small
+                  ><span class="card-remaining">のこり1枚</span>
+                </button>
+              </div>
+              <p id="card-instruction" class="card-instruction" role="status">
+                カードをえらんでから、光るマスをぽちっ。
+              </p>
+              <p id="last-card-action" class="last-card-action" role="status" hidden></p>
+            </section>
+
+            <div class="board-frame">
+              <div class="board" id="board" role="grid" aria-label="8×8のオセロ盤"></div>
+            </div>
+
+            <footer class="game-footer">
+              <span class="hint-sparkle" aria-hidden="true">✦</span>
+              <p id="game-hint">丸のあるマスに、ぽちっと置いてね</p>
+            </footer>
+          </section>
+        </section>
+
+        <section class="rules-panel" aria-labelledby="rules-title">
+          <div class="rules-heading">
+            <p class="eyebrow">HOW TO PLAY</p>
+            <h2 id="rules-title">あそびかた</h2>
+            <p>ルールはとってもかんたん。</p>
+          </div>
+          <ol class="rules-list">
+            <li>
+              <span class="rule-number">1</span>
+              <div>
+                <strong>はさむ</strong>
+                <p>相手のハムを、たて・よこ・ななめからはさもう。</p>
+              </div>
+            </li>
+            <li>
+              <span class="rule-number">2</span>
+              <div>
+                <strong>くるん</strong>
+                <p>はさんだハムは、くるんと自分の仲間になるよ。</p>
+              </div>
+            </li>
+            <li>
+              <span class="rule-number">3</span>
+              <div>
+                <strong>いっぱい</strong>
+                <p>さいごに仲間が多かった方のかち。角は大事！</p>
+              </div>
+            </li>
+          </ol>
+        </section>
+        <details class="card-rules-details" id="card-rules-details" hidden>
+          <summary>カードありの あそびかた</summary>
+          <p>
+            ふたりとも「どこでもカード」「くるんカード」を1枚ずつ持ってスタート。カードは自分の番に、いつもの着手のかわりに使うよ。選んだだけなら、まだ取り消せるよ。
+          </p>
+          <p>
+            <strong>どこでもカード</strong
+            >は、となりにハムがいなくても、あいているマスならどこでもOK。はさめたハムは、いつもどおり返すよ。
+          </p>
+          <p>
+            <strong>くるんカード</strong
+            >は、好きな相手のハムを1こだけ自分の仲間に。ほかのハムは返さないよ。どちらのカードも、角に使ってOK！
+          </p>
+          <p>
+            カードを使ったら、それで1手おしまい。使ったカードは戻らないよ。ふたりの残り札は、いつでも見られるよ。
+          </p>
+          <p>どちらかのハムが0こになったら、カードが残っていても、その場で勝負が決まるよ。</p>
+          <p>
+            ふたりのハムが残っていれば、いつもの手で置けなくても、カードが使えたら続けよう。どちらも使えないときは、おやすみ。盤面がいっぱいになるか、ふたりともカードを含めて何もできなくなったら、おしまいだよ。
+          </p>
+          <p>
+            最後にカードを使ったマスには「＋／↻」の目印がつくよ。次のカードを使うまで、そこに残るよ。
+          </p>
+        </details>
       </div>
 
       <footer class="site-footer">
@@ -330,6 +429,6 @@
       </footer>
     </main>
 
-    <script type="module" src="./src/game.js?v=20260827-3"></script>
+    <script type="module" src="./src/game.js?v=cards-20260908-r2"></script>
   </body>
 </html>

@@ -1,11 +1,8 @@
-import {
-  SUPABASE_PUBLISHABLE_KEY,
-  SUPABASE_URL,
-} from "./supabase-config.js";
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js";
+import { ONLINE_VERSION, RULE_LABELS } from "./card-rules.js?v=cards-20260908-r2";
 
 const ROOM_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const SUPABASE_MODULE_URL =
-  "https://esm.sh/@supabase/supabase-js@2.112.4?bundle";
+const SUPABASE_MODULE_URL = "https://esm.sh/@supabase/supabase-js@2.112.4?bundle";
 
 export function isOnlineConfigured() {
   return (
@@ -47,6 +44,8 @@ export async function createOnlineSession({
   role,
   roomCode,
   hostPlayer,
+  ruleMode = "classic",
+  clientFactory,
   onReady = () => {},
   onMessage = () => {},
   onPeerChange = () => {},
@@ -61,7 +60,7 @@ export async function createOnlineSession({
     throw new Error("キーワードは HAMU- から始まる6文字で入力してね。");
   }
 
-  const { createClient } = await import(SUPABASE_MODULE_URL);
+  const createClient = clientFactory ?? (await import(SUPABASE_MODULE_URL)).createClient;
   const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: {
       persistSession: false,
@@ -69,7 +68,8 @@ export async function createOnlineSession({
       detectSessionInUrl: false,
     },
   });
-  const clientId = globalThis.crypto?.randomUUID?.() ??
+  const clientId =
+    globalThis.crypto?.randomUUID?.() ??
     `client-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const joinedAt = Date.now();
   let peerId = null;
@@ -132,15 +132,24 @@ export async function createOnlineSession({
       }
       peerId = guests[0]?.clientId ?? null;
     } else {
-      const ownGuestIndex = guests.findIndex(
-        (person) => person.clientId === clientId,
-      );
+      const ownGuestIndex = guests.findIndex((person) => person.clientId === clientId);
       if (ownGuestIndex > 0) {
         onError(new Error("このへやは、もう2人で遊んでいるみたい。"));
         void close();
         return;
       }
       peerId = hosts[0]?.clientId ?? null;
+    }
+
+    const peer = people.find((person) => person.clientId === peerId);
+    if (peer && (peer.version !== ONLINE_VERSION || !Object.hasOwn(RULE_LABELS, peer.ruleMode))) {
+      onError(
+        new Error(
+          "ゲームの版がちがうみたい。ふたりともページを読み込み直して、へやをつくり直してね。",
+        ),
+      );
+      void close();
+      return;
     }
 
     if (previousPeerId !== peerId) {
@@ -152,7 +161,12 @@ export async function createOnlineSession({
     if (hostLookupTimer !== null) window.clearTimeout(hostLookupTimer);
     const host = hosts[0];
     const localPlayer = role === "host" ? hostPlayer : 3 - host.player;
-    onReady({ localPlayer, remotePlayer: 3 - localPlayer });
+    if (![1, 2].includes(host.player)) {
+      onError(new Error("へやの設定を確認できませんでした。つくり直してね。"));
+      void close();
+      return;
+    }
+    onReady({ localPlayer, remotePlayer: 3 - localPlayer, ruleMode: host.ruleMode });
   };
 
   channel
@@ -177,6 +191,8 @@ export async function createOnlineSession({
             clientId,
             role,
             player: role === "host" ? hostPlayer : null,
+            ruleMode,
+            version: ONLINE_VERSION,
             joinedAt,
           });
           settled = true;
@@ -191,10 +207,7 @@ export async function createOnlineSession({
         return;
       }
 
-      if (
-        !settled &&
-        (status === "TIMED_OUT" || status === "CHANNEL_ERROR")
-      ) {
+      if (!settled && (status === "TIMED_OUT" || status === "CHANNEL_ERROR")) {
         settled = true;
         window.clearTimeout(connectTimer);
         reject(new Error("通信サーバーにつながりませんでした。設定と回線を確認してね。"));

@@ -121,7 +121,7 @@ export function isGameOver(board) {
   );
 }
 
-function evaluateBoard(board, perspective) {
+export function evaluateBoard(board, perspective) {
   const rival = opponent(perspective);
   const counts = countStones(board);
   const perspectiveCount = perspective === BLACK ? counts.black : counts.white;

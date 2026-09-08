@@ -176,6 +176,7 @@ a {
 .brand-copy strong {
   font-size: 0.96rem;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .brand-copy small {
@@ -205,7 +206,7 @@ a {
   min-height: min(720px, calc(100vh - 135px));
   padding: clamp(44px, 7vw, 86px) clamp(4px, 2vw, 22px);
   display: grid;
-  grid-template-columns: minmax(330px, 0.86fr) minmax(430px, 1.14fr);
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
   align-items: center;
   gap: clamp(30px, 6vw, 76px);
 }
@@ -213,15 +214,17 @@ a {
 .landing-copy {
   position: relative;
   z-index: 3;
+  min-width: 0;
 }
 
 .landing-copy h1 {
   margin: 13px 0 22px;
   color: var(--purple);
-  font-size: clamp(4.3rem, 9vw, 7.5rem);
+  font-size: clamp(2.75rem, 8vw, 6rem);
   font-weight: 700;
   letter-spacing: -0.1em;
   line-height: 0.88;
+  white-space: nowrap;
 }
 
 .landing-copy h1 span {
@@ -1814,7 +1817,7 @@ a {
 @media (max-width: 900px) {
   .landing-screen {
     min-height: auto;
-    grid-template-columns: 0.8fr 1.2fr;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
     gap: 20px;
   }
 
@@ -1838,7 +1841,7 @@ a {
 
   .landing-copy h1 {
     margin-top: 10px;
-    font-size: clamp(4.1rem, 22vw, 6rem);
+    font-size: clamp(3rem, 17vw, 5.5rem);
   }
 
   .landing-lead br {
@@ -1900,4 +1903,91 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Card rules: controls above the board, using the game's soft colors. */
+.rule-options, .power-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.rule-option { min-height: 70px; padding: 12px 9px; display: grid; gap: 5px; border: 2px solid var(--line); border-radius: 17px; background: #fffaf7; cursor: pointer; }
+.rule-option strong { font-size: 15px; }
+.rule-option small { font-size: 12px; color: var(--muted); }
+.rule-option.is-selected { border-color: var(--lavender-deep); background: #f0e5fa; }
+.rule-option:disabled { opacity: .65; cursor: default; }
+.card-guide { margin-top: 12px; padding: 12px 14px; border-radius: 16px; background: #fff8e8; }
+.card-guide p, .join-rule-note { margin: 5px 0; font-size: 13px; line-height: 1.75; }
+.join-rule-note { text-align: center; color: var(--muted); }
+.card-panel { margin-bottom: 17px; padding: 14px; border: 1px solid #decee5; border-radius: 21px; background: #fcf6ff; }
+.card-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.card-panel-heading h2 { margin: 0; font-size: 16px; line-height: 1.5; }
+#cancel-card { padding: 7px 10px; border: 1px solid #d2badf; border-radius: 12px; background: #fff; font-size: 12px; cursor: pointer; }
+.card-stock { margin: 9px 0 11px; display: grid; gap: 4px; }
+.card-stock p { margin: 0; font-size: 12px; color: #846e87; line-height: 1.6; }
+.card-stock .is-current { color: #704777; font-weight: 700; }
+.power-card { position: relative; min-width: 0; padding: 11px 7px 9px; display: grid; justify-items: center; gap: 4px; border: 2px solid #d4bfdc; border-radius: 17px; background: #fffdf7; cursor: pointer; color: #77587f; }
+.power-card strong { font-size: 14px; }
+.power-card small { font-size: 12px; line-height: 1.5; text-align: center; }
+.card-symbol { font-size: 23px; line-height: 1; color: #aa82bd; }
+.card-remaining { padding: 2px 8px; font-size: 12px; border-radius: 20px; background: #ede2f3; }
+.power-card.is-selected { border-color: #b78056; background: #fff0d7; box-shadow: 0 0 0 2px #edc79166; }
+.power-card.is-used { opacity: .46; background: #eeeaef; }
+.power-card:disabled { cursor: default; }
+.power-card:disabled:not(.is-used) { opacity: .7; }
+.card-instruction, .last-card-action { margin: 10px 0 0; font-size: 13px; line-height: 1.7; }
+.last-card-action { color: #927440; }
+.cell.is-card-action.is-last::before { content: none; }
+.card-marker {
+  --card-mark: #c28b35;
+  position: absolute;
+  inset: 1px;
+  z-index: 3;
+  border: 2px solid var(--card-mark);
+  border-radius: 18%;
+  box-shadow: inset 0 0 0 1px #fffaf0, 0 0 0 1px #fffaf0;
+  pointer-events: none;
+}
+.card-marker--flip { --card-mark: #9a65ae; }
+.card-marker-icon {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: clamp(13px, 2vw, 20px);
+  height: clamp(13px, 2vw, 20px);
+  display: grid;
+  place-items: center;
+  border: 1px solid #fffaf0;
+  border-radius: 50%;
+  background: var(--card-mark);
+  color: #fff;
+  font: 700 clamp(10px, 1.5vw, 16px) / 1 sans-serif;
+}
+.card-marker.is-revealing::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 3px solid var(--card-mark);
+  border-radius: inherit;
+  opacity: 0;
+  animation: card-spotlight 450ms ease-out 2;
+}
+@keyframes card-spotlight {
+  0% { opacity: .95; transform: scale(.85); }
+  55% { opacity: .65; }
+  100% { opacity: 0; transform: scale(1.45); }
+}
+.rule-option:focus-visible, .power-card:focus-visible, #cancel-card:focus-visible, .card-rules-details summary:focus-visible { outline: 3px solid #c29260; outline-offset: 3px; }
+.board[data-action='anywhere'] .cell.is-valid { background: #f4dfab; }
+.board[data-action='flip'] .cell.is-valid { box-shadow: inset 0 0 0 3px #bc81b7; }
+.board[data-action='flip'] .cell.is-valid::after { position: absolute; inset: 3px; width: auto; aspect-ratio: auto; border-radius: 15%; border: 2px dashed #a567ac; background: transparent; box-shadow: none; pointer-events: none; }
+.board[data-action='flip'] .cell.is-valid:hover::after, .board[data-action='flip'] .cell.is-valid:focus-visible::after { transform: none; }
+.card-rules-details { margin: 20px 0; padding: 16px 20px; border-radius: 22px; border: 1px solid var(--line); background: #fff8ef; }
+.card-rules-details summary { font-size: 15px; font-weight: 700; cursor: pointer; }
+.card-rules-details p { font-size: 14px; line-height: 1.9; }
+@media(max-width: 660px) {
+  .card-panel { padding: 11px 9px; }
+  .card-panel-heading h2 { font-size: 14px; }
+  .power-cards { gap: 7px; }
+  .power-card { padding: 9px 5px; }
+  .power-card strong { font-size: 13px; }
+  .card-stock p { letter-spacing: -.035em; }
+  .board-header { flex-wrap: wrap; gap: 7px; }
+  .card-rules-details { padding: 14px; }
 }

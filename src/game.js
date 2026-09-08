@@ -3,20 +3,29 @@ import {
   BOARD_SIZE,
   EMPTY,
   WHITE,
-  applyMove,
-  chooseCpuMove,
   countStones,
   createInitialBoard,
   getValidMoves,
-  isGameOver,
   opponent,
-} from "./game-logic.js";
+} from "./game-logic.js?v=cards-20260908-r2";
+import {
+  CARDS,
+  RULE_LABELS,
+  ONLINE_VERSION,
+  createHands,
+  copyHands,
+  getActionTargets,
+  isMatchOver,
+  applyAction,
+  chooseCpuAction,
+  parseOnlineState,
+} from "./card-rules.js?v=cards-20260908-r2";
 import {
   createOnlineSession,
   generateRoomCode,
   isOnlineConfigured,
   normalizeRoomCode,
-} from "./online-game.js";
+} from "./online-game.js?v=cards-20260908-r2";
 import { getResultCharacterImages } from "./result-images.js";
 
 const boardElement = document.querySelector("#board");
@@ -62,6 +71,17 @@ const onlineRoomCard = document.querySelector("#online-room-card");
 const roomCodeDisplay = document.querySelector("#room-code-display");
 const copyRoomCodeButton = document.querySelector("#copy-room-code");
 const onlineStatusElement = document.querySelector("#online-status");
+const ruleButtons = document.querySelectorAll("[data-rule]");
+const ruleSetup = document.querySelector("#rule-setup");
+const setupCardGuide = document.querySelector("#setup-card-guide");
+const joinRuleNote = document.querySelector("#join-rule-note");
+const cardPanel = document.querySelector("#card-panel");
+const cardPanelTitle = document.querySelector("#card-panel-title");
+const cardButtons = document.querySelectorAll("[data-card]");
+const cancelCardButton = document.querySelector("#cancel-card");
+const cardInstruction = document.querySelector("#card-instruction");
+const lastCardElement = document.querySelector("#last-card-action");
+const cardRulesDetails = document.querySelector("#card-rules-details");
 
 const DIFFICULTY_LABELS = {
   weak: "よわい",
@@ -80,6 +100,12 @@ let currentPlayer = BLACK;
 let gameMode = "cpu";
 let humanPlayer = BLACK;
 let cpuDifficulty = "normal";
+let ruleMode = "classic";
+let hands = createHands(ruleMode);
+let turnCount = 0;
+let selectedCard = null;
+let lastCardAction = null;
+let lastRenderedCardKey = null;
 let history = [];
 let lastMove = null;
 let passNotice = "";
@@ -94,6 +120,16 @@ let onlineConnecting = false;
 let onlinePeerConnected = false;
 let onlineRevision = 0;
 let onlineAttemptId = 0;
+let onlineSynced = false;
+let onlinePending = false;
+let onlinePendingTimer = null;
+
+function matchState() {
+  return { board, currentPlayer, ruleMode, hands, turnCount };
+}
+function gameOver() {
+  return isMatchOver(matchState());
+}
 
 function hamsterName(player) {
   return player === BLACK ? "たくハム" : "めぐハム";
@@ -108,10 +144,10 @@ function getCpuPlayer() {
 }
 
 function canHumanPlay() {
-  if (!gameStarted || cpuIsThinking) return false;
+  if (!gameStarted || cpuIsThinking || gameOver()) return false;
   if (gameMode === "local") return true;
   if (gameMode === "online") {
-    return onlinePeerConnected && currentPlayer === humanPlayer;
+    return onlinePeerConnected && onlineSynced && !onlinePending && currentPlayer === humanPlayer;
   }
   return currentPlayer === humanPlayer;
 }
@@ -128,6 +164,10 @@ function snapshot() {
     currentPlayer,
     lastMove,
     passNotice,
+    ruleMode,
+    hands: copyHands(hands),
+    turnCount,
+    lastCardAction: lastCardAction ? { ...lastCardAction } : null,
   };
 }
 
@@ -136,6 +176,11 @@ function restore(state) {
   currentPlayer = state.currentPlayer;
   lastMove = state.lastMove;
   passNotice = state.passNotice;
+  ruleMode = state.ruleMode;
+  hands = copyHands(state.hands);
+  turnCount = state.turnCount;
+  lastCardAction = state.lastCardAction;
+  selectedCard = null;
 }
 
 function resetBoard() {
@@ -146,6 +191,11 @@ function resetBoard() {
   lastMove = null;
   passNotice = "";
   onlineRevision = 0;
+  hands = createHands(ruleMode);
+  turnCount = 0;
+  selectedCard = null;
+  lastCardAction = null;
+  lastRenderedCardKey = null;
 }
 
 function startGame() {
@@ -160,19 +210,21 @@ function startGame() {
   }
 }
 
-function startOnlineGame(localPlayer) {
+function startOnlineGame(localPlayer, sessionRules) {
+  ruleMode = sessionRules;
   resetBoard();
   humanPlayer = localPlayer;
   onlineConnecting = false;
   onlinePeerConnected = true;
+  onlineSynced = onlineRole === "host";
   gameStarted = true;
   setupOverlay.hidden = true;
   document.body.classList.remove("is-setting-up");
   render();
 
+  const attempt = onlineAttemptId;
   window.setTimeout(() => {
-    if (onlineRole === "host") sendOnlineState();
-    else void onlineSession?.send({ type: "state-request" });
+    if (attempt === onlineAttemptId && gameStarted) requestOnlineState();
   }, 0);
 }
 
@@ -188,6 +240,8 @@ function closeOnlineSession({ clearRoom = true } = {}) {
   onlineSession = null;
   onlineConnecting = false;
   onlinePeerConnected = false;
+  onlineSynced = false;
+  clearOnlinePending();
   onlineRole = null;
   if (clearRoom) {
     onlineRoomCode = "";
@@ -239,49 +293,40 @@ function cancelCpuTurn() {
 
 function moveTo(index) {
   if (!canHumanPlay()) return;
-  if (!getValidMoves(board, currentPlayer).has(index)) return;
-  commitMove(index);
+  const kind = selectedCard ?? "place";
+  if (!getActionTargets(matchState(), kind).has(index)) return;
+  if (gameMode === "online" && onlineRole === "guest") {
+    sendOnlineAction({ kind, index });
+    return;
+  }
+  commitMove(index, { kind });
 }
 
-function commitMove(index, { broadcast = true } = {}) {
+function commitMove(index, { broadcast = true, kind = "place" } = {}) {
   const movingPlayer = currentPlayer;
-  const nextBoard = applyMove(board, index, movingPlayer);
-  if (!nextBoard) return false;
+  const next = applyAction(matchState(), { kind, index });
+  if (!next) return false;
 
   history.push(snapshot());
-  board = nextBoard;
+  board = next.board;
+  hands = next.hands;
+  currentPlayer = next.currentPlayer;
+  turnCount = next.turnCount;
+  selectedCard = null;
+  if (kind !== "place") lastCardAction = { kind, index, player: movingPlayer };
   lastMove = index;
   passNotice = "";
 
-  const nextPlayer = opponent(movingPlayer);
-  const nextMoves = getValidMoves(board, nextPlayer);
-
-  if (nextMoves.size > 0) {
-    currentPlayer = nextPlayer;
-  } else if (getValidMoves(board, movingPlayer).size > 0) {
-    currentPlayer = movingPlayer;
-    passNotice = `${hamsterName(nextPlayer)}は置ける場所がないから、おやすみだよ`;
-  }
+  if (!gameOver() && currentPlayer === movingPlayer)
+    passNotice = `${hamsterName(opponent(movingPlayer))}は${ruleMode === "cards" ? "カードでも動けないから" : "置ける場所がないから"}、おやすみだよ`;
 
   if (gameMode === "online") onlineRevision += 1;
-  render();
 
-  if (gameMode === "online" && broadcast) {
-    void onlineSession?.send({
-      type: "move",
-      index,
-      player: movingPlayer,
-      revision: onlineRevision,
-    });
-  }
-
-  if (
-    !isGameOver(board) &&
-    gameMode === "cpu" &&
-    currentPlayer === getCpuPlayer()
-  ) {
+  if (!gameOver() && gameMode === "cpu" && currentPlayer === getCpuPlayer()) {
     scheduleCpuTurn();
-  }
+  } else render();
+
+  if (gameMode === "online" && broadcast) sendOnlineState();
   return true;
 }
 
@@ -294,9 +339,8 @@ function scheduleCpuTurn() {
   cpuTimer = window.setTimeout(() => {
     cpuTimer = null;
     cpuIsThinking = false;
-    const cpuPlayer = getCpuPlayer();
-    const move = chooseCpuMove(board, cpuPlayer, cpuDifficulty);
-    if (move !== null) commitMove(move);
+    const action = chooseCpuAction(matchState(), cpuDifficulty);
+    if (action !== null) commitMove(action.index, { kind: action.kind });
   }, THINK_DELAYS[cpuDifficulty]);
 }
 
@@ -306,11 +350,7 @@ function undo() {
   cancelCpuTurn();
   let previous = history.pop();
 
-  while (
-    gameMode === "cpu" &&
-    previous.currentPlayer !== humanPlayer &&
-    history.length > 0
-  ) {
+  while (gameMode === "cpu" && previous.currentPlayer !== humanPlayer && history.length > 0) {
     previous = history.pop();
   }
 
@@ -325,7 +365,7 @@ function getStatusCopy() {
 
   const counts = countStones(board);
 
-  if (isGameOver(board)) {
+  if (gameOver()) {
     if (counts.black === counts.white) {
       return { title: "なかよく引き分け！", hint: "ぴったり同じ数になったよ。もういっかい？" };
     }
@@ -337,7 +377,7 @@ function getStatusCopy() {
     };
   }
 
-  if (gameMode === "online" && !onlinePeerConnected) {
+  if (gameMode === "online" && (!onlinePeerConnected || !onlineSynced || onlinePending)) {
     return {
       title: "相手との通信を待っているよ",
       hint: "つながるまで、そのまま少し待ってね",
@@ -359,16 +399,27 @@ function getStatusCopy() {
     title = `${turnName}（${currentPlayer === humanPlayer ? "あなた" : "相手"}）の番だよ`;
   }
 
-  return {
-    title,
-    hint: passNotice || "丸のあるマスに、ぽちっと置いてね",
-  };
+  const hint =
+    selectedCard === "anywhere"
+      ? "あいている光るマスに、ぽん！ これで1手だよ。"
+      : selectedCard === "flip"
+        ? "光っている相手のハムを、1こえらんでね。"
+        : getValidMoves(board, currentPlayer).size
+          ? "丸のあるマスに、ぽちっと置いてね"
+          : "いつもの手では置けないよ。カードをえらんでね。";
+  return { title, hint: passNotice ? `${passNotice}。${hint}` : hint };
 }
 
 function renderBoard() {
-  const validMoves = getValidMoves(board, currentPlayer);
-  const showMoves = canHumanPlay() && !isGameOver(board);
+  const kind = selectedCard ?? "place";
+  const validMoves = getActionTargets(matchState(), kind);
+  const showMoves = canHumanPlay();
+  boardElement.dataset.action = kind;
   const fragment = document.createDocumentFragment();
+  const cardKey = lastCardAction
+    ? `${lastCardAction.player}-${lastCardAction.kind}-${lastCardAction.index}`
+    : null;
+  const revealCard = cardKey !== lastRenderedCardKey;
 
   board.forEach((cell, index) => {
     const row = Math.floor(index / BOARD_SIZE);
@@ -392,7 +443,28 @@ function renderBoard() {
       disc.className = `disc disc--${cell === BLACK ? "black" : "white"}`;
       disc.setAttribute("aria-hidden", "true");
       button.append(disc);
-      button.setAttribute("aria-label", `${row + 1}行${column + 1}列、${stoneName(cell)}`);
+      button.setAttribute(
+        "aria-label",
+        `${row + 1}行${column + 1}列、${stoneName(cell)}${isValid && kind === "flip" ? "、くるんカードで返せます" : ""}`,
+      );
+    }
+
+    if (lastCardAction?.index === index) {
+      const card = CARDS[lastCardAction.kind];
+      button.classList.add("is-card-action");
+      const marker = document.createElement("span");
+      marker.className = `card-marker card-marker--${lastCardAction.kind}`;
+      if (revealCard) marker.classList.add("is-revealing");
+      marker.setAttribute("aria-hidden", "true");
+      const icon = document.createElement("span");
+      icon.className = "card-marker-icon";
+      icon.textContent = card.icon;
+      marker.append(icon);
+      button.append(marker);
+      button.setAttribute(
+        "aria-label",
+        `${button.getAttribute("aria-label")}、最後に${card.name}を使ったマス`,
+      );
     }
 
     button.addEventListener("click", () => moveTo(index));
@@ -400,6 +472,7 @@ function renderBoard() {
   });
 
   boardElement.replaceChildren(fragment);
+  lastRenderedCardKey = cardKey;
 }
 
 function playerSuffix(player) {
@@ -424,12 +497,12 @@ function renderCharacterImages(counts, ended) {
 function render() {
   const counts = countStones(board);
   const status = getStatusCopy();
-  const ended = gameStarted && isGameOver(board);
+  const ended = gameStarted && gameOver();
 
   renderBoard();
   blackScoreElement.textContent = String(counts.black);
   whiteScoreElement.textContent = String(counts.white);
-  moveCounterElement.textContent = `${counts.black + counts.white} / 64 こま`;
+  moveCounterElement.textContent = `${turnCount}手 · ${counts.black + counts.white} / 64 こま`;
   turnStatusElement.textContent = status.title;
   gameHintElement.textContent = status.hint;
   renderCharacterImages(counts, ended);
@@ -444,6 +517,8 @@ function render() {
     modeLabelElement.textContent = "たくハム VS めぐハム";
     gameSettingsLabelElement.textContent = "ふたりで対戦";
   }
+  gameSettingsLabelElement.textContent += ` · ${RULE_LABELS[ruleMode]}`;
+  renderCards();
 
   const blackSuffix = playerSuffix(BLACK);
   const whiteSuffix = playerSuffix(WHITE);
@@ -455,7 +530,61 @@ function render() {
   whiteScoreCard.classList.toggle("is-current", !ended && currentPlayer === WHITE);
 }
 
+function renderCards() {
+  cardPanel.hidden = !gameStarted || ruleMode !== "cards";
+  cardRulesDetails.hidden = ruleMode !== "cards";
+  cardPanelTitle.textContent = `${hamsterName(currentPlayer)}の とっておき`;
+  for (const player of [BLACK, WHITE]) {
+    const stock = document.querySelector(
+      player === BLACK ? "#black-card-stock" : "#white-card-stock",
+    );
+    stock.textContent = `${hamsterName(player)}：どこでも ${hands[player].anywhere}枚 ／ くるん ${hands[player].flip}枚`;
+    stock.classList.toggle("is-current", currentPlayer === player);
+  }
+  for (const button of cardButtons) {
+    const kind = button.dataset.card,
+      count = hands[currentPlayer][kind];
+    button.disabled = !canHumanPlay() || !getActionTargets(matchState(), kind).size;
+    button.classList.toggle("is-used", count === 0);
+    button.classList.toggle("is-selected", selectedCard === kind);
+    button.setAttribute("aria-pressed", String(selectedCard === kind));
+    button.setAttribute(
+      "aria-label",
+      `${CARDS[kind].name}。${CARDS[kind].description} ${count ? "のこり1枚" : "つかったよ"}`,
+    );
+    button.querySelector(".card-remaining").textContent = count
+      ? selectedCard === kind
+        ? "えらんでいるよ"
+        : "のこり1枚"
+      : "つかったよ";
+  }
+  cancelCardButton.hidden = !selectedCard;
+  cardInstruction.textContent = gameOver()
+    ? "おしまい！ のこったカードは、また次の対局で。"
+    : !canHumanPlay()
+      ? "相手の番は、ちょっと待ってね。"
+      : selectedCard
+        ? `${CARDS[selectedCard].description} マスを決めるまでは取り消せるよ。`
+        : getValidMoves(board, currentPlayer).size
+          ? "使いたいときにカードをえらんで、光るマスをぽちっ。"
+          : "いつもの手はおやすみ。使えるカードをえらんでね。";
+  lastCardElement.hidden = !lastCardAction;
+  lastCardElement.textContent = lastCardAction
+    ? `${hamsterName(lastCardAction.player)}が${CARDS[lastCardAction.kind].name}をつかったよ`
+    : "";
+}
+
 function syncControls() {
+  const joining = gameMode === "online" && onlineAction === "join";
+  ruleSetup.hidden = joining;
+  joinRuleNote.hidden = !joining;
+  setupCardGuide.hidden = ruleMode !== "cards";
+  ruleButtons.forEach((button) => {
+    const active = button.dataset.rule === ruleMode;
+    button.classList.toggle("is-selected", active);
+    button.setAttribute("aria-pressed", String(active));
+    button.disabled = onlineConnecting;
+  });
   modeButtons.forEach((button) => {
     const isActive = button.dataset.mode === gameMode;
     button.classList.toggle("is-active", isActive);
@@ -493,7 +622,8 @@ function syncControls() {
     section.hidden = gameMode !== "cpu";
   });
   hamsterSetup.hidden = !(
-    gameMode === "cpu" || (gameMode === "online" && onlineAction === "create")
+    gameMode === "cpu" ||
+    (gameMode === "online" && onlineAction === "create")
   );
   localSetup.hidden = gameMode !== "local";
   onlineSetup.hidden = gameMode !== "online";
@@ -535,84 +665,121 @@ function chooseOnlineAction(nextAction) {
   if (nextAction === "join") roomCodeInput.focus();
 }
 
-function validSyncedBoard(candidate) {
-  return (
-    Array.isArray(candidate) &&
-    candidate.length === BOARD_SIZE * BOARD_SIZE &&
-    candidate.every((cell) => cell === EMPTY || cell === BLACK || cell === WHITE)
-  );
+function clearOnlinePending() {
+  if (onlinePendingTimer !== null) window.clearTimeout(onlinePendingTimer);
+  onlinePendingTimer = null;
+  onlinePending = false;
 }
 
 function sendOnlineState() {
   if (!onlineSession || onlineRole !== "host") return;
-  void onlineSession.send({
-    type: "state",
-    board: [...board],
-    currentPlayer,
-    lastMove,
-    passNotice,
-    revision: onlineRevision,
-  });
+  void onlineSession
+    .send({ type: "state", version: ONLINE_VERSION, ...snapshot(), revision: onlineRevision })
+    .catch(() => {});
 }
 
 function requestOnlineState() {
   if (onlineRole === "guest") {
-    void onlineSession?.send({ type: "state-request" });
-  } else {
-    sendOnlineState();
+    void onlineSession?.send({ type: "state-request", version: ONLINE_VERSION }).catch(() => {});
+  } else sendOnlineState();
+}
+
+async function sendOnlineAction(action) {
+  if (!canHumanPlay() || onlineRole !== "guest" || !onlineSession) return;
+  const attempt = onlineAttemptId;
+  onlinePending = true;
+  selectedCard = null;
+  render();
+  onlinePendingTimer = window.setTimeout(() => {
+    if (attempt !== onlineAttemptId) return;
+    clearOnlinePending();
+    onlineSynced = false;
+    requestOnlineState();
+    render();
+  }, 4000);
+  try {
+    const delivered = await onlineSession.send({
+      type: "action",
+      version: ONLINE_VERSION,
+      ruleMode,
+      action,
+      player: currentPlayer,
+      revision: onlineRevision + 1,
+    });
+    if (!delivered && attempt === onlineAttemptId && onlinePending) {
+      clearOnlinePending();
+      onlineSynced = false;
+      requestOnlineState();
+      render();
+    }
+  } catch {
+    if (attempt === onlineAttemptId) {
+      clearOnlinePending();
+      onlineSynced = false;
+      requestOnlineState();
+      render();
+    }
   }
 }
 
 function handleOnlineMessage(message) {
-  if (!gameStarted) return;
-
+  if (!gameStarted || message?.version !== ONLINE_VERSION) return;
   if (message.type === "state-request") {
     sendOnlineState();
     return;
   }
-
   if (message.type === "state") {
     if (
       onlineRole !== "guest" ||
-      !validSyncedBoard(message.board) ||
-      ![BLACK, WHITE].includes(message.currentPlayer) ||
-      !Number.isInteger(message.revision) ||
+      message.senderRole !== "host" ||
       message.revision < onlineRevision
-    ) {
+    )
       return;
-    }
-    board = [...message.board];
-    currentPlayer = message.currentPlayer;
-    lastMove = Number.isInteger(message.lastMove) ? message.lastMove : null;
-    passNotice = typeof message.passNotice === "string" ? message.passNotice : "";
+    const state = parseOnlineState(message);
+    if (!state) return;
+    const card = message.lastCardAction;
+    const validCard =
+      card &&
+      Object.hasOwn(CARDS, card.kind) &&
+      [BLACK, WHITE].includes(card.player) &&
+      Number.isInteger(card.index) &&
+      card.index >= 0 &&
+      card.index < 64;
+    restore({
+      ...state,
+      lastMove:
+        Number.isInteger(message.lastMove) && message.lastMove >= 0 && message.lastMove < 64
+          ? message.lastMove
+          : null,
+      lastCardAction: validCard
+        ? { kind: card.kind, index: card.index, player: card.player }
+        : null,
+      passNotice: typeof message.passNotice === "string" ? message.passNotice.slice(0, 200) : "",
+    });
     onlineRevision = message.revision;
     history = [];
+    onlineSynced = true;
+    clearOnlinePending();
     render();
     return;
   }
-
-  if (message.type !== "move") return;
-  const isExpectedMove =
-    Number.isInteger(message.index) &&
-    message.index >= 0 &&
-    message.index < BOARD_SIZE * BOARD_SIZE &&
+  if (message.type !== "action" || onlineRole !== "host" || message.senderRole !== "guest") return;
+  const expected =
+    message.ruleMode === ruleMode &&
     message.player === currentPlayer &&
     message.player === opponent(humanPlayer) &&
     message.revision === onlineRevision + 1 &&
-    getValidMoves(board, currentPlayer).has(message.index);
-
-  if (!isExpectedMove) {
-    requestOnlineState();
-    return;
-  }
-
-  if (commitMove(message.index, { broadcast: false }) && onlineRole === "host") {
-    sendOnlineState();
-  }
+    applyAction(matchState(), message.action);
+  if (expected) commitMove(message.action.index, { kind: message.action.kind, broadcast: false });
+  // Both accepted and stale requests receive the authoritative result. A
+  // duplicate request cannot spend another card or count as another turn.
+  sendOnlineState();
 }
 
 function handleOnlineError(error, attemptId) {
   if (attemptId !== onlineAttemptId) return;
+  clearOnlinePending();
+  onlineSynced = false;
   onlineConnecting = false;
   onlinePeerConnected = false;
   gameStarted = false;
@@ -633,9 +800,7 @@ async function startOnlineFlow() {
   const attemptId = onlineAttemptId;
   onlineRole = onlineAction === "create" ? "host" : "guest";
   onlineRoomCode =
-    onlineRole === "host"
-      ? generateRoomCode()
-      : normalizeRoomCode(roomCodeInput.value);
+    onlineRole === "host" ? generateRoomCode() : normalizeRoomCode(roomCodeInput.value);
 
   if (!/^HAMU-[A-Z2-9]{6}$/.test(onlineRoomCode)) {
     setOnlineStatus("キーワードを確認してね。例：HAMU-ABC234", "error");
@@ -649,9 +814,7 @@ async function startOnlineFlow() {
   roomCodeDisplay.textContent = onlineRoomCode;
   onlineRoomCard.hidden = onlineRole !== "host";
   setOnlineStatus(
-    onlineRole === "host"
-      ? "へやをつくっています…"
-      : "キーワードのへやを探しています…",
+    onlineRole === "host" ? "へやをつくっています…" : "キーワードのへやを探しています…",
   );
   syncControls();
 
@@ -660,18 +823,26 @@ async function startOnlineFlow() {
       role: onlineRole,
       roomCode: onlineRoomCode,
       hostPlayer: humanPlayer,
-      onReady: ({ localPlayer }) => {
+      ruleMode,
+      onReady: ({ localPlayer, ruleMode: sessionRules }) => {
         window.setTimeout(() => {
           if (attemptId !== onlineAttemptId) return;
           setOnlineStatus("ふたりがそろったよ。対局スタート！", "success");
-          startOnlineGame(localPlayer);
+          startOnlineGame(localPlayer, sessionRules);
         }, 0);
       },
-      onMessage: (message) => handleOnlineMessage(message),
+      onMessage: (message) => {
+        if (attemptId === onlineAttemptId) handleOnlineMessage(message);
+      },
       onPeerChange: (connected) => {
         window.setTimeout(() => {
           if (attemptId !== onlineAttemptId) return;
           onlinePeerConnected = connected;
+          if (!connected && onlineRole === "guest") {
+            onlineSynced = false;
+            clearOnlinePending();
+            selectedCard = null;
+          }
           if (connected && gameStarted) requestOnlineState();
           if (gameStarted) render();
         }, 0);
@@ -688,7 +859,7 @@ async function startOnlineFlow() {
     onlineSession = session;
     setOnlineStatus(
       onlineRole === "host"
-        ? "キーワードを相手に送って、ここで待ってね。"
+        ? `${RULE_LABELS[ruleMode]}のへやだよ。キーワードを相手に送って、ここで待ってね。`
         : "へやが見つかるまで、少し待ってね。",
     );
   } catch (error) {
@@ -739,15 +910,57 @@ function handleBoardKeys(event) {
   if (!offset) return;
 
   const currentIndex = Number(activeCell.dataset.index);
-  const nextIndex = currentIndex + offset;
+  let nextIndex = currentIndex + offset;
   const crossesRow =
     (event.key === "ArrowLeft" && currentIndex % BOARD_SIZE === 0) ||
     (event.key === "ArrowRight" && currentIndex % BOARD_SIZE === BOARD_SIZE - 1);
 
   if (nextIndex < 0 || nextIndex >= BOARD_SIZE * BOARD_SIZE || crossesRow) return;
   event.preventDefault();
-  boardElement.querySelector(`[data-index="${nextIndex}"]`)?.focus();
+  while (nextIndex >= 0 && nextIndex < 64) {
+    if (Math.abs(offset) === 1 && Math.floor(nextIndex / 8) !== Math.floor(currentIndex / 8)) break;
+    const cell = boardElement.querySelector(`[data-index="${nextIndex}"]`);
+    if (cell && !cell.disabled) {
+      cell.focus();
+      break;
+    }
+    nextIndex += offset;
+  }
 }
+
+function cancelCard() {
+  const kind = selectedCard;
+  selectedCard = null;
+  render();
+  if (kind) document.querySelector(`[data-card="${kind}"]`)?.focus({ preventScroll: true });
+}
+
+ruleButtons.forEach((button) =>
+  button.addEventListener("click", () => {
+    if (onlineConnecting || gameStarted) return;
+    ruleMode = button.dataset.rule;
+    resetBoard();
+    syncControls();
+    render();
+  }),
+);
+cardButtons.forEach((button) =>
+  button.addEventListener("click", (event) => {
+    const kind = button.dataset.card;
+    if (!canHumanPlay() || !getActionTargets(matchState(), kind).size) return;
+    selectedCard = selectedCard === kind ? null : kind;
+    render();
+    if (event.detail === 0 && selectedCard)
+      boardElement.querySelector(".cell.is-valid")?.focus({ preventScroll: true });
+  }),
+);
+cancelCardButton.addEventListener("click", cancelCard);
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && selectedCard) {
+    event.preventDefault();
+    cancelCard();
+  }
+});
 
 newGameButton.addEventListener("click", openSetup);
 undoButton.addEventListener("click", undo);

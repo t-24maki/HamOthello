@@ -45,6 +45,9 @@ export async function createOnlineSession({
   roomCode,
   hostPlayer,
   ruleMode = "classic",
+  channelPrefix = "punitto-othello",
+  protocolVersion = ONLINE_VERSION,
+  supportedRules = Object.keys(RULE_LABELS),
   clientFactory,
   onReady = () => {},
   onMessage = () => {},
@@ -77,7 +80,7 @@ export async function createOnlineSession({
   let closed = false;
   let hostLookupTimer = null;
 
-  const channel = client.channel(`punitto-othello:${normalizedRoomCode}`, {
+  const channel = client.channel(`${channelPrefix}:${normalizedRoomCode}`, {
     config: {
       private: false,
       broadcast: { ack: true, self: false },
@@ -142,7 +145,7 @@ export async function createOnlineSession({
     }
 
     const peer = people.find((person) => person.clientId === peerId);
-    if (peer && (peer.version !== ONLINE_VERSION || !Object.hasOwn(RULE_LABELS, peer.ruleMode))) {
+    if (peer && (peer.version !== protocolVersion || !supportedRules.includes(peer.ruleMode))) {
       onError(
         new Error(
           "ゲームの版がちがうみたい。ふたりともページを読み込み直して、へやをつくり直してね。",
@@ -192,7 +195,7 @@ export async function createOnlineSession({
             role,
             player: role === "host" ? hostPlayer : null,
             ruleMode,
-            version: ONLINE_VERSION,
+            version: protocolVersion,
             joinedAt,
           });
           settled = true;
@@ -211,6 +214,9 @@ export async function createOnlineSession({
         settled = true;
         window.clearTimeout(connectTimer);
         reject(new Error("通信サーバーにつながりませんでした。設定と回線を確認してね。"));
+        void close();
+      } else if (settled && !closed && ["TIMED_OUT", "CHANNEL_ERROR", "CLOSED"].includes(status)) {
+        onError(new Error("通信が切れたみたい。へやをつくり直してね。"));
         void close();
       }
     });

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#fff9ef" />
+    <meta
+      name="description"
+      content="金・銀・銅の27枚で遊ぶミニポーカー。3枚の手札を1回チェンジして、たくハムとめぐハムで役くらべ。"
+    />
+    <title>ミニポーカー — たくめぐのあそびば</title>
+    <link rel="stylesheet" href="./style.css?v=poker-design-20260909" />
+    <link rel="stylesheet" href="../game-menu.css" />
+  </head>
+  <body>
+    <nav class="game-menu" aria-label="ゲーム一覧"><a href="../">← ゲーム一覧へ</a></nav>
+    <main class="poker-page">
+      <header class="page-heading">
+        <div class="heading-friends" aria-hidden="true">
+          <img src="../assets/pink-piece.png" alt="" /><img
+            src="../assets/cream-piece.png"
+            alt=""
+          />
+        </div>
+        <div>
+          <p class="eyebrow">TAKHAM × MEGHAM</p>
+          <h1>ミニポーカー</h1>
+        </div>
+        <span class="deck-tag"><span aria-hidden="true">✦</span> きょうも のんびり</span>
+      </header>
+
+      <section id="setup" class="setup-card" aria-labelledby="setup-title">
+        <div class="setup-intro">
+          <p class="setup-kicker">たくハムと めぐハムの</p>
+          <h2 id="setup-title">ミニ<span>ポーカー</span></h2>
+          <p class="setup-lead">3枚で、ちいさな運だめし。<br />どんな役ができるかな？</p>
+        </div>
+        <div class="setup-visual" role="img" aria-label="カードを並べて遊ぶ、たくハムとめぐハム">
+          <div class="visual-blob" aria-hidden="true"></div>
+          <span class="visual-spark spark-one" aria-hidden="true">✦</span>
+          <span class="visual-spark spark-two" aria-hidden="true">♡</span>
+          <span class="visual-bubble" aria-hidden="true">いい手、こないかな？</span>
+          <div class="poker-friend friend-taku" aria-hidden="true">
+            <img src="../assets/pink-piece.png" alt="" width="280" height="280" />
+            <strong>たくハム</strong>
+          </div>
+          <div class="poker-friend friend-megu" aria-hidden="true">
+            <img src="../assets/cream-piece.png" alt="" width="280" height="280" />
+            <strong>めぐハム</strong>
+          </div>
+          <div class="mini-table" aria-hidden="true">
+            <div class="sample-hand">
+              <span class="mini-card gold">7<small>金</small></span>
+              <span class="mini-card silver">7<small>銀</small></span>
+              <span class="mini-card bronze">7<small>銅</small></span>
+            </div>
+            <span class="table-sign">✦ MINI POKER ✦</span>
+          </div>
+        </div>
+        <div class="setup-controls">
+          <p class="choice-label">だれと あそぶ？</p>
+          <div class="mode-choices" role="group" aria-label="対戦相手を選ぶ">
+            <button type="button" class="mode-choice selected" data-mode="cpu" aria-pressed="true">
+              <span class="mode-icon" aria-hidden="true">☁</span>
+              <strong>CPU対戦</strong><span>めぐハムと、役くらべ</span>
+            </button>
+            <button type="button" class="mode-choice" data-mode="online" aria-pressed="false">
+              <span class="mode-icon" aria-hidden="true">✦</span>
+              <strong>通信対戦</strong><span>別々の画面で、ふたりで</span>
+            </button>
+          </div>
+          <div id="online-setup" class="online-setup" hidden>
+            <div class="room-choices" role="group" aria-label="通信対戦の参加方法">
+              <button type="button" data-room-action="create" class="selected" aria-pressed="true">
+                へやをつくる
+              </button>
+              <button type="button" data-room-action="join" aria-pressed="false">へやに入る</button>
+            </div>
+            <div id="join-fields" hidden>
+              <label for="room-input">相手から教えてもらったキーワード</label
+              ><input
+                id="room-input"
+                type="text"
+                maxlength="11"
+                placeholder="HAMU-ABC234"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+              />
+            </div>
+            <div id="room-waiting" class="room-waiting" hidden>
+              <p>ふたりのへやのキーワード</p>
+              <output id="room-display"></output
+              ><button id="copy-room" type="button">コピーする</button>
+            </div>
+            <p id="online-status" role="status"></p>
+          </div>
+          <button id="deal" type="button" class="primary-button">
+            カードを配る <span aria-hidden="true">→</span>
+          </button>
+          <button id="cancel-connection" type="button" class="cancel-connection" hidden>
+            待つのをやめる
+          </button>
+        </div>
+      </section>
+
+      <section id="game" class="game-table" aria-label="ミニポーカーの対局" hidden>
+        <div class="table-top">
+          <div><span id="mode-label"></span><small id="table-room-code"></small></div>
+          <button type="button" id="settings" class="text-button">メニューへ</button>
+        </div>
+        <div id="play-area">
+          <section id="opponent" class="hand-panel opponent" aria-labelledby="opponent-name">
+            <div class="player-heading">
+              <img
+                id="opponent-image"
+                src="../assets/cream-piece.png"
+                alt=""
+                width="48"
+                height="48"
+              />
+              <div>
+                <h2 id="opponent-name"></h2>
+                <p id="opponent-status"></p>
+              </div>
+              <span id="opponent-role" class="role-pill" hidden></span>
+            </div>
+            <div id="opponent-hand" class="hand" aria-label="相手の手札"></div>
+          </section>
+
+          <div class="table-center">
+            <div class="pile-holder">
+              <div id="draw-pile" class="pile-stack" aria-hidden="true">
+                <div class="playing-card card-back"><span>✦</span></div>
+              </div>
+              <span class="pile-label">山札 <b id="deck-count">21</b></span>
+            </div>
+            <div class="turn-banner" role="status">
+              <span class="table-ornament" aria-hidden="true">✧ ─ ✦ ─ ✧</span>
+              <h2 id="turn-title" tabindex="-1"></h2>
+              <p id="turn-hint"></p>
+            </div>
+            <div class="pile-holder">
+              <div id="discard-pile" class="discard-slot" aria-hidden="true">
+                <div id="discard-back" class="playing-card card-back" hidden><span>✦</span></div>
+              </div>
+              <span class="pile-label">交換ずみ <b id="discard-count">0</b></span>
+            </div>
+          </div>
+
+          <section id="self" class="hand-panel self" aria-labelledby="self-name">
+            <div class="player-heading">
+              <img id="self-image" src="../assets/pink-piece.png" alt="" width="48" height="48" />
+              <div>
+                <h2 id="self-name"></h2>
+                <p id="self-status"></p>
+              </div>
+              <span id="self-role" class="role-pill"></span>
+            </div>
+            <div id="self-hand" class="hand" aria-label="自分の手札"></div>
+          </section>
+
+          <div id="table-actions" class="table-actions">
+            <p id="selection-note" role="status"></p>
+            <button id="main-action" type="button" class="primary-button">この3枚で勝負</button>
+          </div>
+        </div>
+        <div id="card-flight-layer" aria-hidden="true"></div>
+      </section>
+
+      <details class="rules" id="rules">
+        <summary>あそびかた・役の強さ</summary>
+        <p>
+          2人に3枚ずつ配るよ。チェンジしたいカードをタップして、決まったらボタンを押そう。選んだカードはもう一度タップすると取り消せるよ。
+        </p>
+        <p>
+          チェンジはひとり1回、0〜3枚。交換したカードは、この勝負では山札に戻らないよ。2人とも決めたら、手札をひらいて役くらべ！
+        </p>
+        <p>
+          通信対戦は「へやをつくる」でキーワードを相手に教えてね。相手が「へやに入る」で入力すると始まるよ。それぞれの画面でチェンジして、ふたりとも「準備OK！」で手札をひらこう。
+        </p>
+        <h2>上ほど強いよ</h2>
+        <ol class="role-list">
+          <li><strong>スリーカード</strong><span>同じ数字が3枚</span><small>7・7・7</small></li>
+          <li>
+            <strong>ストレートフラッシュ</strong><span>同じ色で、数字が3つ続く</span
+            ><small>金の5・6・7</small>
+          </li>
+          <li><strong>ストレート</strong><span>数字が3つ続く</span><small>3・4・5</small></li>
+          <li>
+            <strong>フラッシュ</strong><span>金・銀・銅のどれかで3枚そろう</span
+            ><small>銀の2・5・8</small>
+          </li>
+          <li><strong>ワンペア</strong><span>同じ数字が2枚</span><small>4・4・9</small></li>
+          <li>
+            <strong>役なし</strong><span>どの役にもあてはまらない</span><small>1・4・8</small>
+          </li>
+        </ol>
+        <p>数字のつながりは1・2・3から7・8・9まで。8・9・1のようにはつながらないよ。</p>
+        <p id="tie-rule">
+          <strong>同じ役なら、役を作る数字をくらべるよ。</strong
+          >ワンペアはペアの数字が大きい方の勝ち。「8・8・1」は「2・2・9」より強いよ。それ以外の役は、いちばん大きい数字でくらべるよ。
+        </p>
+        <p>
+          くらべる数字も同じなら、その数字のカードが<strong>金 ＞ 銀 ＞ 銅</strong>の順で強いよ。
+        </p>
+      </details>
+      <footer>どんな手札でも、のんびりいこう。</footer>
+    </main>
+    <script type="module" src="./game.js?v=poker-online-20260908"></script>
+  </body>
+</html>

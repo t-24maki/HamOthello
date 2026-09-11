@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#fff8ef" />
+    <meta
+      name="description"
+      content="たくハムとめぐハムの、たべものしりとり。食べ物と飲み物だけで言葉をつなごう。1台で交代・通信対戦に対応。"
+    />
+    <title>たべものしりとり — たくめぐのあそびば</title>
+    <link rel="stylesheet" href="./style.css?v=20260909-arrow" />
+    <link rel="stylesheet" href="../game-menu.css" />
+  </head>
+  <body>
+    <nav class="game-menu" aria-label="ゲーム一覧"><a href="../">← ゲーム一覧へ</a></nav>
+    <main class="page">
+      <header class="page-heading">
+        <div class="brand">
+          <span class="brand-friends" aria-hidden="true"
+            ><img src="../assets/pink-piece.png" alt="" width="48" height="48" /><img
+              src="../assets/cream-piece.png"
+              alt=""
+              width="48"
+              height="48"
+          /></span>
+          <div><small>TAKHAM × MEGHAM</small><strong>たべものしりとり</strong></div>
+        </div>
+        <span class="header-note">おいしく、つなごう。</span>
+      </header>
+      <section id="setup" aria-labelledby="setup-title">
+        <div class="intro">
+          <p class="eyebrow">たくハムと めぐハムの</p>
+          <h1 id="setup-title">たべもの<span>しりとり</span></h1>
+          <p class="lead">りんご、ごま、まぐろ…<br />おいしい言葉、どこまでつながるかな？</p>
+        </div>
+        <div
+          class="hero-art"
+          role="img"
+          aria-label="りんご、ごま、と言葉をつなぐたくハムとめぐハム"
+        >
+          <div class="art-blob"></div>
+          <span class="spark" aria-hidden="true">✦</span>
+          <div class="friend taku" aria-hidden="true">
+            <span class="speech">りん<span>ご</span></span
+            ><img src="../assets/pink-piece.png" alt="" width="260" height="260" /><strong
+              >たくハム</strong
+            >
+          </div>
+          <span class="word-arrow" aria-hidden="true">↝</span>
+          <div class="friend megu" aria-hidden="true">
+            <span class="speech"><span>ご</span>ま</span
+            ><img src="../assets/cream-piece.png" alt="" width="260" height="260" /><strong
+              >めぐハム</strong
+            >
+          </div>
+        </div>
+        <div class="setup-controls">
+          <p class="choice-label">ふたりで、どうあそぶ？</p>
+          <div class="mode-choices" role="group" aria-label="遊び方を選ぶ">
+            <button type="button" data-mode="local" aria-pressed="true">
+              <strong>1台で交代</strong><small>同じ画面で、ふたりで</small></button
+            ><button type="button" data-mode="online" aria-pressed="false">
+              <strong>通信対戦</strong><small>別々の画面で、ふたりで</small>
+            </button>
+          </div>
+          <div id="online-setup" hidden>
+            <div class="room-choices" role="group" aria-label="部屋への参加方法">
+              <button type="button" data-room="create" aria-pressed="true">へやをつくる</button
+              ><button type="button" data-room="join" aria-pressed="false">へやに入る</button>
+            </div>
+            <div id="join-fields" hidden>
+              <label for="room-input">相手から教えてもらったキーワード</label
+              ><input
+                id="room-input"
+                type="text"
+                maxlength="11"
+                placeholder="HAMU-ABC234"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+              />
+            </div>
+            <div id="room-waiting" hidden>
+              <p>ふたりのへやのキーワード</p>
+              <output id="room-code"></output
+              ><button id="copy-room" type="button">コピーする</button>
+            </div>
+            <p id="online-status" role="status"></p>
+          </div>
+          <button class="primary" id="start" type="button">しりとりをはじめる →</button
+          ><button class="quiet" id="cancel-connect" type="button" hidden>待つのをやめる</button>
+          <p class="start-note">ひとりの番は30秒。最初は好きな言葉から！</p>
+        </div>
+      </section>
+      <section id="game" aria-label="しりとりの対戦" hidden>
+        <div class="game-top">
+          <div><strong id="mode-label"></strong><small id="game-room"></small></div>
+          <div
+            id="turn-clock"
+            class="turn-clock"
+            role="timer"
+            aria-live="off"
+            aria-label="残り30秒"
+          >
+            <div>
+              <small id="clock-label">あと</small><strong id="time-left">30</strong><span>秒</span>
+            </div>
+            <progress id="time-bar" max="30" value="30" aria-hidden="true"></progress>
+          </div>
+          <button type="button" id="leave" class="quiet">メニューへ</button>
+        </div>
+        <p id="timer-warning" class="screen-reader-only" role="status"></p>
+        <div id="picnic-scene" class="picnic-scene">
+          <p id="turn-label" class="scene-turn" aria-live="polite"></p>
+          <div class="scene-garden" aria-hidden="true">
+            <span class="garden-flower flower-left">✿</span>
+            <span class="garden-flower flower-right">✿</span>
+            <span class="picnic-cloth"></span>
+            <span class="snack-plate"><i></i><i></i><i></i></span>
+          </div>
+          <div class="players">
+            <section id="player-0" class="player" aria-labelledby="player-name-0">
+              <div class="ham-speech"><span id="player-speech-0"></span></div>
+              <div class="ham-portrait">
+                <span class="ham-shadow" aria-hidden="true"></span>
+                <div class="ham-motion">
+                  <img
+                    id="player-image-0"
+                    src="../assets/pink-piece.png"
+                    alt="たくハム"
+                    width="200"
+                    height="200"
+                  />
+                </div>
+                <span class="mood-mark" aria-hidden="true">✦</span>
+              </div>
+              <div class="player-caption">
+                <h2 id="player-name-0">たくハム</h2>
+                <p id="player-status-0"></p>
+              </div>
+            </section>
+            <section id="player-1" class="player megu-player" aria-labelledby="player-name-1">
+              <div class="ham-speech"><span id="player-speech-1"></span></div>
+              <div class="ham-portrait">
+                <span class="ham-shadow" aria-hidden="true"></span>
+                <div class="ham-motion">
+                  <img
+                    id="player-image-1"
+                    src="../assets/cream-piece.png"
+                    alt="めぐハム"
+                    width="200"
+                    height="200"
+                  />
+                </div>
+                <span class="mood-mark" aria-hidden="true">✦</span>
+              </div>
+              <div class="player-caption">
+                <h2 id="player-name-1">めぐハム</h2>
+                <p id="player-status-1"></p>
+              </div>
+            </section>
+          </div>
+        </div>
+        <div class="word-stage">
+          <div class="word-line">
+            <div class="last-word">
+              <h2 id="current-word">すきな言葉から</h2>
+              <p id="current-reading"></p>
+            </div>
+            <span class="join-arrow" aria-hidden="true">→</span>
+            <div class="next-sound">
+              <small id="next-label">はじめは</small><strong id="next-sound">？</strong>
+            </div>
+          </div>
+        </div>
+        <div class="action-zone">
+          <form id="word-form" novalidate>
+            <label for="word-input">食べ物・飲み物の名前</label>
+            <div class="input-row">
+              <input
+                id="word-input"
+                type="text"
+                maxlength="40"
+                placeholder="例：りんご"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                enterkeyhint="send"
+                aria-describedby="notice"
+              /><button id="send-word" class="primary" type="submit">つなぐ</button>
+            </div>
+            <p id="notice" role="status"></p>
+            <div class="input-footer">
+              <small>ひらがな・カタカナ・登録済みの漢字でOK</small
+              ><button id="giveup" class="quiet" type="button">まいった</button>
+            </div>
+          </form>
+          <div id="result" hidden>
+            <h2 id="result-title" tabindex="-1"></h2>
+            <p id="result-reason"></p>
+            <button type="button" id="rematch" class="primary">もういちどあそぶ ↻</button>
+            <p id="rematch-note" role="status"></p>
+          </div>
+        </div>
+        <section class="history-panel" aria-labelledby="history-title">
+          <header>
+            <h2 id="history-title">つながった言葉</h2>
+            <span id="word-count">0こ</span>
+          </header>
+          <ol id="history" aria-label="これまでの言葉" tabindex="0"></ol>
+          <p id="empty-history">最初のひとこと、なんにしよう？</p>
+        </section>
+      </section>
+      <details class="rules">
+        <summary>あそびかた</summary>
+        <ol>
+          <li>辞書にある食べ物・飲み物の名前を、交代で入力するよ。最初は好きな言葉から。</li>
+          <li>
+            前の言葉の、最後の文字からつなごう。辞書にない言葉や、はじめの文字が違う言葉は送れないよ。手番はそのまま、入れなおしてね。
+          </li>
+          <li>
+            一度出た言葉を送ると負け。「ん」で終わる言葉をつないでも負けだよ。「まいった」でも終われるよ。
+          </li>
+          <li>
+            ひとりの番は30秒。時間がなくなったら負けだよ。言葉がつながると、次の子の30秒が始まるよ。入れ直し中や別の画面を見ている間も、時間は進むよ。
+          </li>
+        </ol>
+        <p>
+          「ー」は直前の文字でつなぐよ（カレー →
+          れ）。最後が小さい文字なら、大きな文字にするよ（紅茶 → や）。濁点・半濁点はそのままだよ。
+        </p>
+        <p>
+          辞書で同じ食べ物にまとめた表記や別名は、同じ言葉として数えるよ。つなぐ文字は、入力した名前の読み方で決まるよ（牛乳
+          → う、ミルク → く）。
+        </p>
+        <p>
+          通信対戦は「へやをつくる」で表示したキーワードを相手に教えてね。相手が「へやに入る」で入力すると始まるよ。再戦はふたりとも「もういちどあそぶ」を押してね。
+        </p>
+      </details>
+      <details id="dictionary" class="dictionary">
+        <summary>たべもの辞書 <span id="dictionary-count"></span></summary>
+        <p>登録された名前を確認できるよ。別表記も同じ言葉にまとめているよ。</p>
+        <label for="dictionary-search">名前・読み方で探す</label
+        ><input
+          id="dictionary-search"
+          type="search"
+          placeholder="例：りんご、ジュース"
+          autocomplete="off"
+        />
+        <p id="search-count" role="status"></p>
+        <ul id="dictionary-list"></ul>
+      </details>
+      <footer>ことばをつないで、おなかもなかよく。</footer>
+    </main>
+    <dialog id="giveup-dialog" aria-labelledby="giveup-title">
+      <h2 id="giveup-title">「まいった」にする？</h2>
+      <p>この勝負は相手の勝ちになるよ。</p>
+      <div>
+        <button id="continue-game" type="button" class="quiet">もう少し考える</button
+        ><button id="confirm-giveup" type="button" class="primary">まいった！</button>
+      </div>
+    </dialog>
+    <script type="module" src="./game.js?v=20260909-1000words"></script>
+  </body>
+</html>

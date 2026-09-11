@@ -1,18 +1,27 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="theme-color" content="#fff9ef">
-    <meta name="description" content="たくハムとめぐハムと遊ぶ、ぷにっとオセロとたくめぐのおさんぽ。スマホでもパソコンでも、のんびり遊ぼう。">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#fff9ef" />
+    <meta
+      name="description"
+      content="たくハムとめぐハムと遊ぶ、ぷにっとオセロ・たくめぐのおさんぽ・ミニポーカー・たべものしりとり。スマホでもパソコンでも、のんびり遊ぼう。"
+    />
     <title>たくめぐのあそびば</title>
-    <link rel="stylesheet" href="./hub.css">
+    <link rel="stylesheet" href="./hub.css?v=20260909-shiritori" />
   </head>
   <body>
     <div class="wrap">
       <header class="masthead">
         <a class="brand" href="./" aria-label="たくめぐのあそびば ホーム">
-          <span class="friends" aria-hidden="true"><img src="./assets/pink-piece.png" alt="" width="43" height="43"><img src="./assets/cream-piece.png" alt="" width="43" height="43"></span>
+          <span class="friends" aria-hidden="true"
+            ><img src="./assets/pink-piece.png" alt="" width="43" height="43" /><img
+              src="./assets/cream-piece.png"
+              alt=""
+              width="43"
+              height="43"
+          /></span>
           <span>たくめぐのあそびば</span>
         </a>
         <span class="device-note">スマホでも、パソコンでも。</span>
@@ -22,12 +31,79 @@
         <p class="intro">たくハムとめぐハムと、のんびり遊ぼう。</p>
         <div class="games">
           <a class="game othello" href="./othello.html" aria-label="ぷにっとオセロで遊ぶ">
-            <div class="art" aria-hidden="true"><img src="./assets/pink-piece.png" alt="" width="165" height="165" decoding="async"><img src="./assets/cream-piece.png" alt="" width="165" height="165" decoding="async"></div>
-            <div class="copy"><span class="tag">CPU・2人・通信対戦</span><h2>ぷにっとオセロ</h2><p class="description">はさんで、くるん。<br>とっておきの「カードあり」も遊べるよ。</p><span class="play"><span>オセロであそぶ</span><span aria-hidden="true">→</span></span></div>
+            <div class="art" aria-hidden="true">
+              <img
+                src="./assets/pink-piece.png"
+                alt=""
+                width="165"
+                height="165"
+                decoding="async"
+              /><img
+                src="./assets/cream-piece.png"
+                alt=""
+                width="165"
+                height="165"
+                decoding="async"
+              />
+            </div>
+            <div class="copy">
+              <span class="tag">CPU・2人・通信対戦</span>
+              <h2>ぷにっとオセロ</h2>
+              <p class="description">
+                はさんで、くるん。<br />とっておきの「カードあり」も遊べるよ。
+              </p>
+              <span class="play"><span>オセロであそぶ</span><span aria-hidden="true">→</span></span>
+            </div>
           </a>
           <a class="game sanpo" href="./sanpo/" aria-label="たくめぐのおさんぽで遊ぶ">
-            <div class="art" aria-hidden="true"><img src="./assets/tak-win.png" alt="" width="165" height="165" decoding="async"><img src="./assets/meg-win.png" alt="" width="165" height="165" decoding="async"></div>
-            <div class="copy"><span class="tag">ひとりで・横スクロール</span><h2>たくめぐのおさんぽ</h2><p class="description">ジャンプしながら、おやつを50こ。<br>ピクニックへ出かけよう。</p><span class="play"><span>おさんぽにでかける</span><span aria-hidden="true">→</span></span></div>
+            <div class="art" aria-hidden="true">
+              <img
+                src="./assets/tak-win.png"
+                alt=""
+                width="165"
+                height="165"
+                decoding="async"
+              /><img src="./assets/meg-win.png" alt="" width="165" height="165" decoding="async" />
+            </div>
+            <div class="copy">
+              <span class="tag">ひとりで・横スクロール</span>
+              <h2>たくめぐのおさんぽ</h2>
+              <p class="description">
+                ジャンプしながら、おやつを50こ。<br />ピクニックへ出かけよう。
+              </p>
+              <span class="play"
+                ><span>おさんぽにでかける</span><span aria-hidden="true">→</span></span
+              >
+            </div>
+          </a>
+          <a class="game poker" href="./poker/" aria-label="ミニポーカーで遊ぶ">
+            <div class="art" aria-hidden="true">
+              <span class="preview-card gold">7<small>金</small></span
+              ><span class="preview-card silver">7<small>銀</small></span
+              ><span class="preview-card bronze">7<small>銅</small></span>
+            </div>
+            <div class="copy">
+              <span class="tag">CPU・通信対戦</span>
+              <h2>ミニポーカー</h2>
+              <p class="description">3枚を、1回チェンジ。<br />金・銀・銅で、ちいさな役くらべ。</p>
+              <span class="play"><span>カードであそぶ</span><span aria-hidden="true">→</span></span>
+            </div>
+          </a>
+          <a class="game shiritori" href="./shiritori/" aria-label="たべものしりとりで遊ぶ">
+            <div class="art" aria-hidden="true">
+              <span class="word-chip">りん<span>ご</span></span
+              ><span class="word-link">→</span><span class="word-chip"><span>ご</span>ま</span>
+            </div>
+            <div class="copy">
+              <span class="tag">2人・通信対戦</span>
+              <h2>たべものしりとり</h2>
+              <p class="description">
+                りんご、ごま、まぐろ…<br />食べ物と飲み物で、ことばをつなごう。
+              </p>
+              <span class="play"
+                ><span>しりとりであそぶ</span><span aria-hidden="true">→</span></span
+              >
+            </div>
           </a>
         </div>
       </main>

@@ -1,3 +1,4 @@
+window.__TAKUMEGU_BGM__ = "./audio/takumegu-ondo.mp3";
 window.__TAKUMEGU_ART__ = {
   "cream": "./art/cream.png",
   "lavender": "./art/lavender.png",

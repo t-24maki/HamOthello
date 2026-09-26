@@ -303,3 +303,117 @@ footer {
   color: #b79b70;
   font-size: 25px;
 }
+.shogi .art {
+  background: #eadcc4;
+  gap: 13px;
+}
+.shogi .tag {
+  color: #9b8057;
+}
+.shogi .play {
+  background: #e7dfc3;
+  color: #88734e;
+}
+.shogi-preview-piece {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 74px;
+  height: 74px;
+  border-radius: 9px;
+  border: 2px solid #c9a779;
+  background: #fff3dc;
+  box-shadow: 0 5px 0 #b0926340;
+  font-size: 27px;
+  font-weight: 800;
+  color: #8a7295;
+  transform: rotate(-9deg);
+}
+.shogi-preview-piece:first-child {
+  font-size: 37px;
+  color: #a38650;
+}
+.shogi-preview-piece:nth-child(2) {
+  transform: translateY(-9px);
+}
+.shogi-preview-piece:last-child {
+  transform: rotate(9deg);
+  color: #ac8e53;
+}
+.shogi-preview-piece small {
+  font-size: 9px;
+  font-weight: 600;
+}
+.shogi .shogi-preview-piece img {
+  width: 84%;
+  height: 84%;
+  object-fit: contain;
+  transform: none;
+}
+.billiards .art {
+  background: #e1e8d9;
+}
+.billiards .tag {
+  color: #6c8a74;
+}
+.billiards .play {
+  background: #d5e3d2;
+  color: #5e7a60;
+}
+.billiards-preview {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border: 10px solid #c6a06d;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #83a18c, #4e7c67);
+  box-shadow:
+    0 6px 0 #ab926538,
+    inset 0 0 0 4px #466950;
+}
+.mini-hole {
+  position: absolute;
+  left: calc(50% - 8px);
+  top: calc(50% - 8px);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #304a3c;
+  border: 1px solid #baa376;
+  transform: rotate(var(--angle)) translateY(-61px);
+}
+.mini-ball {
+  position: absolute;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  box-shadow: 1px 3px 2px #294b4333;
+}
+.mini-ball.purple {
+  left: 25%;
+  top: 39%;
+  background: radial-gradient(circle at 30% 25%, #f5e6ff, #c6a4dd 65%, #9671a8);
+}
+.mini-ball.cream {
+  left: 59%;
+  top: 61%;
+  background: radial-gradient(circle at 30% 25%, #fffef3, #ffe7ab 65%, #c5a465);
+}
+.mini-score {
+  position: absolute;
+  right: 17%;
+  top: 20%;
+  color: #f4e9bf;
+  font-size: 16px;
+  font-weight: 800;
+  transform: rotate(9deg);
+}
+.mini-ball.white {
+  left: 30%;
+  top: 69%;
+  width: 21px;
+  height: 21px;
+  background: radial-gradient(circle at 30% 25%, #fff, #f3f6f3 65%, #b5c8bd);
+}

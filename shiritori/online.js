@@ -13,7 +13,7 @@ import {
   validateGame,
   DICTIONARY_VERSION,
   FOODS,
-} from "./rules.js?v=20260909-1000words";
+} from "./rules.js?v=20260926-1200words";
 export { generateRoomCode, normalizeRoomCode, isOnlineConfigured };
 export const PROTOCOL = `food-shiritori-2:${DICTIONARY_VERSION}`;
 export function createRound(matchId, roundId = 1, now = Date.now()) {

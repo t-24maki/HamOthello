@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#fff9ef" />
+    <meta
+      name="description"
+      content="4×4のたくめぐしょうぎ。CPU対戦・1台でふたり・通信対戦で、相手のハム王をつかまえよう。"
+    />
+    <title>たくめぐしょうぎ — たくめぐのあそびば</title>
+    <link rel="stylesheet" href="./style.css?v=20260926-modes1" />
+    <link rel="stylesheet" href="../game-menu.css" />
+  </head>
+  <body>
+    <nav class="game-menu" aria-label="ゲーム一覧"><a href="../">← ゲーム一覧へ</a></nav>
+    <main class="page">
+      <header class="page-heading">
+        <div class="brand-pair" aria-hidden="true">
+          <img src="../assets/pink-piece.png" alt="" width="48" height="48" /><img
+            src="../assets/cream-piece.png"
+            alt=""
+            width="48"
+            height="48"
+          />
+        </div>
+        <div>
+          <p class="eyebrow">たくハムと めぐハムの</p>
+          <h1>たくめぐ<span>しょうぎ</span></h1>
+        </div>
+        <span id="mode-label" class="mode-label">CPUとあそぶ</span>
+      </header>
+
+      <section id="match-setup" class="match-setup" aria-label="対戦モードの設定">
+        <div class="mode-choices" role="group" aria-label="対戦モード">
+          <button type="button" data-mode="cpu" aria-pressed="true">CPUとあそぶ</button>
+          <button type="button" data-mode="local" aria-pressed="false">1台でふたり</button>
+          <button type="button" data-mode="online" aria-pressed="false">通信でふたり</button>
+        </div>
+        <div id="cpu-options" class="cpu-options">
+          <label
+            >CPUのつよさ<select id="cpu-level">
+              <option value="easy">のんびり</option>
+              <option value="normal" selected>ふつう</option>
+              <option value="hard">じっくり</option>
+            </select></label
+          >
+          <label
+            >あなたの手番<select id="cpu-side">
+              <option value="0">先手（さきに指す）</option>
+              <option value="1">後手（あとに指す）</option>
+            </select></label
+          >
+        </div>
+        <div id="online-setup" hidden>
+          <div class="room-choices" role="group" aria-label="通信対戦の参加方法">
+            <button type="button" data-room="create" aria-pressed="true">へやをつくる</button>
+            <button type="button" data-room="join" aria-pressed="false">へやに入る</button>
+          </div>
+          <div id="join-fields" hidden>
+            <label for="room-input">相手から教えてもらったキーワード</label>
+            <input
+              id="room-input"
+              placeholder="HAMU-ABC234"
+              maxlength="16"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+            />
+          </div>
+          <div id="room-waiting" class="room-waiting" hidden>
+            <span>ふたりのキーワード</span><output id="room-code"></output
+            ><button id="copy-room" type="button">コピーする</button>
+          </div>
+          <p id="online-status" class="online-status" role="status"></p>
+          <div class="connect-actions">
+            <button id="connect" class="primary" type="button">へやをつくる →</button
+            ><button id="cancel-connect" class="secondary" type="button" hidden>やめる</button>
+          </div>
+          <p class="connection-help">
+            キーワードを相手に教えてね。再戦では先手・後手を交代するよ。
+          </p>
+        </div>
+      </section>
+      <div id="match-toolbar" class="match-toolbar" hidden>
+        <span id="match-info"></span
+        ><button id="settings" type="button">モードをえらびなおす</button>
+      </div>
+
+      <div class="game-layout">
+        <section class="table" aria-label="たくめぐしょうぎの対局">
+          <div id="turn-banner" class="turn-banner" data-owner="0">
+            <span id="turn-dot" aria-hidden="true"></span>
+            <div>
+              <h2 id="turn-title">ならべて、はじめよう。</h2>
+              <p id="turn-hint">はじめの並びは、ふたりでおそろい。</p>
+            </div>
+            <span id="move-count" class="move-count">準備中</span>
+          </div>
+          <section class="player-zone" id="player-1" data-owner="1" aria-label="後手の持ち駒">
+            <div class="player-heading">
+              <strong
+                ><span id="player-name-1">後手</span>
+                <small id="player-team-1">めぐハムチーム</small></strong
+              ><span>持ち駒 · 前は <b id="player-facing-1">↓</b></span>
+            </div>
+            <div id="hand-1" class="hand"></div>
+          </section>
+          <div id="board-surround" class="board-surround">
+            <div id="board-columns" class="board-columns" aria-hidden="true">
+              <span>1</span><span>2</span><span>3</span><span>4</span>
+            </div>
+            <div id="board" class="board" role="group" aria-label="4行4列の将棋盤"></div>
+          </div>
+          <section class="player-zone" id="player-0" data-owner="0" aria-label="先手の持ち駒">
+            <div class="player-heading">
+              <strong
+                ><span id="player-name-0">先手</span>
+                <small id="player-team-0">たくハムチーム</small></strong
+              ><span>持ち駒 · 前は <b id="player-facing-0">↑</b></span>
+            </div>
+            <div id="hand-0" class="hand"></div>
+          </section>
+          <p id="notice" class="notice" role="status" aria-live="polite"></p>
+          <div class="table-actions">
+            <button id="shuffle" class="secondary" type="button">並べなおす ↻</button>
+            <button id="start" class="primary" type="button">この並びではじめる →</button>
+            <button id="clear-selection" class="secondary" type="button" hidden>
+              えらびなおす
+            </button>
+            <button id="new-game" class="secondary" type="button" hidden>もう一局あそぶ ↻</button>
+          </div>
+        </section>
+
+        <aside class="guide">
+          <section class="piece-guide" aria-labelledby="guide-title">
+            <p class="eyebrow">ひとマスに、作戦いろいろ。</p>
+            <h2 id="guide-title">駒のうごき</h2>
+            <div
+              id="piece-tabs"
+              class="piece-tabs"
+              role="group"
+              aria-label="説明する駒を選ぶ"
+            ></div>
+            <div class="piece-detail">
+              <div class="diagram-wrap">
+                <span class="diagram-facing">↑ 自分から見た前</span>
+                <div id="move-diagram" class="move-diagram" aria-hidden="true"></div>
+              </div>
+              <div class="piece-description">
+                <span id="piece-state" class="piece-state">ふつう</span>
+                <h3 id="piece-name">ハム王</h3>
+                <p id="piece-hint">まわり8方向に1マス</p>
+              </div>
+            </div>
+            <button id="show-promoted" class="promotion-toggle" type="button" aria-pressed="false">
+              成ったらどうなる？
+            </button>
+            <p class="guide-note">
+              縁の●は1マス、矢印はその方向へ何マスでも。<br />ほかの駒は飛びこせないよ。
+            </p>
+            <a class="art-link" href="./pieces.html">9種類の駒をならべて見る →</a>
+          </section>
+          <details class="rules" open>
+            <summary>あそびかた</summary>
+            <ol>
+              <li>自分の駒を選んで、光るマスをぽちっ。先手・後手で交代しよう。</li>
+              <li>
+                <strong>ハム王を取ったら勝ち！</strong>
+                王手でも、詰んでいても、取られるまでは続くよ。
+              </li>
+              <li>
+                ハム王以外は、いちばん奥の段へ進むと自動で<strong>成り</strong>。赤い縁が目印だよ。
+              </li>
+              <li>
+                取った駒は持ち駒に。成る前の姿で、空いているマスに打てるよ。打ったときには成らないよ。
+              </li>
+            </ol>
+            <p>
+              二歩・行き場のない駒・打ち歩詰めの禁止はなし。自分のハム王が狙われる手も指せるよ。
+            </p>
+            <details class="repeat-rule">
+              <summary>繰り返しについて</summary>
+              <p>
+                盤面・持ち駒・手番が同じ局面が4回になる手は指せないよ。連続王手なら王手した側、それ以外は先手の直前の手番へ戻るので、別の手を選んでね。負けにはならないよ。
+              </p>
+              <p>ふたりとも王手を続けていた場合は、繰り返しを完成させた側が手を変えるよ。</p>
+            </details>
+          </details>
+          <p class="little-note">4 × 4 の盤で、のんびりひと勝負。</p>
+        </aside>
+      </div>
+      <noscript><p>このゲームで遊ぶにはJavaScriptを有効にしてね。</p></noscript>
+    </main>
+
+    <dialog id="message-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-message">
+      <div id="result-pair" class="result-pair" hidden aria-hidden="true">
+        <img id="result-taku" src="../assets/tak-win.png" alt="" width="104" height="104" /><img
+          id="result-megu"
+          src="../assets/meg-win.png"
+          alt=""
+          width="104"
+          height="104"
+        />
+      </div>
+      <span id="dialog-mark" class="dialog-mark" aria-hidden="true">↺</span>
+      <h2 id="dialog-title"></h2>
+      <p id="dialog-message"></p>
+      <div class="dialog-actions">
+        <button id="dialog-main" class="primary" type="button">別の手をえらぶ</button
+        ><button id="dialog-cancel" class="quiet" type="button" hidden>盤面をみる</button>
+      </div>
+    </dialog>
+    <script type="module" src="./game.js?v=20260926-modes1"></script>
+  </body>
+</html>

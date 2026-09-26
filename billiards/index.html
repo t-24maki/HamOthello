@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#f9f5ea" />
+    <meta
+      name="description"
+      content="まあるい台で、ころんとひと勝負。たくハムとめぐハムの、1台でも通信でもふたりで遊べるビリヤード。"
+    />
+    <title>まんまるビリヤード — たくめぐのあそびば</title>
+    <link rel="stylesheet" href="./style.css?v=20260926-online-1" />
+    <link rel="stylesheet" href="../game-menu.css" />
+  </head>
+  <body>
+    <nav class="game-menu" aria-label="ゲーム一覧"><a href="../">← ゲーム一覧へ</a></nav>
+    <main class="page">
+      <header class="heading">
+        <div class="brand-pair" aria-hidden="true">
+          <img src="../assets/pink-piece.png" alt="" /><img
+            src="../assets/cream-piece.png"
+            alt=""
+          />
+        </div>
+        <div>
+          <p class="eyebrow">ころん、と。まあるいひと勝負。</p>
+          <h1>まんまる<span>ビリヤード</span></h1>
+        </div>
+        <span id="mode-label" class="mode-tag">1台でふたり</span>
+      </header>
+      <section id="match-setup" class="match-setup" aria-label="あそび方をえらぶ">
+        <div class="mode-options" aria-label="対戦モード">
+          <button type="button" data-mode="local" aria-pressed="true">1台でふたり</button>
+          <button type="button" data-mode="online" aria-pressed="false">通信でふたり</button>
+        </div>
+        <div id="online-setup" hidden>
+          <p class="room-help">
+            はなれた場所から、いっしょにころころ。<br />へやをつくった人はたくハム、入った人はめぐハムだよ。
+          </p>
+          <div class="room-options">
+            <button type="button" data-room="create" aria-pressed="true">へやをつくる</button>
+            <button type="button" data-room="join" aria-pressed="false">へやに入る</button>
+          </div>
+          <div id="join-fields" hidden>
+            <label for="room-input">へやのキーワード</label>
+            <input
+              id="room-input"
+              type="text"
+              placeholder="HAMU-ABC234"
+              maxlength="24"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+            />
+          </div>
+          <div id="room-waiting" hidden>
+            <span>相手にこのキーワードを教えてね</span>
+            <div>
+              <output id="room-code"></output
+              ><button id="copy-room" type="button" class="secondary">コピー</button>
+            </div>
+          </div>
+          <p id="online-status" role="status" aria-live="polite"></p>
+          <div class="connection-actions">
+            <button id="connect" type="button" class="primary">へやをつくる →</button>
+            <button id="cancel-connect" type="button" class="quiet" hidden>もどる</button>
+          </div>
+        </div>
+      </section>
+      <div id="match-toolbar" class="match-toolbar" hidden>
+        <p id="match-info"></p>
+        <p id="connection-status" role="status" aria-live="polite"></p>
+      </div>
+      <div class="game-layout">
+        <section class="arena" aria-label="円形ビリヤードの台">
+          <header class="turn-banner" id="turn-banner" data-owner="0">
+            <span class="turn-dot" aria-hidden="true"></span>
+            <div>
+              <h2 id="turn-title">まあるい台で、あそぼう。</h2>
+              <p id="turn-hint">白球をぶつけて、自分の色をころん。</p>
+            </div>
+            <span id="round-label" class="round-label">各5回</span>
+          </header>
+          <div class="board-wrap">
+            <svg
+              id="table"
+              viewBox="0 0 720 720"
+              role="group"
+              aria-label="円形の台。穴の得点は毎回ランダム。共通の白球を引っぱって離し、自分の色の球をねらいます。"
+              aria-describedby="aim-help"
+            >
+              <defs>
+                <radialGradient id="felt">
+                  <stop stop-color="#739d89" />
+                  <stop offset="1" stop-color="#4f7e6b" />
+                </radialGradient>
+                <linearGradient id="wood" x2="0.85" y2="1">
+                  <stop stop-color="#e7c693" />
+                  <stop offset="0.5" stop-color="#c19766" />
+                  <stop offset="1" stop-color="#a97d51" />
+                </linearGradient>
+                <radialGradient id="taku-ball" cx=".3" cy=".25" r=".85">
+                  <stop stop-color="#f2e6ff" />
+                  <stop offset=".55" stop-color="#cdb0e5" />
+                  <stop offset="1" stop-color="#9e77b3" />
+                </radialGradient>
+                <radialGradient id="megu-ball" cx=".3" cy=".25" r=".85">
+                  <stop stop-color="#fffdf1" />
+                  <stop offset=".6" stop-color="#ffedb8" />
+                  <stop offset="1" stop-color="#d1ab63" />
+                </radialGradient>
+                <radialGradient id="white-ball" cx=".3" cy=".25" r=".85">
+                  <stop stop-color="#ffffff" />
+                  <stop offset=".55" stop-color="#f4f6f4" />
+                  <stop offset="1" stop-color="#bdcfcb" />
+                </radialGradient>
+                <radialGradient id="hole">
+                  <stop stop-color="#152f28" />
+                  <stop offset=".75" stop-color="#243e32" />
+                  <stop offset="1" stop-color="#355749" />
+                </radialGradient>
+                <filter id="board-shadow" x="-10%" y="-10%" width="120%" height="125%">
+                  <feDropShadow
+                    dx="0"
+                    dy="8"
+                    stdDeviation="7"
+                    flood-color="#78644b"
+                    flood-opacity=".2"
+                  />
+                </filter>
+              </defs>
+              <circle
+                cx="360"
+                cy="360"
+                r="310"
+                fill="url(#wood)"
+                stroke="#9d7852"
+                stroke-width="2"
+                filter="url(#board-shadow)"
+              />
+              <circle
+                cx="360"
+                cy="360"
+                r="300"
+                fill="none"
+                stroke="#f5dab1"
+                stroke-width="2"
+                opacity=".6"
+              />
+              <circle cx="360" cy="360" r="287" fill="#315b49" />
+              <circle
+                cx="360"
+                cy="360"
+                r="278"
+                fill="url(#felt)"
+                stroke="#8aaa80"
+                stroke-width="2"
+              />
+              <circle
+                cx="360"
+                cy="360"
+                r="247"
+                fill="none"
+                stroke="#c8d8b2"
+                stroke-width="1"
+                opacity=".17"
+                stroke-dasharray="3 9"
+              />
+              <g class="table-emblem" aria-hidden="true">
+                <image
+                  class="emblem-line-art"
+                  href="./art/tak-meg-yellow-outline.png"
+                  x="236"
+                  y="262"
+                  width="248"
+                  height="166"
+                  preserveAspectRatio="xMidYMid meet"
+                />
+                <text x="360" y="446">TAK&amp;MEG</text>
+              </g>
+              <g id="pockets"></g>
+              <g id="aim-guide" aria-hidden="true" visibility="hidden">
+                <path id="shot-direction" d="M24 0H84m-10-9 10 9-10 9" display="none" />
+                <line id="cue-stick" />
+                <circle id="aim-ring" r="23" />
+              </g>
+              <g id="balls"></g>
+              <g
+                id="placement-preview"
+                visibility="hidden"
+                aria-hidden="true"
+                role="button"
+                tabindex="-1"
+                aria-label="白球を置く位置"
+              >
+                <circle r="24" class="placement-ring" />
+                <circle r="14" fill="url(#white-ball)" class="placement-ball" />
+                <path d="M-7 0h14M0-7v14" class="placement-cross" />
+              </g>
+              <g id="score-effects" aria-hidden="true"></g>
+            </svg>
+            <section id="result" class="result-overlay" aria-labelledby="result-title" hidden>
+              <div class="result-card">
+                <p class="eyebrow">ころころ、おつかれさま。</p>
+                <div class="result-friends" aria-hidden="true">
+                  <img id="result-taku" src="../assets/tak-win.png" alt="" /><img
+                    id="result-megu"
+                    src="../assets/meg-win.png"
+                    alt=""
+                  />
+                </div>
+                <h2 id="result-title" tabindex="-1"></h2>
+                <p id="result-score"></p>
+                <p id="rematch-note" class="rematch-note" hidden></p>
+                <button id="rematch" class="primary" type="button">もういちどあそぶ ↻</button
+                ><button id="view-table" class="quiet" type="button">台をみる</button>
+              </div>
+            </section>
+          </div>
+          <div class="table-controls">
+            <div id="ready-controls" class="ready-controls">
+              <button id="shuffle" class="secondary" type="button">ならべなおす ↻</button
+              ><button id="start" class="primary" type="button">はじめる →</button>
+            </div>
+            <div id="play-controls" class="play-controls" hidden>
+              <div class="power">
+                <span>つよさ <b id="power-label">0%</b></span
+                ><progress id="power" max="100" value="0" aria-label="打つ強さ"></progress>
+              </div>
+              <button id="cancel-aim" class="secondary" type="button" disabled>ねらい直す</button
+              ><button id="show-result" class="secondary" type="button" hidden>結果をみる</button>
+            </div>
+            <div id="placement-controls" class="placement-controls" hidden>
+              <span id="placement-status" role="status">ここに白球を置く？</span>
+              <button id="place-cue" class="primary" type="button">ここに置く</button>
+            </div>
+            <p id="aim-help">白球を引っぱって、離そう。引いた向きと逆に飛ぶよ。</p>
+          </div>
+        </section>
+        <aside class="sidebar">
+          <section class="scoreboard" aria-label="ふたりの得点">
+            <article id="player-0" class="player-card" data-owner="0">
+              <img id="portrait-0" src="../assets/pink-piece.png" alt="たくハム" />
+              <div class="player-score">
+                <h2>たくハム <span>むらさき</span></h2>
+                <p><strong id="score-0">0</strong><small>点</small></p>
+              </div>
+              <div class="player-meta">
+                <span id="balls-left-0">のこり5球</span
+                ><span id="shots-0" class="shot-dots" aria-label="0回 / 5回"></span>
+              </div>
+            </article>
+            <article id="player-1" class="player-card" data-owner="1">
+              <img id="portrait-1" src="../assets/cream-piece.png" alt="めぐハム" />
+              <div class="player-score">
+                <h2>めぐハム <span>クリーム</span></h2>
+                <p><strong id="score-1">0</strong><small>点</small></p>
+              </div>
+              <div class="player-meta">
+                <span id="balls-left-1">のこり5球</span
+                ><span id="shots-1" class="shot-dots" aria-label="0回 / 5回"></span>
+              </div>
+            </article>
+          </section>
+          <section class="shot-journal" aria-labelledby="journal-title">
+            <div class="journal-heading">
+              <h2 id="journal-title">ころころ記録</h2>
+              <span>ひとり5回ずつ</span>
+            </div>
+            <p id="shot-notice" role="status" aria-live="polite">
+              穴の数字が、そのまま得点になるよ。
+            </p>
+            <ol id="shot-log" aria-label="各ショットの記録"></ol>
+          </section>
+          <details class="rules" open>
+            <summary>あそびかた</summary>
+            <ol>
+              <li>たくハムは紫、めぐハムはクリームの球。交代で、ひとり5回ずつ打とう。</li>
+              <li>
+                打つのは、ふたり共通の白球。白球を引っぱって離し、自分の色の球をねらおう。長く引くほど強くなるよ。
+              </li>
+              <li>
+                穴の得点は
+                <strong>−1・1・2・3・4・5点</strong
+                >。高い得点の穴ほど小さいよ。−1と＋1は同じ大きさで、場所は勝負ごとに変わるよ。
+              </li>
+              <li>
+                落ちた球の持ち主に得点が入るよ。相手の球を入れたら、相手の得点に。<strong>−1の穴は減点</strong>だから気をつけてね。
+              </li>
+              <li>
+                白球が穴に落ちたら、得点はつかないよ。全部止まったあと、<strong>次の人が白球を好きな場所へ置き直せる</strong>よ。球と重なる場所や、穴のすぐ近くは避けてね。
+              </li>
+              <li>
+                入っても入らなくても、球が全部止まったら交代。白球は止まった位置から続けるよ。相手の球に先に当てても反則にはならないよ。
+              </li>
+            </ol>
+            <p>
+              5回ずつ打つか、色の球が全部なくなったら、得点の多い子の勝ち。自分の色がなくなっても、白球は打てるよ。同じ得点なら、なかよく引き分け！
+            </p>
+            <p>
+              通信であそぶときは、へやのキーワードを相手に教えてね。ふたりがそろうと始まるよ。自分の番だけ操作できて、もう一度遊ぶときはふたりの準備がそろってからスタート！
+            </p>
+            <details class="keyboard-help">
+              <summary>キーボードであそぶには</summary>
+              <p>
+                Tabで白球を選び、Enterでねらいをつけるよ。← →で向き、↑
+                ↓で強さを変えて、Enterでもう一度打とう。Escで取り消せるよ。白球を置き直すときは、Tabで置く位置を選び、矢印キーで移動、Enterで確定。Shiftを押すと細かく動かせるよ。
+              </p>
+            </details>
+          </details>
+          <button id="restart" class="quiet restart" type="button" hidden>最初からあそぶ</button>
+        </aside>
+      </div>
+      <footer>ついて、ころがって、ふたりでにっこり。</footer>
+      <noscript><p>遊ぶにはJavaScriptを有効にしてね。</p></noscript>
+    </main>
+    <dialog id="restart-dialog">
+      <h2 id="restart-title">最初からあそぶ？</h2>
+      <p id="restart-note">今の得点をリセットして、新しく球を並べるよ。</p>
+      <div>
+        <button id="keep-playing" class="secondary" type="button">つづける</button
+        ><button id="confirm-restart" class="primary" type="button">最初から</button>
+      </div>
+    </dialog>
+    <script type="module" src="./game.js?v=20260926-online-1"></script>
+  </body>
+</html>

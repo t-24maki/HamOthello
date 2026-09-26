@@ -8,13 +8,13 @@ import {
   timeOut,
   TURN_LIMIT_MS,
   resultCopy,
-} from "./rules.js?v=20260909-1000words";
+} from "./rules.js?v=20260926-1200words";
 import {
   createShiritoriMatch,
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js?v=20260909-1000words";
+} from "./online.js?v=20260926-1200words";
 const $ = (id) => document.getElementById(id);
 const CHARACTER_ART = [
   {
@@ -266,6 +266,14 @@ function revealResult() {
 function render() {
   $("setup").hidden = game !== null;
   $("game").hidden = game === null;
+  const dictionaryLocked = game !== null && game.winner === null;
+  $("dictionary").hidden = dictionaryLocked;
+  $("dictionary-search").disabled = dictionaryLocked;
+  if (dictionaryLocked) {
+    $("dictionary").open = false;
+    $("dictionary-list").replaceChildren();
+    $("search-count").textContent = "";
+  }
   document.body.classList.toggle("is-playing", game !== null);
   if (!game) {
     stopClock();
@@ -509,6 +517,7 @@ $("rematch").addEventListener("click", () => {
 });
 const foodList = [...FOODS].sort((a, b) => a.reading.localeCompare(b.reading, "ja"));
 function renderDictionary() {
+  if ($("dictionary").hidden) return;
   const query = normalize($("dictionary-search").value);
   const matches = foodList.filter((food) =>
     [food.name, food.reading, ...food.aliases.map((a) => a.replace("~", ""))].some((text) =>

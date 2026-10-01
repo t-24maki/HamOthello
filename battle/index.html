@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#fff9ef" />
+    <meta
+      name="description"
+      content="たくハムとめぐハムの、ぽよんとかわいい場外バトル。CPUと腕だめし、通信でふたり対戦も！"
+    />
+    <title>たくめぐのぽよんバトル | たくめぐのあそびば</title>
+    <link rel="stylesheet" href="./style.css?v=20261001-balance3" />
+    <script type="module" src="./game.js?v=20261001-balance3"></script>
+  </head>
+  <body>
+    <audio
+      id="bgm"
+      src="./audio/takumegu-battle.mp3"
+      preload="auto"
+      loop
+      hidden
+      aria-hidden="true"
+    ></audio>
+    <main class="wrap">
+      <header class="topbar">
+        <a href="../" class="back">← ゲーム一覧へ</a>
+        <span class="wordmark">TAK&MEG <span>あそびば</span></span>
+        <button id="sound" class="small-button" type="button" aria-pressed="false">♪ 音 OFF</button>
+      </header>
+      <section id="setup" aria-labelledby="title">
+        <div class="heading">
+          <span class="eyebrow">ひとりでも、ふたりでも。ぽよんとひと勝負</span>
+          <h1 id="title">
+            <span>たくめぐの</span>ぽよんバトル<span class="title-star" aria-hidden="true">✦</span>
+          </h1>
+          <p>
+            とんで、はじいて、ぽよーん！<br class="mobile-break" />
+            ふたりの小さな場外バトル。
+          </p>
+        </div>
+        <div class="setup-grid">
+          <div class="preview-card">
+            <span class="stage-label"
+              ><span id="stage-number">STAGE 01</span><b id="stage-name">ぽよんの丘</b></span
+            >
+            <canvas
+              id="preview"
+              width="800"
+              height="500"
+              role="img"
+              aria-label="草の足場に立つたくハムとめぐハム。空中に3つの小さな足場があります。"
+            ></canvas>
+            <div class="rule-strip">
+              <span>♥ 残り3回</span><span>◷ 2分間</span><span>↑ 2段ジャンプ</span>
+            </div>
+          </div>
+          <form id="settings" class="settings">
+            <fieldset>
+              <legend>あそびかた</legend>
+              <div class="difficulty-options mode-options">
+                <label
+                  ><input type="radio" name="mode" value="cpu" checked /><span
+                    >CPUとあそぶ</span
+                  ></label
+                >
+                <label
+                  ><input type="radio" name="mode" value="online" /><span>通信でふたり</span></label
+                >
+              </div>
+            </fieldset>
+            <fieldset id="character-settings">
+              <legend><span class="step-number">1</span> あそぶ子をえらぼう</legend>
+              <div class="character-options">
+                <label class="character tak"
+                  ><input type="radio" name="character" value="tak" checked />
+                  <img src="../assets/tak-win.png" alt="" /><strong>たくハム</strong
+                  ><small>すばやく、こつこつ</small
+                  ><span class="character-traits">足が速く、手数が得意<br />一発の力はひかえめ</span
+                  ><span class="selected-mark" aria-hidden="true">✓</span></label
+                >
+                <label class="character meg"
+                  ><input type="radio" name="character" value="meg" />
+                  <img src="../assets/meg-win.png" alt="" /><strong>めぐハム</strong
+                  ><small>高く跳んで、どーん</small
+                  ><span class="character-traits"
+                    >ジャンプと一撃が得意<br />攻撃後のすきは大きめ</span
+                  ><span class="selected-mark" aria-hidden="true">✓</span></label
+                >
+              </div>
+            </fieldset>
+            <p id="character-note" class="room-help" hidden>
+              ふたりとも好きな子を選べるよ。同じ子なら、へやに入った人が色違いになるよ。
+            </p>
+            <fieldset id="cpu-settings">
+              <legend><span class="step-number">2</span> CPUのつよさ</legend>
+              <div class="difficulty-options">
+                <label
+                  ><input type="radio" name="difficulty" value="easy" /><span>のんびり</span></label
+                >
+                <label
+                  ><input type="radio" name="difficulty" value="normal" checked /><span
+                    >ふつう</span
+                  ></label
+                >
+                <label
+                  ><input type="radio" name="difficulty" value="hard" /><span>てごわい</span></label
+                >
+              </div>
+            </fieldset>
+            <fieldset id="stage-settings">
+              <legend><span class="step-number">3</span> ステージをえらぼう</legend>
+              <div class="stage-options">
+                <label
+                  ><input type="radio" name="stage" value="hill" checked /><span
+                    ><canvas id="map-hill" width="180" height="80" aria-hidden="true"></canvas
+                    ><b>ぽよんの丘</b></span
+                  ></label
+                >
+                <label
+                  ><input type="radio" name="stage" value="meadow" /><span
+                    ><canvas id="map-meadow" width="180" height="80" aria-hidden="true"></canvas
+                    ><b>ひだまりひろば</b></span
+                  ></label
+                >
+                <label
+                  ><input type="radio" name="stage" value="cloud" /><span
+                    ><canvas id="map-cloud" width="180" height="80" aria-hidden="true"></canvas
+                    ><b>わたぐもテラス</b></span
+                  ></label
+                >
+              </div>
+              <p id="stage-description" class="stage-description" aria-live="polite">
+                3つの足場で、ぴょんぴょん。
+              </p>
+            </fieldset>
+            <button id="start" class="primary" type="submit" disabled>絵をじゅんび中…</button>
+            <div id="online-setup" hidden>
+              <div class="room-options">
+                <button type="button" id="host-room" aria-pressed="true">へやをつくる</button>
+                <button type="button" id="join-room" aria-pressed="false">へやに入る</button>
+              </div>
+              <p id="room-help" class="room-help">あなたのキャラとステージで、へやをつくるよ。</p>
+              <label id="join-field" class="room-field" hidden
+                >へやのキーワード
+                <input
+                  id="room-input"
+                  type="text"
+                  placeholder="HAMU-ABC234"
+                  maxlength="16"
+                  autocomplete="off"
+                  autocapitalize="characters"
+                  spellcheck="false"
+                />
+              </label>
+              <button id="connect" class="primary" type="button">へやをつくる →</button>
+              <div id="room-waiting" hidden>
+                <span>相手にこのキーワードを教えてね</span>
+                <output id="room-code"></output>
+                <button id="copy-room" class="small-button" type="button">
+                  キーワードをコピー
+                </button>
+              </div>
+              <p id="online-status" class="online-status" role="status" aria-live="polite"></p>
+              <button id="leave-room" class="secondary" type="button" hidden>へやを出る</button>
+            </div>
+            <p id="music-note" class="music-note">♪ 音 ONで「たくめぐバトル」が流れるよ。</p>
+            <p id="load-status" class="loading-note" role="status">
+              おさんぽの仲間たちが、もうすぐ到着。
+            </p>
+          </form>
+        </div>
+        <div class="how-to">
+          <div>
+            <span>01</span>
+            <h2>ぽこっと、攻撃</h2>
+            <p>低い％で、こつこつためて。<br />高い％になったら、大きくぽよん！</p>
+          </div>
+          <div>
+            <span>02</span>
+            <h2>落ちても、もどれる</h2>
+            <p>空中ジャンプと「ひっさつ」で<br />足場をめざして、もうひとがんばり。</p>
+          </div>
+          <div>
+            <span>03</span>
+            <h2>最後まで残ろう</h2>
+            <p>相手を3回、場外へ飛ばすと勝ち。<br />時間切れは残り回数→低い％で勝負。</p>
+          </div>
+        </div>
+        <details class="keyboard-guide">
+          <summary>ボタンとキーボードのあそび方</summary>
+          <p>
+            左右 / A・D：移動　↑ / W / Space：ジャンプ（空中でもう1回）<br />Z / J：こうげき　X /
+            K：ひっさつ　C / L：ガード（長押し）<br />Esc / P：ひとやすみ
+          </p>
+          <p>
+            「ひっさつ」は上に飛びながら回転する技。空中では着地まで1回だけ。ガードは地上で使え、長く守るとゲージがなくなって少し動けなくなるよ。「ひだまりひろば」は坂道、「わたぐもテラス」は動く床にも注目。画面を離れると自動で一時停止し、BGMも止まります。
+          </p>
+          <p>
+            たくハムはすばやく近づいて、こつこつ攻撃。めぐハムは高いジャンプと強い一撃で勝負。「ひっさつ」も、たくハムは横へ、めぐハムは上へ進みやすいよ。色違いでも強さは同じです。
+          </p>
+          <p>
+            通信対戦は、同じキーワードでふたりをつなぐよ。ふたりの準備が揃うと開始。画面を離れたり、通信が遅くなると一時停止します。再戦もふたりが選ぶと始まるよ。<br />
+            左右ボタンは、押したまま指をすべらせて切り替えられるよ。移動しながらジャンプや攻撃もできるよ。
+          </p>
+        </details>
+      </section>
+      <section id="match" hidden aria-label="CPU対戦">
+        <div class="match-heading">
+          <div class="match-title">
+            <h1>ぽよんバトル</h1>
+            <span id="match-stage">ぽよんの丘</span>
+          </div>
+          <button id="pause" class="small-button" type="button">Ⅱ ひとやすみ</button>
+        </div>
+        <div class="hud">
+          <div class="fighter-hud you">
+            <img id="you-icon" src="../assets/pink-piece.png" alt="" />
+            <div>
+              <span class="player-label"
+                ><span id="you-label">YOU</span> <b id="you-name">たくハム</b></span
+              ><span id="you-stocks" class="stocks" aria-label="残り3回">♥ ♥ ♥</span>
+            </div>
+            <strong class="percent" id="you-damage">0<small>%</small></strong>
+          </div>
+          <div class="clock"><span id="timer">2:00</span><small>残り時間</small></div>
+          <div class="fighter-hud cpu">
+            <strong class="percent" id="cpu-damage">0<small>%</small></strong>
+            <div>
+              <span class="player-label"
+                ><span id="opponent-label">CPU</span> <b id="cpu-name">めぐハム</b></span
+              ><span id="cpu-stocks" class="stocks" aria-label="残り3回">♥ ♥ ♥</span>
+            </div>
+            <img id="cpu-icon" src="../assets/cream-piece.png" alt="" />
+          </div>
+        </div>
+        <div class="arena">
+          <canvas
+            id="arena"
+            width="800"
+            height="500"
+            tabindex="0"
+            role="img"
+            aria-label="ぽよんバトルのステージ。左右キーで移動、Spaceでジャンプ、Zで攻撃、Xで必殺技、Cでガード。"
+          ></canvas>
+        </div>
+        <div class="status-row">
+          <span id="match-status" role="status" aria-live="polite">もうすぐ、はじまるよ！</span
+          ><span class="readiness" id="special-status">ひっさつ OK</span>
+        </div>
+        <div id="controls" class="controls" aria-label="ゲーム操作">
+          <div class="move-controls">
+            <button type="button" data-action="left" aria-label="左へ移動">
+              <span>◀</span><small>A / ←</small></button
+            ><button type="button" data-action="right" aria-label="右へ移動">
+              <span>▶</span><small>D / →</small>
+            </button>
+          </div>
+          <div class="action-controls">
+            <button type="button" data-action="guard" class="guard">
+              <span>ガード</span><small>C / L</small
+              ><span class="guard-track" aria-hidden="true"><i id="guard-fill"></i></span>
+            </button>
+            <button type="button" data-action="jump" class="jump">
+              <span>ジャンプ</span><small>Space / ↑</small>
+            </button>
+            <button type="button" data-action="special" class="special">
+              <span>ひっさつ</span><small>X / K</small>
+            </button>
+            <button type="button" data-action="attack" class="attack">
+              <span>こうげき</span><small>Z / J</small>
+            </button>
+          </div>
+        </div>
+        <p class="play-tip">空中でもう1回ジャンプ！　ピンチのときは、足場のほうへ「ひっさつ」。</p>
+      </section>
+      <footer>ふわっと飛んでも、またいっしょ。<span>TAK&MEG</span></footer>
+    </main>
+    <dialog id="pause-dialog" aria-labelledby="pause-title">
+      <div class="dialog-content">
+        <span class="eyebrow">ちょっと、ひといき</span>
+        <h2 id="pause-title">ひとやすみ中</h2>
+        <p id="match-characters" class="match-characters" hidden></p>
+        <p id="pause-note">じゅんびができたら、つづきから。</p>
+        <button id="resume" class="primary" type="button">つづける</button
+        ><button id="quit" class="secondary" type="button">キャラえらびにもどる</button>
+      </div>
+    </dialog>
+    <dialog id="result-dialog" aria-labelledby="result-title">
+      <div class="dialog-content">
+        <span class="eyebrow" id="result-eyebrow">NICE BATTLE!</span
+        ><img id="result-art" class="result-art" src="../assets/tak-win.png" alt="" />
+        <h2 id="result-title">たくハムの勝ち！</h2>
+        <p id="result-detail"></p>
+        <button id="rematch" class="primary" type="button">もういちど、バトル！</button
+        ><button id="choose" class="secondary" type="button">キャラえらびにもどる</button>
+      </div>
+    </dialog>
+  </body>
+</html>

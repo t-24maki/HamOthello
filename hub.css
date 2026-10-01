@@ -417,3 +417,11 @@ footer {
   height: 21px;
   background: radial-gradient(circle at 30% 25%, #fff, #f3f6f3 65%, #b5c8bd);
 }
+
+.battle .art { background: #e5ecd9; position: relative; gap: 8px; }
+.battle .art::after { content: ""; position: absolute; width: 76%; height: 14px; bottom: 20px; border-radius: 9px; background: #b1c39a; border-bottom: 6px solid #d9bb95; }
+.battle .art img { position: relative; z-index: 1; }
+.battle .battle-star { color: #c2a058; font-size: 35px; transform: translateY(-18px); }
+.battle .tag { color: #83936c; }
+.battle .play { background: #e4d7ed; color: #80608f; }
+@media (max-width:650px) { .battle .art img { width: 112px; } }

@@ -5,6 +5,10 @@ export const KEY_ACTIONS = {
   KeyD: "right",
   ArrowUp: "jump",
   KeyW: "jump",
+  ArrowDown: "guard",
+  KeyS: "guard",
+  KeyI: "special",
+  KeyO: "attack",
   Space: "jump",
   KeyZ: "attack",
   KeyJ: "attack",
@@ -19,8 +23,16 @@ export function createInput() {
   return {
     press(source, action) {
       if (held.has(source)) return;
-      held.set(source, action);
-      if (["jump", "attack", "special"].includes(action)) pending.add(action);
+      this.set(source, [action]);
+    },
+    set(source, actions) {
+      const previous = held.get(source) || new Set();
+      const next = new Set(actions);
+      for (const action of next)
+        if (!previous.has(action) && ["jump", "attack", "special"].includes(action))
+          pending.add(action);
+      if (next.size) held.set(source, next);
+      else held.delete(source);
     },
     release(source) {
       held.delete(source);
@@ -30,7 +42,7 @@ export function createInput() {
       pending.clear();
     },
     has(action) {
-      return [...held.values()].includes(action);
+      return [...held.values()].some((actions) => actions.has(action));
     },
     consume() {
       const state = {

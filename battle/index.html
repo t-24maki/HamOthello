@@ -9,8 +9,8 @@
       content="たくハムとめぐハムの、ぽよんとかわいい場外バトル。CPUと腕だめし、通信でふたり対戦も！"
     />
     <title>たくめぐのぽよんバトル | たくめぐのあそびば</title>
-    <link rel="stylesheet" href="./style.css?v=20261001-balance3" />
-    <script type="module" src="./game.js?v=20261001-balance3"></script>
+    <link rel="stylesheet" href="./style.css?v=20261001-battle9" />
+    <script type="module" src="./game.js?v=20261001-battle9"></script>
   </head>
   <body>
     <audio
@@ -189,8 +189,9 @@
         <details class="keyboard-guide">
           <summary>ボタンとキーボードのあそび方</summary>
           <p>
-            左右 / A・D：移動　↑ / W / Space：ジャンプ（空中でもう1回）<br />Z / J：こうげき　X /
-            K：ひっさつ　C / L：ガード（長押し）<br />Esc / P：ひとやすみ
+            十字キー：左右で移動、↑でジャンプ、↓長押しでガード。Aでこうげき、Bでひっさつ。<br />
+            PCはA・D：移動、W：ジャンプ、S：ガード、I：左のBボタン、O：右のAボタン。<br />
+            空中でもう1回ジャンプできるよ。矢印キーとSpaceも使えます。Esc / P：ひとやすみ
           </p>
           <p>
             「ひっさつ」は上に飛びながら回転する技。空中では着地まで1回だけ。ガードは地上で使え、長く守るとゲージがなくなって少し動けなくなるよ。「ひだまりひろば」は坂道、「わたぐもテラス」は動く床にも注目。画面を離れると自動で一時停止し、BGMも止まります。
@@ -200,7 +201,7 @@
           </p>
           <p>
             通信対戦は、同じキーワードでふたりをつなぐよ。ふたりの準備が揃うと開始。画面を離れたり、通信が遅くなると一時停止します。再戦もふたりが選ぶと始まるよ。<br />
-            左右ボタンは、押したまま指をすべらせて切り替えられるよ。移動しながらジャンプや攻撃もできるよ。
+            十字キーは、押したまま斜めにすべらせると移動とジャンプ・ガードを組み合わせられるよ。別の指でA・Bを押しながらの操作もできるよ。
           </p>
         </details>
       </section>
@@ -240,7 +241,7 @@
             height="500"
             tabindex="0"
             role="img"
-            aria-label="ぽよんバトルのステージ。左右キーで移動、Spaceでジャンプ、Zで攻撃、Xで必殺技、Cでガード。"
+            aria-label="ぽよんバトルのステージ。A・Dで移動、Wでジャンプ、Sでガード、Iで必殺技、Oで攻撃。"
           ></canvas>
         </div>
         <div class="status-row">
@@ -248,30 +249,55 @@
           ><span class="readiness" id="special-status">ひっさつ OK</span>
         </div>
         <div id="controls" class="controls" aria-label="ゲーム操作">
-          <div class="move-controls">
-            <button type="button" data-action="left" aria-label="左へ移動">
-              <span>◀</span><small>A / ←</small></button
-            ><button type="button" data-action="right" aria-label="右へ移動">
+          <div class="move-controls" role="group" aria-label="十字キー">
+            <button
+              type="button"
+              data-action="jump"
+              data-direction="up"
+              class="jump"
+              aria-label="上：ジャンプ W / ↑"
+            >
+              <span>▲</span><small>W / ↑</small>
+            </button>
+            <button
+              type="button"
+              data-action="left"
+              data-direction="left"
+              aria-label="左へ移動 A / ←"
+            >
+              <span>◀</span><small>A / ←</small>
+            </button>
+            <button
+              type="button"
+              data-action="right"
+              data-direction="right"
+              aria-label="右へ移動 D / →"
+            >
               <span>▶</span><small>D / →</small>
+            </button>
+            <button
+              type="button"
+              data-action="guard"
+              data-direction="down"
+              class="guard"
+              aria-label="下：ガード S / ↓"
+            >
+              <span>▼</span><small>S / ↓</small
+              ><span class="guard-track" aria-hidden="true"><i id="guard-fill"></i></span>
             </button>
           </div>
           <div class="action-controls">
-            <button type="button" data-action="guard" class="guard">
-              <span>ガード</span><small>C / L</small
-              ><span class="guard-track" aria-hidden="true"><i id="guard-fill"></i></span>
+            <button type="button" data-action="special" class="special" aria-label="B：ひっさつ I">
+              <span>B</span><small>ひっさつ / I</small>
             </button>
-            <button type="button" data-action="jump" class="jump">
-              <span>ジャンプ</span><small>Space / ↑</small>
-            </button>
-            <button type="button" data-action="special" class="special">
-              <span>ひっさつ</span><small>X / K</small>
-            </button>
-            <button type="button" data-action="attack" class="attack">
-              <span>こうげき</span><small>Z / J</small>
+            <button type="button" data-action="attack" class="attack" aria-label="A：こうげき O">
+              <span>A</span><small>こうげき / O</small>
             </button>
           </div>
         </div>
-        <p class="play-tip">空中でもう1回ジャンプ！　ピンチのときは、足場のほうへ「ひっさつ」。</p>
+        <p class="play-tip">
+          ↑ジャンプ・↓ガード。Aでこうげき、Bでひっさつ。空中でもう1回ジャンプできるよ。
+        </p>
       </section>
       <footer>ふわっと飛んでも、またいっしょ。<span>TAK&MEG</span></footer>
     </main>

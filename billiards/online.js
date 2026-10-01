@@ -11,7 +11,7 @@ import {
   roundView,
   validateRound,
   settleRound,
-} from "./online-rules.js";
+} from "./online-rules.js?v=20261001-games6";
 export { generateRoomCode, normalizeRoomCode, isOnlineConfigured };
 
 export async function createBilliardsMatch({

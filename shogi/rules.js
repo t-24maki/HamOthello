@@ -99,7 +99,7 @@ function snapshot(position) {
   };
 }
 
-export function createGame(random = Math.random) {
+export function createGame(random = Math.random, hamlessOwner = null) {
   const row = ["king", "taku", "megu", "ham"];
   for (let i = row.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
@@ -113,7 +113,12 @@ export function createGame(random = Math.random) {
   const tapi = 8 + Math.floor(random() * 4);
   board[tapi] = { type: "tapi", owner: 0, promoted: false };
   board[15 - tapi] = { type: "tapi", owner: 1, promoted: false };
-  return createPosition(board);
+  // Remove only the processed-meat ham, before recording the initial history.
+  if (hamlessOwner === 0 || hamlessOwner === 1) {
+    const index = board.findIndex((p) => p?.owner === hamlessOwner && p.type === "ham");
+    board[index] = null;
+  }
+  return createPosition(board, hamlessOwner === 1 ? 1 : 0);
 }
 
 // A reusable starting position is also useful for rule tests and future saved games.
@@ -213,7 +218,11 @@ function repetition(next) {
   });
   // If both keep giving check, the player completing the cycle must change the move.
   const offender =
-    checkers.length === 1 ? checkers[0] : checkers.length === 2 ? next.moves.at(-1).owner : 0;
+    checkers.length === 1
+      ? checkers[0]
+      : checkers.length === 2
+        ? next.moves.at(-1).owner
+        : next.history[0].turn;
   return { offender, continuous: checkers.length > 0 };
 }
 

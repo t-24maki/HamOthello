@@ -1,12 +1,18 @@
-import { CHARACTERS, EMPTY_INPUT } from "./engine.js";
-import { getStage, mainPlatform, platformsAt, surfaceAt, supports } from "./stages.js";
+import { CHARACTERS, EMPTY_INPUT } from "./engine.js?v=20261001-battle9";
+import {
+  getStage,
+  mainPlatform,
+  platformsAt,
+  surfaceAt,
+  supports,
+} from "./stages.js?v=20261001-battle9";
 const LEVELS = {
-  easy: { reaction: 0.3, attack: 0.72, guard: 0.06, special: 0.15 },
+  easy: { reaction: 0.48, attack: 1.2, guard: 0.02, special: 0.06 },
   normal: { reaction: 0.17, attack: 0.46, guard: 0.28, special: 0.32 },
   hard: { reaction: 0.09, attack: 0.33, guard: 0.53, special: 0.48 },
 };
 export function createCPU(random = Math.random) {
-  return { random, think: 0, attackWait: 0, jumpWait: 0, guardTime: 0, move: 0 };
+  return { random, think: 0, attackWait: 0, jumpWait: 0, guardTime: 0, restTime: 0, move: 0 };
 }
 export function cpuInput(g, brain, dt, index = 1) {
   const stage = getStage(g.stageId),
@@ -20,6 +26,7 @@ export function cpuInput(g, brain, dt, index = 1) {
   brain.attackWait -= dt;
   brain.jumpWait -= dt;
   brain.guardTime -= dt;
+  brain.restTime -= dt;
   const dx = other.x - f.x,
     dy = other.y - f.y;
   const input = { ...EMPTY_INPUT, move: brain.move, guard: brain.guardTime > 0 };
@@ -38,6 +45,11 @@ export function cpuInput(g, brain, dt, index = 1) {
       } else if (!f.airSpecial && f.specialCooldown === 0) input.special = true;
     }
     return input;
+  }
+  // Beginners get room to respond after a swing. Recovery still takes priority.
+  if (g.difficulty === "easy" && brain.restTime > 0) {
+    brain.move = 0;
+    return { ...EMPTY_INPUT };
   }
   if (brain.think > 0) return input;
   brain.think = level.reaction * (0.8 + brain.random() * 0.4);
@@ -75,6 +87,7 @@ export function cpuInput(g, brain, dt, index = 1) {
       : Math.abs(dx) > 9
         ? Math.sign(dx) * 0.12
         : 0;
+  if (g.difficulty === "easy") input.move *= 0.65;
   if (Math.abs(dx) < 110 && other.attack && f.grounded && brain.random() < level.guard) {
     brain.guardTime = 0.2 + brain.random() * 0.16;
     input.guard = true;
@@ -94,6 +107,7 @@ export function cpuInput(g, brain, dt, index = 1) {
   if (!input.guard && Math.abs(dx) < 90 && Math.abs(dy) < 75 && brain.attackWait <= 0) {
     input.special = !f.airSpecial && f.specialCooldown === 0 && brain.random() < level.special;
     input.attack = !input.special;
+    if (g.difficulty === "easy") brain.restTime = 0.45 + brain.random() * 0.25;
     // Use the same policy for both fighters while respecting their attack tempo.
     brain.attackWait =
       level.attack *

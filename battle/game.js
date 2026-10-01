@@ -1,12 +1,23 @@
-import { createMatch, advance, pause, resume, CHARACTERS, STEP } from "./engine.js";
-import { createCPU, cpuInput } from "./cpu.js";
-import { createInput, KEY_ACTIONS } from "./input.js";
-import { bindControls } from "./controls.js";
-import { loadArt, render, renderStageMap } from "./renderer.js";
-import { getStage, STAGES } from "./stages.js";
-import { createBattleMusic, wantsMusic } from "./music.js";
-import { fighterAppearance } from "./appearance.js";
-import { createBattleOnline, generateRoomCode, normalizeRoomCode } from "./online.js";
+import {
+  createMatch,
+  advance,
+  pause,
+  resume,
+  CHARACTERS,
+  STEP,
+} from "./engine.js?v=20261001-battle9";
+import { createCPU, cpuInput } from "./cpu.js?v=20261001-battle9";
+import { createInput, KEY_ACTIONS } from "./input.js?v=20261001-battle9";
+import { bindControls } from "./controls.js?v=20261001-battle9";
+import { loadArt, render, renderStageMap } from "./renderer.js?v=20261001-battle9";
+import { getStage, STAGES } from "./stages.js?v=20261001-battle9";
+import { createBattleMusic, wantsMusic } from "./music.js?v=20261001-battle9";
+import { fighterAppearance } from "./appearance.js?v=20261001-battle9";
+import {
+  createBattleOnline,
+  generateRoomCode,
+  normalizeRoomCode,
+} from "./online.js?v=20261001-battle9";
 const $ = (id) => document.getElementById(id);
 const arena = $("arena"),
   preview = $("preview"),

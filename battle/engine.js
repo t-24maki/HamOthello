@@ -1,4 +1,10 @@
-import { getStage, mainPlatform, platformsAt, surfaceAt, supports } from "./stages.js";
+import {
+  getStage,
+  mainPlatform,
+  platformsAt,
+  surfaceAt,
+  supports,
+} from "./stages.js?v=20261001-battle9";
 // Feet-based coordinates; deterministic 120 Hz simulation, independent of rendering.
 export const STEP = 1 / 120;
 export const INPUT_GRACE = 0.12;

@@ -15,13 +15,13 @@ import {
   MAX_DRAG,
   MIN_DRAG,
   TURNS,
-} from "./physics.js?v=20260926-5";
+} from "./physics.js?v=20261001-games6";
 import {
   createBilliardsMatch,
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js?v=20260926-online-1";
+} from "./online.js?v=20261001-games6";
 const $ = (id) => document.getElementById(id);
 const table = $("table");
 const NS = "http://www.w3.org/2000/svg";
@@ -246,6 +246,14 @@ function svg(tag, attrs = {}, text) {
   return node;
 }
 function makeTable() {
+  // Placement and aiming must show the same size used by collision detection.
+  document.querySelector("#placement-preview .placement-ball").setAttribute("r", BALL_RADIUS);
+  document.querySelector("#placement-preview .placement-ring").setAttribute("r", BALL_RADIUS + 10);
+  $("aim-ring").setAttribute("r", BALL_RADIUS + 9);
+  $("shot-direction").setAttribute(
+    "d",
+    `M${BALL_RADIUS + 10} 0H${BALL_RADIUS * 6}m-10-9 10 9-10 9`,
+  );
   $("pockets").replaceChildren();
   game.pockets.forEach((p) => {
     const g = svg("g", {
@@ -263,8 +271,8 @@ function makeTable() {
       }),
     );
     g.append(svg("circle", { cx: p.x, cy: p.y, r: p.radius + 3, class: "pocket-halo" }));
-    const x = CENTER + Math.cos(p.angle) * 326,
-      y = CENTER + Math.sin(p.angle) * 326;
+    const x = CENTER + Math.cos(p.angle) * 332,
+      y = CENTER + Math.sin(p.angle) * 332;
     g.append(
       svg("rect", { x: x - 24, y: y - 18, width: 48, height: 36, rx: 13, class: "pocket-label" }),
     );
@@ -276,6 +284,7 @@ function makeTable() {
   const numbers = [0, 0, 0];
   game.balls.forEach((b) => {
     const cue = b.kind === "cue";
+    const detailScale = BALL_RADIUS / 14;
     const number = ++numbers[b.owner ?? 2];
     const g = svg("g", {
       class: "ball",
@@ -286,7 +295,16 @@ function makeTable() {
       "aria-label": cue ? "白球（ふたり共通の打つ球）" : `${PLAYERS[b.owner]}の球 ${number}`,
     });
     g.append(svg("circle", { r: BALL_RADIUS + 6, class: "selection-ring" }));
-    g.append(svg("ellipse", { cx: 1, cy: 5, rx: 15, ry: 13, class: "ball-shadow" }));
+    g.append(
+      svg("ellipse", {
+        cx: 1,
+        cy: 5,
+        rx: 15,
+        ry: 13,
+        class: "ball-shadow",
+        transform: `scale(${detailScale})`,
+      }),
+    );
     g.append(
       svg("circle", {
         r: BALL_RADIUS,
@@ -300,11 +318,11 @@ function makeTable() {
         cy: -7,
         rx: 4,
         ry: 2.7,
-        transform: "rotate(-30 -5 -7)",
+        transform: `scale(${detailScale}) rotate(-30 -5 -7)`,
         class: "ball-glint",
       }),
     );
-    const face = svg("g", { class: "ball-face" });
+    const face = svg("g", { class: "ball-face", transform: `scale(${detailScale})` });
     if (b.owner === 0) {
       face.append(
         svg("circle", { cx: -5, cy: 0, r: 4 }),
@@ -515,7 +533,7 @@ function renderAim() {
     `translate(${b.x} ${b.y}) rotate(${(Math.atan2(n.y, n.x) * 180) / Math.PI})`,
   );
   const cue = $("cue-stick"),
-    gap = 27 + strength * 35;
+    gap = BALL_RADIUS + 13 + strength * 35;
   cue.setAttribute("x1", b.x - n.x * gap);
   cue.setAttribute("y1", b.y - n.y * gap);
   cue.setAttribute("x2", b.x - n.x * (gap + 70));

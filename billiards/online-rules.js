@@ -1,6 +1,6 @@
-import { createGame, startGame, launch, advance, placeCue } from "./physics.js?v=20260926-5";
+import { createGame, startGame, launch, advance, placeCue } from "./physics.js?v=20261001-games6";
 
-export const PROTOCOL = "takumegu-billiards-v1";
+export const PROTOCOL = "takumegu-billiards-v2";
 // A shared seed and accepted actions reproduce the same table on both devices.
 function seeded(seed) {
   return () => {

@@ -1,5 +1,5 @@
-import { PIECES, TYPES } from "./rules.js";
-import { pieceElement } from "./pieces.js?v=20260926-art3";
+import { PIECES, TYPES } from "./rules.js?v=20261001-shogi7";
+import { pieceElement } from "./pieces.js?v=20261001-shogi7";
 
 const gallery = document.getElementById("piece-gallery");
 for (const type of TYPES) {

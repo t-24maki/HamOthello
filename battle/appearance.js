@@ -1,4 +1,4 @@
-import { CHARACTERS } from "./engine.js";
+import { CHARACTERS } from "./engine.js?v=20261001-battle9";
 const PALETTES = {
   tak: { color: "#a98ac5", fill: "#dfd2eb", ink: "#795791", label: "むらさき" },
   meg: { color: "#e2b967", fill: "#f6e3bd", ink: "#8b6634", label: "クリーム色" },

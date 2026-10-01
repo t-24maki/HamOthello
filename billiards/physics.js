@@ -1,9 +1,9 @@
 export const SIZE = 720;
 export const CENTER = SIZE / 2;
 export const TABLE_RADIUS = 278;
-export const BALL_RADIUS = 14;
+export const BALL_RADIUS = 21;
 export const POCKET_RING = 273;
-export const POCKET_RADIUS = 24;
+export const POCKET_RADIUS = 36;
 export const MAX_DRAG = 132;
 export const MIN_DRAG = 10;
 export const MAX_SPEED = 2100;
@@ -31,8 +31,8 @@ export function createGame(random = Math.random, starter = 0) {
     return {
       id,
       points,
-      // The original capture radius stays unchanged for -1 and +1.
-      radius: POCKET_RADIUS - Math.max(0, points - 1) * 2.5,
+      // Scale every pocket with the balls, preserving the score/size relationship.
+      radius: POCKET_RADIUS - Math.max(0, points - 1) * 3.75,
       angle,
       x: CENTER + Math.cos(angle) * POCKET_RING,
       y: CENTER + Math.sin(angle) * POCKET_RING,

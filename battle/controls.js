@@ -13,6 +13,20 @@ export function bindControls(controls, input, { isActive, onInteract }) {
     input.release(source(id));
     refresh();
   }
+  function slide(id, x, y) {
+    const rect = pad.getBoundingClientRect();
+    const inside =
+      x >= rect.left - 16 && x <= rect.right + 16 && y >= rect.top - 16 && y <= rect.bottom + 16;
+    const dx = (x - (rect.left + rect.right) / 2) / ((rect.right - rect.left) / 2);
+    const dy = (y - (rect.top + rect.bottom) / 2) / ((rect.bottom - rect.top) / 2);
+    const actions = [];
+    if (inside) {
+      if (Math.abs(dx) > 0.28) actions.push(dx < 0 ? "left" : "right");
+      if (Math.abs(dy) > 0.28) actions.push(dy < 0 ? "jump" : "guard");
+    }
+    // Preserve edges that remain held when a diagonal changes only on one axis.
+    input.set(source(id), actions);
+  }
   for (const button of buttons) {
     button.addEventListener("pointerdown", (event) => {
       if (!isActive() || (event.pointerType === "mouse" && event.button !== 0)) return;
@@ -20,7 +34,7 @@ export function bindControls(controls, input, { isActive, onInteract }) {
       button.setPointerCapture(event.pointerId);
       pointers.set(event.pointerId, {
         button,
-        direction: ["left", "right"].includes(button.dataset.action),
+        direction: !!button.dataset.direction,
       });
       input.press(source(event.pointerId), button.dataset.action);
       refresh();
@@ -31,19 +45,8 @@ export function bindControls(controls, input, { isActive, onInteract }) {
       if (!pointer?.direction) return;
       event.preventDefault();
       if (!isActive()) return release(event.pointerId);
-      // Capture stays on the original button; coordinates choose the live direction.
-      const rect = pad.getBoundingClientRect();
-      const inside =
-        event.clientX >= rect.left - 16 &&
-        event.clientX <= rect.right + 16 &&
-        event.clientY >= rect.top - 16 &&
-        event.clientY <= rect.bottom + 16;
-      input.release(source(event.pointerId));
-      if (inside)
-        input.press(
-          source(event.pointerId),
-          event.clientX < (rect.left + rect.right) / 2 ? "left" : "right",
-        );
+      // Capture stays on the original button while one thumb can hold two axes.
+      slide(event.pointerId, event.clientX, event.clientY);
       refresh();
     });
     for (const type of ["pointerup", "pointercancel", "lostpointercapture"])

@@ -1,13 +1,16 @@
-import { createGame, createPosition, play, TYPES } from "./rules.js";
+import { createGame, createPosition, play, TYPES } from "./rules.js?v=20261001-shogi7";
 
-export const PROTOCOL = "takumegu-shogi-1";
+export const PROTOCOL = "takumegu-shogi-3";
 export const ownerForPlayer = (round, player) => player ^ ((round.roundId - 1) % 2);
-export function createRound(matchId, roundId = 1, random = Math.random) {
-  const game = createGame(random);
+export function createRound(matchId, roundId = 1, random = Math.random, hamlessPlayer = null) {
+  if (![0, 1].includes(hamlessPlayer)) hamlessPlayer = null;
+  const hamlessOwner = hamlessPlayer === null ? null : ownerForPlayer({ roundId }, hamlessPlayer);
+  const game = createGame(random, hamlessOwner);
   return {
     protocol: PROTOCOL,
     matchId,
     roundId,
+    hamlessPlayer,
     revision: 0,
     opening: game.board.map((p) => p && { ...p }),
     actions: [],
@@ -56,7 +59,7 @@ export function applyAction(round, player, request, random = Math.random) {
     return {
       ok: true,
       state: rematch.every(Boolean)
-        ? createRound(round.matchId, round.roundId + 1, random)
+        ? createRound(round.matchId, round.roundId + 1, random, round.hamlessPlayer)
         : { ...round, rematch, event: null, revision: round.revision + 1 },
     };
   }
@@ -82,10 +85,18 @@ export function applyAction(round, player, request, random = Math.random) {
   };
 }
 export function roundView(round) {
-  const { protocol, matchId, roundId, revision, opening, actions, rematch } = round;
-  return { protocol, matchId, roundId, revision, opening, actions, rematch };
+  const { protocol, matchId, roundId, hamlessPlayer, revision, opening, actions, rematch } = round;
+  return { protocol, matchId, roundId, hamlessPlayer, revision, opening, actions, rematch };
 }
-function validOpening(board) {
+function validOpening(opening, hamlessOwner) {
+  if (!Array.isArray(opening) || opening.length !== 16) return false;
+  const board = [...opening];
+  // Reconstruct the one missing ham, then require the original mirrored opening.
+  if (hamlessOwner !== null) {
+    const otherHam = board.findIndex((p) => p?.type === "ham" && p.owner === 1 - hamlessOwner);
+    if (otherHam < 0 || board[15 - otherHam] !== null) return false;
+    board[15 - otherHam] = { type: "ham", owner: hamlessOwner, promoted: false };
+  }
   if (!Array.isArray(board) || board.length !== 16) return false;
   for (let i = 0; i < 16; i++) {
     const p = board[i],
@@ -126,7 +137,11 @@ export function validateRound(view) {
     view.roundId < 1 ||
     !Number.isSafeInteger(view.revision) ||
     view.revision < 0 ||
-    !validOpening(view.opening) ||
+    ![null, 0, 1].includes(view.hamlessPlayer) ||
+    !validOpening(
+      view.opening,
+      view.hamlessPlayer === null ? null : ownerForPlayer(view, view.hamlessPlayer),
+    ) ||
     !Array.isArray(view.actions) ||
     view.actions.length > 4096 ||
     !Array.isArray(view.rematch) ||
@@ -138,7 +153,8 @@ export function validateRound(view) {
     return null;
   // Replay attempts too: a rejected repetition can rewind a move and create a ban.
   const opening = view.opening.map((p) => p && { type: p.type, owner: p.owner, promoted: false });
-  let game = createPosition(opening),
+  const firstOwner = view.hamlessPlayer === null ? 0 : ownerForPlayer(view, view.hamlessPlayer);
+  let game = createPosition(opening, firstOwner),
     event = null;
   const actions = [];
   for (const entry of view.actions) {
@@ -156,6 +172,7 @@ export function validateRound(view) {
     protocol: PROTOCOL,
     matchId: view.matchId,
     roundId: view.roundId,
+    hamlessPlayer: view.hamlessPlayer,
     revision: view.revision,
     opening,
     actions,

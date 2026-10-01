@@ -3,8 +3,8 @@ import {
   generateRoomCode,
   normalizeRoomCode,
 } from "../src/online-game.js?v=poker-rooms-20260908";
-import { createBattlePeer } from "./online-peer.js";
-import { PROTOCOL, SEND_MS } from "./online-protocol.js";
+import { createBattlePeer } from "./online-peer.js?v=20261001-battle9";
+import { PROTOCOL, SEND_MS } from "./online-protocol.js?v=20261001-battle9";
 export { generateRoomCode, normalizeRoomCode };
 export async function createBattleOnline({
   role,

@@ -1,4 +1,4 @@
-import { movement } from "./rules.js";
+import { movement } from "./rules.js?v=20261001-shogi7";
 
 export function pieceArtwork(piece) {
   // たぴは同じイラストを大きくして、成長した姿を表す。
@@ -19,7 +19,7 @@ export function pieceElement(piece) {
   art.draggable = false;
   node.append(art);
 
-  // The entire tile rotates for 後手, so its local indicators always face 先手's way.
+  // Rotate the opponent's entire tile so its local movement indicators follow it.
   const { directions, sliding } = movement({ ...piece, owner: 0 });
   for (const [dr, dc] of directions) {
     const mark = document.createElement("span");

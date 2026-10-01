@@ -9,20 +9,23 @@ import {
   inCheck,
   isRestricted,
   play,
-} from "./rules.js";
-import { pieceArtwork, pieceElement } from "./pieces.js?v=20260926-art3";
+} from "./rules.js?v=20261001-shogi7";
+import { pieceArtwork, pieceElement } from "./pieces.js?v=20261001-shogi7";
 
-import { chooseMove } from "./cpu.js";
+import { chooseMove } from "./cpu.js?v=20261001-shogi7";
+import { ownerForPlayer } from "./online-rules.js?v=20261001-shogi7";
 import {
   createShogiMatch,
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js";
+} from "./online.js?v=20261001-shogi7";
 
 let mode = "cpu",
   localOwner = 0,
+  evenCpuOwner = 0,
   difficulty = "normal",
+  handicap = "even",
   roomAction = "create";
 let cpuTimer = null,
   cpuWorker = null,
@@ -45,14 +48,28 @@ const canInteract = () =>
 const perspective = () => (mode === "local" ? 0 : localOwner);
 const who = (owner) =>
   mode === "local"
-    ? `${players[owner]}さん`
+    ? `${playerName(owner)}さん`
     : owner === localOwner
       ? "あなた"
       : mode === "cpu"
         ? "CPU"
         : "相手";
 const $ = (id) => document.getElementById(id);
-const players = ["先手", "後手"];
+const playerName = (owner) => (owner === game.history[0].turn ? "先手" : "後手");
+function selectedHamlessOwner() {
+  if (handicap === "even" || (mode === "online" && roomAction === "join")) return null;
+  const self = mode === "cpu" ? localOwner : 0;
+  return handicap === "self" ? self : 1 - self;
+}
+function handicapLabel() {
+  const owner = onlineRound
+    ? onlineRound.hamlessPlayer === null
+      ? null
+      : ownerForPlayer(onlineRound, onlineRound.hamlessPlayer)
+    : selectedHamlessOwner();
+  if (owner === null) return "平手";
+  return `${mode === "local" ? (owner === 0 ? "下側" : "上側") : owner === localOwner ? "自分" : "相手"}がハム落ち`;
+}
 let game = createGame(),
   phase = "ready",
   selected = null;
@@ -181,7 +198,9 @@ function render(message) {
     : ready
       ? mode === "online"
         ? "キーワードで相手とつながるよ。"
-        : "はじめの並びは、ふたりでおそろい。"
+        : selectedHamlessOwner() === null
+          ? "はじめの並びは、ふたりでおそろい。"
+          : `${handicapLabel()}。加工肉のハムを1枚外すよ。`
       : ended
         ? "ハム王をつかまえたね。"
         : pending
@@ -192,7 +211,7 @@ function render(message) {
               ? "王手！ ハム王がねらわれているよ。"
               : mode === "online" && game.turn !== localOwner
                 ? "相手の手を待っているよ。"
-                : `${players[game.turn]}の駒か、持ち駒をえらんでね。`;
+                : `${playerName(game.turn)}の駒か、持ち駒をえらんでね。`;
   $("move-count").textContent = ready
     ? "準備中"
     : ended
@@ -222,7 +241,7 @@ function render(message) {
     );
     button.setAttribute(
       "aria-label",
-      `${Math.floor(index / 4) + 1}段${(index % 4) + 1}列、${piece ? `${players[piece.owner]}の${pieceName(piece)}` : "空きマス"}${restricted ? "、繰り返しのため選べません" : possible ? "、ここへ打てます・動かせます" : ""}`,
+      `${Math.floor(index / 4) + 1}段${(index % 4) + 1}列、${piece ? `${playerName(piece.owner)}の${pieceName(piece)}` : "空きマス"}${restricted ? "、繰り返しのため選べません" : possible ? "、ここへ打てます・動かせます" : ""}`,
     );
     button.replaceChildren(
       ...(piece ? [pieceElement({ ...piece, owner: piece.owner ^ viewOwner })] : []),
@@ -230,7 +249,8 @@ function render(message) {
   }
   for (const owner of [0, 1]) {
     $(`player-${owner}`).classList.toggle("active", playing && game.turn === owner);
-    $(`player-name-${owner}`).textContent = players[owner];
+    $(`player-name-${owner}`).textContent = playerName(owner);
+    $(`player-${owner}`).setAttribute("aria-label", `${playerName(owner)}の持ち駒`);
     $(`player-team-${owner}`).textContent =
       mode === "local" ? (owner === 0 ? "たくハムチーム" : "めぐハムチーム") : who(owner);
     $(`player-facing-${owner}`).textContent = owner === viewOwner ? "↑" : "↓";
@@ -245,12 +265,11 @@ function render(message) {
       button.setAttribute("aria-pressed", String(active));
       button.setAttribute(
         "aria-label",
-        `${players[owner]}の持ち駒 ${PIECES[type].name} ${count}枚`,
+        `${playerName(owner)}の持ち駒 ${PIECES[type].name} ${count}枚`,
       );
     }
   }
   $("start").hidden = !ready || mode === "online";
-  $("shuffle").hidden = !ready || mode === "online";
   $("new-game").hidden = ready || (mode === "online" && !ended);
   $("new-game").disabled =
     mode === "online" &&
@@ -282,10 +301,10 @@ function render(message) {
   else if (game.lastMove) {
     const move = game.lastMove;
     $("notice").textContent = move.newlyPromoted
-      ? `${players[move.owner]}の${PIECES[move.type].name}が成ったよ！`
+      ? `${playerName(move.owner)}の${PIECES[move.type].name}が成ったよ！`
       : move.captured
-        ? `${players[move.owner]}が${PIECES[move.captured].name}を取ったよ。`
-        : `${players[move.owner]}が${PIECES[move.type].name}を${move.kind === "drop" ? "打った" : "動かした"}よ。`;
+        ? `${playerName(move.owner)}が${PIECES[move.captured].name}を取ったよ。`
+        : `${playerName(move.owner)}が${PIECES[move.type].name}を${move.kind === "drop" ? "打った" : "動かした"}よ。`;
   } else $("notice").textContent = "ハム王をつかまえたら勝ち。先手さんから、どうぞ。";
 }
 
@@ -406,7 +425,9 @@ function scheduleCPU() {
     cpuTimer = null;
     if (id !== cpuJob) return;
     try {
-      cpuWorker = new Worker(new URL("./cpu-worker.js", import.meta.url), { type: "module" });
+      cpuWorker = new Worker(new URL("./cpu-worker.js?v=20261001-shogi7", import.meta.url), {
+        type: "module",
+      });
       cpuWorker.onmessage = ({ data }) => {
         if (data.id === id) complete(data.action);
       };
@@ -430,7 +451,9 @@ function closeOnline() {
 }
 function newRound() {
   cancelCPU();
-  game = createGame();
+  if (mode === "cpu")
+    localOwner = handicap === "self" ? 0 : handicap === "opponent" ? 1 : evenCpuOwner;
+  game = createGame(Math.random, selectedHamlessOwner());
   phase = "ready";
   selected = null;
   showGuide("king", false);
@@ -440,7 +463,7 @@ function returnToSetup(nextMode = mode) {
   cancelCPU();
   closeOnline();
   mode = nextMode;
-  localOwner = mode === "cpu" ? Number($("cpu-side").value) : 0;
+  localOwner = mode === "cpu" ? evenCpuOwner : 0;
   $("message-dialog").close();
   dialogAction = null;
   newRound();
@@ -449,7 +472,17 @@ function renderSetup() {
   const setup = phase === "ready" || phase === "waiting" || !!networkError;
   $("match-setup").hidden = !setup;
   $("cpu-options").hidden = mode !== "cpu";
+  $("cpu-side").disabled = handicap !== "even";
+  if (mode === "cpu") $("cpu-side").value = String(localOwner);
   $("online-setup").hidden = mode !== "online";
+  const guest = mode === "online" && roomAction === "join";
+  $("handicap").value = guest ? "host" : handicap;
+  $("handicap").disabled = connecting || guest;
+  $("handicap-note").textContent = guest
+    ? "手合いはへやを作る人が選ぶよ。接続後、対局の上に表示します。"
+    : mode === "local"
+      ? "「自分」は下側、「相手」は上側。加工肉のハムを外した側が先手だよ。"
+      : "ハム落ちは加工肉のハムを1枚外し、落とした側が先手だよ。";
   $("mode-label").textContent = {
     cpu: "CPUとあそぶ",
     local: "1台でふたり",
@@ -474,10 +507,11 @@ function renderSetup() {
   $("match-toolbar").hidden = setup && !networkError;
   $("match-info").textContent =
     mode === "online"
-      ? `${roomCode} · あなたは${players[localOwner]}`
+      ? `${roomCode} · あなたは${playerName(localOwner)}`
       : mode === "cpu"
-        ? `CPU · ${{ easy: "のんびり", normal: "ふつう", hard: "じっくり" }[difficulty]} · あなたは${players[localOwner]}`
+        ? `CPU · ${{ easy: "のんびり", normal: "ふつう", hard: "じっくり" }[difficulty]} · あなたは${playerName(localOwner)}`
         : "1台でふたり";
+  $("match-info").textContent += ` · ${handicapLabel()}`;
   $("settings").textContent = mode === "online" ? "へやを出る" : "モードをえらびなおす";
 }
 function acceptOnline(next, owner) {
@@ -527,6 +561,7 @@ async function connect() {
     const opened = await createShogiMatch({
       role: roomAction === "create" ? "host" : "guest",
       roomCode,
+      hamlessPlayer: selectedHamlessOwner(),
       onState(next, owner) {
         if (attempt === epoch) acceptOnline(next, owner);
       },
@@ -578,7 +613,6 @@ $("start").addEventListener("click", () => {
   render();
   scheduleCPU();
 });
-$("shuffle").addEventListener("click", newRound);
 $("clear-selection").addEventListener("click", () => {
   selected = null;
   render();
@@ -624,7 +658,7 @@ for (const button of document.querySelectorAll("[data-room]"))
     if (!connecting) {
       roomAction = button.dataset.room;
       connectionNote = "";
-      render();
+      newRound();
     }
   });
 $("cpu-level").addEventListener("change", () => {
@@ -632,8 +666,12 @@ $("cpu-level").addEventListener("change", () => {
   render();
 });
 $("cpu-side").addEventListener("change", () => {
-  localOwner = Number($("cpu-side").value);
-  render();
+  evenCpuOwner = Number($("cpu-side").value);
+  newRound();
+});
+$("handicap").addEventListener("change", () => {
+  handicap = $("handicap").value;
+  newRound();
 });
 $("connect").addEventListener("click", () => void connect());
 $("cancel-connect").addEventListener("click", () => returnToSetup());

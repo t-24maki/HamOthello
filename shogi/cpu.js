@@ -1,4 +1,11 @@
-import { HAND_TYPES, moveTargets, dropTargets, play, isRestricted, inCheck } from "./rules.js";
+import {
+  HAND_TYPES,
+  moveTargets,
+  dropTargets,
+  play,
+  isRestricted,
+  inCheck,
+} from "./rules.js?v=20261001-shogi7";
 
 export function availableActions(state) {
   if (state.status !== "playing") return [];

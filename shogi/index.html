@@ -9,7 +9,7 @@
       content="4×4のたくめぐしょうぎ。CPU対戦・1台でふたり・通信対戦で、相手のハム王をつかまえよう。"
     />
     <title>たくめぐしょうぎ — たくめぐのあそびば</title>
-    <link rel="stylesheet" href="./style.css?v=20260926-modes1" />
+    <link rel="stylesheet" href="./style.css?v=20261001-shogi7" />
     <link rel="stylesheet" href="../game-menu.css" />
   </head>
   <body>
@@ -52,6 +52,19 @@
             </select></label
           >
         </div>
+        <div class="cpu-options handicap-options">
+          <label
+            >手合い<select id="handicap">
+              <option value="even">平手</option>
+              <option value="self">自分がハム落ち</option>
+              <option value="opponent">相手がハム落ち</option>
+              <option value="host" hidden>相手が選びます</option>
+            </select></label
+          >
+        </div>
+        <p id="handicap-note" class="handicap-note">
+          ハム落ちは加工肉のハムを1枚外し、落とした側から指すよ。
+        </p>
         <div id="online-setup" hidden>
           <div class="room-choices" role="group" aria-label="通信対戦の参加方法">
             <button type="button" data-room="create" aria-pressed="true">へやをつくる</button>
@@ -78,9 +91,10 @@
             ><button id="cancel-connect" class="secondary" type="button" hidden>やめる</button>
           </div>
           <p class="connection-help">
-            キーワードを相手に教えてね。再戦では先手・後手を交代するよ。
+            平手の再戦では先後を交代。ハム落ちは、駒を落とした側が先手だよ。
           </p>
         </div>
+        <button id="start" class="primary setup-start" type="button">対局開始 →</button>
       </section>
       <div id="match-toolbar" class="match-toolbar" hidden>
         <span id="match-info"></span
@@ -123,8 +137,6 @@
           </section>
           <p id="notice" class="notice" role="status" aria-live="polite"></p>
           <div class="table-actions">
-            <button id="shuffle" class="secondary" type="button">並べなおす ↻</button>
-            <button id="start" class="primary" type="button">この並びではじめる →</button>
             <button id="clear-selection" class="secondary" type="button" hidden>
               えらびなおす
             </button>
@@ -211,6 +223,6 @@
         ><button id="dialog-cancel" class="quiet" type="button" hidden>盤面をみる</button>
       </div>
     </dialog>
-    <script type="module" src="./game.js?v=20260926-modes1"></script>
+    <script type="module" src="./game.js?v=20261001-shogi7"></script>
   </body>
 </html>

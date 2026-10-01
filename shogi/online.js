@@ -11,12 +11,13 @@ import {
   roundView,
   validateRound,
   ownerForPlayer,
-} from "./online-rules.js";
+} from "./online-rules.js?v=20261001-shogi7";
 export { generateRoomCode, normalizeRoomCode, isOnlineConfigured };
 
 export async function createShogiMatch({
   role,
   roomCode,
+  hamlessPlayer = null,
   onState = () => {},
   onStatus = () => {},
   onError = () => {},
@@ -68,7 +69,7 @@ export async function createShogiMatch({
     if (!ready || !transport || stopped) return;
     onStatus("connected");
     if (role === "host") {
-      state ??= createRound(transport.clientId, 1, random);
+      state ??= createRound(transport.clientId, 1, random, hamlessPlayer);
       publish();
     } else send({ type: "sync" });
   }
@@ -98,6 +99,7 @@ export async function createShogiMatch({
         view &&
         (!incoming ||
           incoming.matchId !== view.matchId ||
+          incoming.hamlessPlayer !== view.hamlessPlayer ||
           incoming.roundId < view.roundId ||
           (incoming.roundId === view.roundId && incoming.revision < view.revision))
       )

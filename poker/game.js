@@ -8,6 +8,7 @@ import {
   roundResult,
 } from "./rules.js?v=poker-20260908";
 import { createDealer } from "./dealer.js?v=poker-table-20260908";
+import { appendCardArtwork } from "./cards.js?v=poker-cards-20261010";
 import {
   createPokerMatch,
   generateRoomCode,
@@ -16,6 +17,9 @@ import {
 } from "./online.js?v=poker-online-20260908";
 
 const $ = (id) => document.getElementById(id);
+for (const node of document.querySelectorAll("[data-sample-metal]")) {
+  appendCardArtwork(node, { metal: node.dataset.sampleMetal, value: 7 });
+}
 const players = [
   { name: "たくハム", image: "../assets/pink-piece.png" },
   { name: "めぐハム", image: "../assets/cream-piece.png" },
@@ -249,27 +253,14 @@ function drawHand(container, hand, { secret = false, interactive = false, fresh 
     if (secret) {
       node.className = "playing-card card-back";
       node.setAttribute("aria-label", "裏向きのカード");
-      const mark = document.createElement("span");
-      mark.textContent = "✦";
-      mark.setAttribute("aria-hidden", "true");
-      node.append(mark);
+      appendCardArtwork(node);
     } else {
       node.className = `playing-card ${card.metal}`;
       node.setAttribute(
         "aria-label",
         `${METALS[card.metal].name}の${card.value}${interactive ? (selected.has(index) ? "、チェンジする" : "、キープする") : ""}`,
       );
-      const metal = document.createElement("span");
-      metal.className = "metal-name";
-      metal.textContent = METALS[card.metal].name;
-      const value = document.createElement("strong");
-      value.className = "card-number";
-      value.textContent = card.value;
-      const corner = document.createElement("span");
-      corner.className = "card-corner";
-      corner.textContent = card.value;
-      corner.setAttribute("aria-hidden", "true");
-      node.append(metal, value, corner);
+      appendCardArtwork(node, card);
       if (interactive) {
         node.type = "button";
         node.dataset.index = index;

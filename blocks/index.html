@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#fff9ef" />
+    <meta
+      name="description"
+      content="たくハムとめぐハムのブロックつめこみ。7つのブロックを交互に置いて、小さな陣取り勝負。CPU対戦・1台でふたり・通信対戦で遊べます。"
+    />
+    <title>ブロックつめこみ — たくめぐのあそびば</title>
+    <link rel="stylesheet" href="./style.css?v=20261010-blocks3" />
+    <link rel="stylesheet" href="../game-menu.css" />
+  </head>
+  <body>
+    <nav class="game-menu" aria-label="ゲーム一覧"><a href="../">← ゲーム一覧へ</a></nav>
+    <main class="page">
+      <header class="heading">
+        <div class="brand-pair" aria-hidden="true">
+          <img src="../assets/pink-piece.png" alt="" width="56" height="56" /><img
+            src="../assets/cream-piece.png"
+            alt=""
+            width="56"
+            height="56"
+          />
+        </div>
+        <div>
+          <p class="eyebrow">TAK&MEG · ふたりのパズル勝負</p>
+          <h1>ブロック<span>つめこみ</span></h1>
+        </div>
+      </header>
+      <section id="setup" class="setup" aria-label="対戦の設定">
+        <div class="mode-choices" role="group" aria-label="対戦モード">
+          <button type="button" data-mode="cpu" aria-pressed="true">CPUとあそぶ</button>
+          <button type="button" data-mode="local" aria-pressed="false">1台でふたり</button
+          ><button type="button" data-mode="online" aria-pressed="false">通信でふたり</button>
+        </div>
+        <div id="local-options">
+          <div id="cpu-options" class="cpu-options">
+            <label
+              >CPUのつよさ<select id="cpu-level">
+                <option value="easy">のんびり</option>
+                <option value="normal" selected>ふつう</option>
+                <option value="hard">じっくり</option>
+              </select></label
+            >
+            <label
+              >あなたの手番<select id="cpu-side">
+                <option value="0">先手（さき）</option>
+                <option value="1">後手（あと）</option>
+              </select></label
+            >
+          </div>
+          <p id="start-note">あなたはたくハム、CPUはめぐハム。再戦では先後を交代するよ。</p>
+          <button id="start" class="primary" type="button">つめこみ、スタート →</button>
+        </div>
+        <div id="online-options" hidden>
+          <div class="room-choices" role="group" aria-label="通信対戦の参加方法">
+            <button data-room="create" type="button" aria-pressed="true">へやをつくる</button
+            ><button data-room="join" type="button" aria-pressed="false">へやに入る</button>
+          </div>
+          <div id="join-fields" hidden>
+            <label for="room-input">相手から教えてもらったキーワード</label
+            ><input
+              id="room-input"
+              placeholder="HAMU-ABC234"
+              maxlength="16"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+            />
+          </div>
+          <div id="room-waiting" class="room-waiting" hidden>
+            <span>ふたりのキーワード</span><output id="room-code"></output
+            ><button id="copy-room" type="button">コピーする</button>
+          </div>
+          <p id="connection-note" class="connection-note" role="status"></p>
+          <div class="connect-actions">
+            <button id="connect" class="primary" type="button">へやをつくる →</button
+            ><button id="cancel-connect" type="button" hidden>やめる</button>
+          </div>
+          <p class="setup-help">つくる人はたくハム、入る人はめぐハム。再戦では先後を交代するよ。</p>
+        </div>
+      </section>
+      <div class="toolbar">
+        <span id="match-info">7つの形を、どこにつめよう？</span
+        ><button id="leave" type="button" hidden>えらびなおす</button>
+      </div>
+      <section class="game-layout" aria-label="ブロックつめこみの対戦">
+        <div class="table">
+          <div class="players">
+            <section
+              id="player-0"
+              class="player"
+              data-owner="0"
+              aria-label="たくハムの持ちブロック"
+            >
+              <img id="face-0" src="../assets/pink-piece.png" alt="" width="60" height="60" />
+              <div>
+                <strong>たくハム <small id="seat-0">先手</small></strong
+                ><span id="remaining-0" class="remaining">のこり 7こ</span>
+              </div>
+              <div id="mini-hand-0" class="mini-hand" aria-hidden="true"></div>
+            </section>
+            <section
+              id="player-1"
+              class="player"
+              data-owner="1"
+              aria-label="めぐハムの持ちブロック"
+            >
+              <img id="face-1" src="../assets/cream-piece.png" alt="" width="60" height="60" />
+              <div>
+                <strong>めぐハム <small id="seat-1">後手</small></strong
+                ><span id="remaining-1" class="remaining">のこり 7こ</span>
+              </div>
+              <div id="mini-hand-1" class="mini-hand" aria-hidden="true"></div>
+            </section>
+          </div>
+          <div id="turn-banner" class="turn-banner" role="status" aria-live="polite">
+            <strong id="turn-title">どちらが最後まで置けるかな？</strong
+            ><span id="turn-hint">ブロックを選んで、空いているところへ。</span>
+          </div>
+          <div class="board-frame">
+            <div class="board-top">
+              <span>ふたりの つめこみボード</span><span id="empty-count">空き 60マス</span>
+            </div>
+            <div
+              id="board"
+              class="board"
+              role="group"
+              aria-label="8行8列の盤面。矢印キーで移動、Enterで仮置き、Rで右回転。"
+              aria-describedby="placement-help"
+            ></div>
+            <p class="board-foot">黒マスには置けないよ <span>8 × 8</span></p>
+          </div>
+        </div>
+        <aside id="hand-panel" class="hand-panel" data-owner="0" aria-label="ブロックの操作">
+          <div class="hand-heading">
+            <span class="step">01</span>
+            <h2 id="hand-title">たくハムのブロック</h2>
+          </div>
+          <p class="hand-help">形をつかんで運ぼう。タップでも選べるよ。</p>
+          <div id="hand" class="hand" role="group" aria-label="使うブロック"></div>
+          <div class="placement-heading">
+            <span class="step">02</span>
+            <h2>盤面で仮置き・回転</h2>
+          </div>
+          <p id="placement-help" class="hand-help">
+            つかんで盤面へ。●がつかんだマスだよ。<br />離すと仮置き。回転してから確定もできるよ。
+          </p>
+          <div class="rotation-actions">
+            <button id="rotate-left" type="button" aria-label="左に回転">↶ 左回転</button
+            ><button id="rotate-right" type="button" aria-label="右に回転">右回転 ↷</button>
+          </div>
+          <p id="notice" class="notice" role="status" aria-live="polite">
+            上のスタートボタンではじめよう。
+          </p>
+          <button id="place" class="primary place" type="button" disabled>ここに置く ✓</button>
+          <p class="keyboard-help">PC：矢印キーで移動 · Rで回転<br />反転はできないよ。</p>
+        </aside>
+      </section>
+      <details class="rules">
+        <summary>あそびかたと勝ち負け</summary>
+        <ol>
+          <li>
+            ブロックをつかんで盤面へ運ぼう。●がつかんだマス。離すと仮置きになり、「ここに置く」で確定するよ。タップ操作では、形を選んで●を合わせたいマスをタップしてね。
+          </li>
+          <li>盤面は8×8。毎回ランダムな4マスが黒マスになるよ。</li>
+          <li>
+            ふたりともI・O・T・S・Z・J・Lの7種類を1個ずつ持って、交互に1個置くよ。どれも4マス。回転はできるけれど、裏返しはできないよ。
+          </li>
+          <li>黒マスや、すでに置いたブロックには重ねられないよ。盤面からはみ出すのもだめ。</li>
+          <li>自分の番に、残りのどのブロックも置けなければ負け。勝敗は自動で判定するよ。</li>
+          <li>
+            ふたりの14個をすべて置き切れたら、後手の勝ち！
+            使うのは56マスなので、空き4マスを残して終了だよ。
+          </li>
+        </ol>
+        <p>
+          再戦は黒マスを引き直して、先手・後手を交代。通信対戦では、ふたりが「もういちどあそぶ」を押すとはじまるよ。
+        </p>
+        <p>
+          CPU対戦では、あなたがたくハム、CPUがめぐハム。はじめに先手・後手と、CPUのつよさを選べるよ。「のんびり」は気ままに、「ふつう」は置きやすさを、「じっくり」は先の手も考えて置くよ。
+        </p>
+      </details>
+      <footer>ちいさなすきまに、ぴったりを。 <span>TAK&MEG</span></footer>
+      <noscript>遊ぶにはJavaScriptを有効にしてください。</noscript>
+    </main>
+    <div class="drag-layer" aria-hidden="true">
+      <div id="drag-piece" class="drag-piece" hidden></div>
+    </div>
+    <script type="module" src="./game.js?v=20261010-blocks3"></script>
+  </body>
+</html>

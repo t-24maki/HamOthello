@@ -9,7 +9,8 @@
       content="金・銀・銅の27枚で遊ぶミニポーカー。3枚の手札を1回チェンジして、たくハムとめぐハムで役くらべ。"
     />
     <title>ミニポーカー — たくめぐのあそびば</title>
-    <link rel="stylesheet" href="./style.css?v=poker-design-20260909" />
+    <link rel="stylesheet" href="./style.css?v=poker-cards-v2-20261010" />
+    <link rel="preload" as="image" href="./art/classic-back.webp" />
     <link rel="stylesheet" href="../game-menu.css" />
   </head>
   <body>
@@ -23,7 +24,7 @@
           />
         </div>
         <div>
-          <p class="eyebrow">TAKHAM × MEGHAM</p>
+          <p class="eyebrow">TAK&amp;MEG</p>
           <h1>ミニポーカー</h1>
         </div>
         <span class="deck-tag"><span aria-hidden="true">✦</span> きょうも のんびり</span>
@@ -50,9 +51,9 @@
           </div>
           <div class="mini-table" aria-hidden="true">
             <div class="sample-hand">
-              <span class="mini-card gold">7<small>金</small></span>
-              <span class="mini-card silver">7<small>銀</small></span>
-              <span class="mini-card bronze">7<small>銅</small></span>
+              <span class="mini-card playing-card gold" data-sample-metal="gold"></span>
+              <span class="mini-card playing-card silver" data-sample-metal="silver"></span>
+              <span class="mini-card playing-card bronze" data-sample-metal="bronze"></span>
             </div>
             <span class="table-sign">✦ MINI POKER ✦</span>
           </div>
@@ -131,7 +132,9 @@
           <div class="table-center">
             <div class="pile-holder">
               <div id="draw-pile" class="pile-stack" aria-hidden="true">
-                <div class="playing-card card-back"><span>✦</span></div>
+                <div class="playing-card card-back">
+                  <span class="card-brand">TAK&amp;MEG</span>
+                </div>
               </div>
               <span class="pile-label">山札 <b id="deck-count">21</b></span>
             </div>
@@ -142,7 +145,9 @@
             </div>
             <div class="pile-holder">
               <div id="discard-pile" class="discard-slot" aria-hidden="true">
-                <div id="discard-back" class="playing-card card-back" hidden><span>✦</span></div>
+                <div id="discard-back" class="playing-card card-back" hidden>
+                  <span class="card-brand">TAK&amp;MEG</span>
+                </div>
               </div>
               <span class="pile-label">交換ずみ <b id="discard-count">0</b></span>
             </div>
@@ -207,6 +212,6 @@
       </details>
       <footer>どんな手札でも、のんびりいこう。</footer>
     </main>
-    <script type="module" src="./game.js?v=poker-online-20260908"></script>
+    <script type="module" src="./game.js?v=poker-cards-20261010"></script>
   </body>
 </html>

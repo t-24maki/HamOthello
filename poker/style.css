@@ -265,30 +265,16 @@ h1 {
     sans-serif;
   letter-spacing: 0.15em;
 }
-.mini-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.sample-hand .mini-card {
   width: 27%;
   height: auto;
-  aspect-ratio: 7 / 10;
-  border: 2px solid var(--metal);
-  border-radius: 12px;
-  background: var(--paper);
-  color: var(--metal-ink);
-  font-size: clamp(23px, 3.2vw, 38px);
-  font-weight: 800;
-  box-shadow: 0 4px 0 #d6caba50;
+  aspect-ratio: 2 / 3;
 }
 .mini-card:first-child {
   transform: rotate(-9deg) translateY(5px);
 }
 .mini-card:last-child {
   transform: rotate(9deg) translateY(5px);
-}
-.mini-card small {
-  font-size: 12px;
 }
 .mode-choices {
   display: grid;
@@ -485,67 +471,98 @@ h1 {
   --metal-ink: #9d6445;
   --paper: #f9e2d2;
 }
+/* PICNIC CLASSIC: shared artwork with crisp, live rank and suit text. */
 .playing-card {
+  container-type: inline-size;
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
+  display: block;
   aspect-ratio: 2 / 3;
   width: 100%;
   min-width: 0;
-  padding: 12px 5px;
-  border: 2px solid var(--metal, #b6a1c3);
-  border-radius: 15px;
-  background: var(--paper, #e7daed);
-  color: var(--metal-ink, #9d80af);
+  padding: 0;
+  border: 1px solid #e9dac1;
+  border-radius: 8px;
+  background-color: #fbf3e2;
+  background-image: var(--card-art);
+  background-position: center;
+  background-size: 100% 100%;
+  color: #654027;
   box-shadow:
-    0 3px 0 #dfdac8,
-    0 6px 10px #163f332f;
+    0 2px 0 #dbcbb0,
+    0 5px 10px #163f3338;
   user-select: none;
 }
-.playing-card::after {
-  content: "";
+.gold {
+  --card-art: url("./art/classic-gold-v2.webp");
+}
+.silver {
+  --card-art: url("./art/classic-silver-v2.webp");
+}
+.bronze {
+  --card-art: url("./art/classic-bronze-v2.webp");
+}
+/* Lining figures share one baseline; keep their boxes clear of the artwork. */
+.playing-card .card-number {
   position: absolute;
-  inset: 5px;
-  border: 1px solid #fffdf7a3;
-  border-radius: 9px;
-  pointer-events: none;
+  top: 14%;
+  left: 26%;
+  width: 54%;
+  height: 40%;
+  display: grid;
+  place-items: center;
+  font:
+    700 72cqi / 1 "Times New Roman",
+    Times,
+    serif;
+  font-variant-numeric: lining-nums tabular-nums;
+  text-shadow: 0 1px 0 #fffaf0;
+}
+.playing-card .card-index,
+.playing-card .card-corner {
+  position: absolute;
+  width: 16%;
+  text-align: center;
+  font:
+    700 17cqi / 1 "Times New Roman",
+    Times,
+    serif;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.playing-card .card-index {
+  top: 6%;
+  left: 7%;
+}
+.playing-card .card-corner {
+  bottom: 6%;
+  right: 7%;
+  transform: rotate(180deg);
 }
 .playing-card .metal-name {
   position: absolute;
-  top: 9px;
-  left: 10px;
-  font-size: 14px;
-  font-weight: 700;
-}
-.card-number {
-  font-family: "Avenir Next", "Trebuchet MS", sans-serif;
-  font-size: clamp(38px, 7vw, 68px);
-  font-weight: 800;
-  line-height: 1;
-  text-shadow: 0 2px 0 #fffdf77a;
-}
-.card-corner {
-  position: absolute;
-  right: 9px;
-  bottom: 9px;
-  font-size: 14px;
-  font-weight: 700;
-  transform: rotate(180deg);
+  bottom: 7%;
+  left: 24%;
+  width: 52%;
+  text-align: center;
+  color: var(--metal-ink);
+  font:
+    700 9cqi / 1.2 Georgia,
+    "Times New Roman",
+    serif;
+  letter-spacing: 0.08em;
 }
 .card-choice {
   position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 12px;
-  padding: 4px 2px;
-  border-radius: 8px;
-  background: #ffffff85;
-  font-size: 12px;
-}
-button.playing-card .card-corner {
-  display: none;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  height: 20px;
+  padding: 2px 0;
+  border-radius: 6px;
+  background: #f9f2e5;
+  color: #5e5144;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
 }
 button.playing-card {
   transition:
@@ -553,10 +570,10 @@ button.playing-card {
     box-shadow 0.16s ease;
 }
 button.playing-card:hover {
-  box-shadow: 0 0 0 3px #b3a1bd66;
+  box-shadow: 0 0 0 3px #b3a1bd99;
 }
 .playing-card.is-selected {
-  transform: translateY(-9px) rotate(-2deg);
+  transform: translateY(-6px);
   border-color: #876099;
   box-shadow:
     0 0 0 3px #e7c6f2,
@@ -567,46 +584,21 @@ button.playing-card:hover {
   color: white;
 }
 .card-back {
-  background:
-    repeating-linear-gradient(45deg, #e7d9ed40 0 1px, transparent 1px 11px),
-    repeating-linear-gradient(-45deg, #e7d9ed40 0 1px, transparent 1px 11px), #aa8db9;
-  border: 3px solid #fff2d6;
-  outline: 1px solid #c9b58b;
+  --card-art: url("./art/classic-back.webp");
 }
-.card-back span {
-  display: grid;
-  place-items: center;
-  border: 2px solid #e3c88d;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  color: #8a659b;
-  background: #fff1d5;
-  font-size: 26px;
-}
-.opponent .hand {
-  max-width: 245px;
-}
-.opponent .playing-card {
-  max-height: 104px;
-}
-.opponent .card-number {
-  font-size: 38px;
-}
-.opponent .card-back span {
-  width: 35px;
-  height: 35px;
-  font-size: 21px;
-}
-.opponent .metal-name {
-  font-size: 12px;
-  top: 6px;
-  left: 7px;
-}
-.opponent .card-corner {
-  font-size: 12px;
-  right: 6px;
-  bottom: 6px;
+.playing-card .card-brand {
+  position: absolute;
+  top: 49%;
+  left: 22%;
+  width: 56%;
+  transform: translateY(-50%);
+  color: #74513c;
+  text-align: center;
+  font:
+    700 9cqi / 1.2 Georgia,
+    "Times New Roman",
+    serif;
+  letter-spacing: 0.025em;
 }
 .table-center {
   display: grid;
@@ -666,11 +658,6 @@ button.playing-card:hover {
   height: 100%;
   border-radius: 9px;
   padding: 4px;
-}
-.pile-holder .card-back span {
-  width: 30px;
-  height: 30px;
-  font-size: 18px;
 }
 .discard-slot {
   border: 1px dashed #e3d5a87d;
@@ -861,15 +848,7 @@ footer {
     gap: 10px;
   }
   .playing-card {
-    border-radius: 12px;
-  }
-  .card-number {
-    font-size: 48px;
-  }
-  .card-choice {
-    left: 4px;
-    right: 4px;
-    bottom: 8px;
+    border-radius: 7px;
   }
   .opponent .hand {
     max-width: 200px;
@@ -889,11 +868,6 @@ footer {
   }
   .pile-holder {
     gap: 11px;
-  }
-  .pile-holder .card-back span {
-    width: 23px;
-    height: 23px;
-    font-size: 15px;
   }
   .pile-label {
     font-size: 9px;
@@ -938,9 +912,6 @@ footer {
   .turn-banner p {
     font-size: 11px;
   }
-  .card-number {
-    font-size: 42px;
-  }
   .role-pill {
     max-width: 94px;
   }
@@ -970,7 +941,7 @@ footer {
 }
 #play-area {
   display: grid;
-  grid-template-rows: 194px 162px calc(var(--own-card-height) + 92px) 104px;
+  grid-template-rows: 194px 162px calc(var(--own-card-height) + 116px) 104px;
   gap: 10px;
 }
 .hand-panel {
@@ -1023,6 +994,9 @@ footer {
   height: var(--own-card-height);
   max-width: 360px;
   align-self: end;
+}
+.self .hand {
+  margin-bottom: 24px;
 }
 .hand .playing-card {
   height: 100%;
@@ -1177,7 +1151,7 @@ footer {
     font-size: 11px;
   }
   #play-area {
-    grid-template-rows: 158px 152px calc(var(--own-card-height) + 82px) 100px;
+    grid-template-rows: 158px 152px calc(var(--own-card-height) + 106px) 100px;
     gap: 7px;
   }
   .hand-panel {
@@ -1448,12 +1422,6 @@ body:not(.is-playing) .poker-page {
     padding: 10px 4px;
   }
   .mode-choice span {
-    font-size: 10px;
-  }
-  .mini-card {
-    font-size: 29px;
-  }
-  .mini-card small {
     font-size: 10px;
   }
   .setup-controls .primary-button {

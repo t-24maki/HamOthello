@@ -7,7 +7,7 @@ import {
   STEP,
   EMPTY_INPUT,
   isCharacter,
-} from "./engine.js?v=20261001-battle9";
+} from "./engine.js?v=20261014-battle11";
 import {
   PROTOCOL,
   ACTIONS,
@@ -16,7 +16,7 @@ import {
   validState,
   readGame,
   gameView,
-} from "./online-protocol.js?v=20261001-battle9";
+} from "./online-protocol.js?v=20261014-battle11";
 
 const copy = (value) => structuredClone(value);
 const empty = () => ({ ...EMPTY_INPUT });

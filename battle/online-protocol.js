@@ -4,8 +4,8 @@ import {
   isCharacter,
   MATCH_TIME,
   STOCKS,
-} from "./engine.js?v=20261001-battle9";
-import { STAGES } from "./stages.js?v=20261001-battle9";
+} from "./engine.js?v=20261014-battle11";
+import { STAGES } from "./stages.js?v=20261014-battle11";
 export const PROTOCOL = "poyon-online-20261001-3";
 export const SEND_MS = 100;
 export const ACTIONS = ["jump", "attack", "special"];

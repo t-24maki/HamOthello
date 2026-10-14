@@ -1,6 +1,6 @@
-import { CHARACTERS, WIDTH, HEIGHT } from "./engine.js?v=20261001-battle9";
-import { fighterAppearance, tintFur } from "./appearance.js?v=20261001-battle9";
-import { getStage, platformsAt, surfaceAt } from "./stages.js?v=20261001-battle9";
+import { CHARACTERS, WIDTH, HEIGHT } from "./engine.js?v=20261014-battle11";
+import { fighterAppearance, tintFur } from "./appearance.js?v=20261014-battle11";
+import { getStage, platformsAt, surfaceAt } from "./stages.js?v=20261014-battle11";
 const FRAMES = {
   cream: [
     [92, 62, 378, 408],

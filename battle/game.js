@@ -5,19 +5,19 @@ import {
   resume,
   CHARACTERS,
   STEP,
-} from "./engine.js?v=20261001-battle9";
-import { createCPU, cpuInput } from "./cpu.js?v=20261001-battle9";
-import { createInput, KEY_ACTIONS } from "./input.js?v=20261001-battle9";
-import { bindControls } from "./controls.js?v=20261001-battle9";
-import { loadArt, render, renderStageMap } from "./renderer.js?v=20261001-battle9";
-import { getStage, STAGES } from "./stages.js?v=20261001-battle9";
-import { createBattleMusic, wantsMusic } from "./music.js?v=20261001-battle9";
-import { fighterAppearance } from "./appearance.js?v=20261001-battle9";
+} from "./engine.js?v=20261014-battle11";
+import { createCPU, cpuInput } from "./cpu.js?v=20261014-battle11";
+import { createInput, KEY_ACTIONS } from "./input.js?v=20261014-battle11";
+import { bindControls, protectGameSurface } from "./controls.js?v=20261014-battle11";
+import { loadArt, render, renderStageMap } from "./renderer.js?v=20261014-battle11";
+import { getStage, STAGES } from "./stages.js?v=20261014-battle11";
+import { createBattleMusic, wantsMusic } from "./music.js?v=20261014-battle11";
+import { fighterAppearance } from "./appearance.js?v=20261014-battle11";
 import {
   createBattleOnline,
   generateRoomCode,
   normalizeRoomCode,
-} from "./online.js?v=20261001-battle9";
+} from "./online.js?v=20261014-battle11";
 const $ = (id) => document.getElementById(id);
 const arena = $("arena"),
   preview = $("preview"),
@@ -37,8 +37,7 @@ let art,
   lastEvent = 0,
   resultShown = false;
 let soundEnabled = false,
-  audio,
-  statusUntil = 0;
+  audio;
 const music = createBattleMusic($("bgm"), () => {
   $("music-note").textContent = "BGMが流れないときは、音をOFF→ONにしてね。";
 });
@@ -183,16 +182,20 @@ function sound(type) {
     tone(784, 0.3, 784, 0.3);
   } else if (type === "start") tone(740, 0.2, 1000);
 }
-$("sound").addEventListener("click", () => {
+function toggleSound() {
   soundEnabled = !soundEnabled;
-  $("sound").textContent = soundEnabled ? "♪ 音 ON" : "♪ 音 OFF";
-  $("sound").setAttribute("aria-pressed", String(soundEnabled));
+  for (const id of ["sound", "pause-sound"]) {
+    $(id).textContent = soundEnabled ? "♪ 音 ON" : "♪ 音 OFF";
+    $(id).setAttribute("aria-pressed", String(soundEnabled));
+  }
   if (soundEnabled) {
     unlockAudio();
     tone(660, 0.08);
   } else if (audio) void audio.suspend().catch(() => {});
   syncMusic();
-});
+}
+$("sound").addEventListener("click", toggleSound);
+$("pause-sound").addEventListener("click", toggleSound);
 function clearInput() {
   controlInput.clear();
 }
@@ -215,7 +218,6 @@ function beginMatchUI() {
   music.reset();
   lastEvent = 0;
   resultShown = false;
-  statusUntil = 0;
   lastTime = performance.now();
   clearInput();
   $("setup").hidden = true;
@@ -467,12 +469,17 @@ function updateHUD() {
   const sec = Math.ceil(match.remaining);
   $("timer").textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
   const f = match.fighters[localSeat];
-  $("guard-fill").style.width = `${f.shield}%`;
-  $("special-status").textContent = f.airSpecial
+  const specialStatus = f.airSpecial
     ? "ひっさつ 着地で回復"
     : f.specialCooldown > 0
       ? "ひっさつ じゅんび中"
       : "ひっさつ OK";
+  if ($("special-status").textContent !== specialStatus)
+    $("special-status").textContent = specialStatus;
+  $("special-button").classList.toggle("is-unavailable", f.airSpecial || f.specialCooldown > 0);
+  controls
+    .querySelector('[data-action="guard"]')
+    .classList.toggle("is-unavailable", !f.grounded || f.guardLock > 0 || f.shield <= 0);
 }
 window.addEventListener("keydown", (e) => {
   if (!match || e.isComposing || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -504,10 +511,11 @@ window.addEventListener("keyup", (e) => {
   if (KEY_ACTIONS[e.code]) input.release(`key:${e.code}`);
   controlInput.refresh();
 });
-for (const el of [controls, arena]) {
-  el.addEventListener("contextmenu", (e) => e.preventDefault());
-  el.addEventListener("selectstart", (e) => e.preventDefault());
-}
+// Also protect HUD and spaces between the canvas and controls. The pause
+// button keeps native click activation; its touch-action still prevents zoom.
+protectGameSurface($("match"), {
+  allowTarget: (target) => !!target.closest?.("#pause"),
+});
 window.addEventListener("blur", () => {
   clearInput();
   if (!online) pauseMatch();
@@ -532,11 +540,8 @@ function frame(now) {
         if (event.type === "out") {
           $("match-status").textContent =
             `${fighterAppearance(match, event.player).name}が場外へ！`;
-          statusUntil = match.elapsed + 2.5;
         }
       }
-    if (match.phase === "playing" && match.elapsed > Math.max(2.5, statusUntil))
-      $("match-status").textContent = "％がふえるほど、遠くへぽよーん！";
     updateHUD();
     const view = online?.renderGame(seconds) || match;
     render(

@@ -1,11 +1,11 @@
-import { CHARACTERS, EMPTY_INPUT } from "./engine.js?v=20261001-battle9";
+import { CHARACTERS, EMPTY_INPUT } from "./engine.js?v=20261014-battle11";
 import {
   getStage,
   mainPlatform,
   platformsAt,
   surfaceAt,
   supports,
-} from "./stages.js?v=20261001-battle9";
+} from "./stages.js?v=20261014-battle11";
 const LEVELS = {
   easy: { reaction: 0.48, attack: 1.2, guard: 0.02, special: 0.06 },
   normal: { reaction: 0.17, attack: 0.46, guard: 0.28, special: 0.32 },

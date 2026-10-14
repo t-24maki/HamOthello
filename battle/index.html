@@ -9,8 +9,8 @@
       content="たくハムとめぐハムの、ぽよんとかわいい場外バトル。CPUと腕だめし、通信でふたり対戦も！"
     />
     <title>たくめぐのぽよんバトル | たくめぐのあそびば</title>
-    <link rel="stylesheet" href="./style.css?v=20261001-battle9" />
-    <script type="module" src="./game.js?v=20261001-battle9"></script>
+    <link rel="stylesheet" href="./style.css?v=20261014-battle11" />
+    <script type="module" src="./game.js?v=20261014-battle11"></script>
   </head>
   <body>
     <audio
@@ -194,7 +194,7 @@
             空中でもう1回ジャンプできるよ。矢印キーとSpaceも使えます。Esc / P：ひとやすみ
           </p>
           <p>
-            「ひっさつ」は上に飛びながら回転する技。空中では着地まで1回だけ。ガードは地上で使え、長く守るとゲージがなくなって少し動けなくなるよ。「ひだまりひろば」は坂道、「わたぐもテラス」は動く床にも注目。画面を離れると自動で一時停止し、BGMも止まります。
+            「ひっさつ」は上に飛びながら回転する技。空中では着地まで1回だけ。薄く点線になったボタンは回復・着地待ちです。ガードは地上で使え、長く守りすぎると少し動けなくなるよ。「ひだまりひろば」は坂道、「わたぐもテラス」は動く床にも注目。画面を離れると自動で一時停止し、BGMも止まります。
           </p>
           <p>
             たくハムはすばやく近づいて、こつこつ攻撃。めぐハムは高いジャンプと強い一撃で勝負。「ひっさつ」も、たくハムは横へ、めぐハムは上へ進みやすいよ。色違いでも強さは同じです。
@@ -206,30 +206,36 @@
         </details>
       </section>
       <section id="match" hidden aria-label="CPU対戦">
-        <div class="match-heading">
-          <div class="match-title">
-            <h1>ぽよんバトル</h1>
-            <span id="match-stage">ぽよんの丘</span>
-          </div>
-          <button id="pause" class="small-button" type="button">Ⅱ ひとやすみ</button>
-        </div>
         <div class="hud">
           <div class="fighter-hud you">
             <img id="you-icon" src="../assets/pink-piece.png" alt="" />
-            <div>
-              <span class="player-label"
+            <div class="fighter-stats">
+              <span class="player-label sr-only"
                 ><span id="you-label">YOU</span> <b id="you-name">たくハム</b></span
-              ><span id="you-stocks" class="stocks" aria-label="残り3回">♥ ♥ ♥</span>
+              >
+              <strong class="percent" id="you-damage">0<small>%</small></strong>
+              <span id="you-stocks" class="stocks" aria-label="残り3回">♥ ♥ ♥</span>
             </div>
-            <strong class="percent" id="you-damage">0<small>%</small></strong>
           </div>
-          <div class="clock"><span id="timer">2:00</span><small>残り時間</small></div>
+          <div class="clock">
+            <span id="timer" aria-label="残り時間">2:00</span>
+            <button
+              id="pause"
+              class="pause-button"
+              type="button"
+              aria-label="ひとやすみ"
+              title="ひとやすみ（P / Esc）"
+            >
+              <span aria-hidden="true">Ⅱ</span>
+            </button>
+          </div>
           <div class="fighter-hud cpu">
-            <strong class="percent" id="cpu-damage">0<small>%</small></strong>
-            <div>
-              <span class="player-label"
+            <div class="fighter-stats">
+              <span class="player-label sr-only"
                 ><span id="opponent-label">CPU</span> <b id="cpu-name">めぐハム</b></span
-              ><span id="cpu-stocks" class="stocks" aria-label="残り3回">♥ ♥ ♥</span>
+              >
+              <strong class="percent" id="cpu-damage">0<small>%</small></strong>
+              <span id="cpu-stocks" class="stocks" aria-label="残り3回">♥ ♥ ♥</span>
             </div>
             <img id="cpu-icon" src="../assets/cream-piece.png" alt="" />
           </div>
@@ -244,10 +250,9 @@
             aria-label="ぽよんバトルのステージ。A・Dで移動、Wでジャンプ、Sでガード、Iで必殺技、Oで攻撃。"
           ></canvas>
         </div>
-        <div class="status-row">
-          <span id="match-status" role="status" aria-live="polite">もうすぐ、はじまるよ！</span
-          ><span class="readiness" id="special-status">ひっさつ OK</span>
-        </div>
+        <span id="match-status" class="sr-only" role="status" aria-live="polite"
+          >もうすぐ、はじまるよ！</span
+        >
         <div id="controls" class="controls" aria-label="ゲーム操作">
           <div class="move-controls" role="group" aria-label="十字キー">
             <button
@@ -257,7 +262,7 @@
               class="jump"
               aria-label="上：ジャンプ W / ↑"
             >
-              <span>▲</span><small>W / ↑</small>
+              <span aria-hidden="true">▲</span>
             </button>
             <button
               type="button"
@@ -265,7 +270,7 @@
               data-direction="left"
               aria-label="左へ移動 A / ←"
             >
-              <span>◀</span><small>A / ←</small>
+              <span aria-hidden="true">◀</span>
             </button>
             <button
               type="button"
@@ -273,7 +278,7 @@
               data-direction="right"
               aria-label="右へ移動 D / →"
             >
-              <span>▶</span><small>D / →</small>
+              <span aria-hidden="true">▶</span>
             </button>
             <button
               type="button"
@@ -282,22 +287,26 @@
               class="guard"
               aria-label="下：ガード S / ↓"
             >
-              <span>▼</span><small>S / ↓</small
-              ><span class="guard-track" aria-hidden="true"><i id="guard-fill"></i></span>
+              <span aria-hidden="true">▼</span>
             </button>
           </div>
           <div class="action-controls">
-            <button type="button" data-action="special" class="special" aria-label="B：ひっさつ I">
-              <span>B</span><small>ひっさつ / I</small>
+            <button
+              id="special-button"
+              type="button"
+              data-action="special"
+              class="special"
+              aria-label="B：ひっさつ I"
+              aria-describedby="special-status"
+            >
+              <span aria-hidden="true">B</span>
             </button>
             <button type="button" data-action="attack" class="attack" aria-label="A：こうげき O">
-              <span>A</span><small>こうげき / O</small>
+              <span aria-hidden="true">A</span>
             </button>
           </div>
         </div>
-        <p class="play-tip">
-          ↑ジャンプ・↓ガード。Aでこうげき、Bでひっさつ。空中でもう1回ジャンプできるよ。
-        </p>
+        <span id="special-status" class="sr-only">ひっさつ OK</span>
       </section>
       <footer>ふわっと飛んでも、またいっしょ。<span>TAK&MEG</span></footer>
     </main>
@@ -305,9 +314,13 @@
       <div class="dialog-content">
         <span class="eyebrow">ちょっと、ひといき</span>
         <h2 id="pause-title">ひとやすみ中</h2>
+        <p id="match-stage" class="pause-stage">ぽよんの丘</p>
         <p id="match-characters" class="match-characters" hidden></p>
         <p id="pause-note">じゅんびができたら、つづきから。</p>
-        <button id="resume" class="primary" type="button">つづける</button
+        <button id="pause-sound" class="small-button" type="button" aria-pressed="false">
+          ♪ 音 OFF
+        </button>
+        <button id="resume" class="primary" type="button" autofocus>つづける</button
         ><button id="quit" class="secondary" type="button">キャラえらびにもどる</button>
       </div>
     </dialog>

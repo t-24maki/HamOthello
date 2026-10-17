@@ -163,9 +163,16 @@ button:active {
   width: 100%;
   aspect-ratio: 8/5;
   display: block;
-  flex: 1;
+  flex: none;
   min-height: 0;
   object-fit: contain;
+}
+@media (min-width: 651px) {
+  .setup-grid .preview-card {
+    align-self: start;
+    position: sticky;
+    top: 20px;
+  }
 }
 .rule-strip {
   display: flex;
@@ -213,6 +220,37 @@ legend {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
+.cpu-character-choice {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+.cpu-character-choice select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  background: #faf7f0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.cpu-character-choice select:focus-visible {
+  outline: 3px solid #a78bbd;
+  outline-offset: 2px;
+}
+.cpu-level-label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.fighter-hud[data-character="ham"] :is(.percent:not(.danger), .stocks),
+.fighter-hud[data-character="tapi"] :is(.percent:not(.danger), .stocks) {
+  color: var(--fighter-ink);
+}
 .character {
   position: relative;
   border: 2px solid #eee6dc;
@@ -228,7 +266,12 @@ legend {
   width: 78px;
   height: 78px;
   object-fit: contain;
+  transform: scale(var(--portrait-scale, 1));
+  transform-origin: center bottom;
   transition: transform 0.18s;
+}
+.character.tapi {
+  --portrait-scale: 0.8;
 }
 .character strong {
   font-size: 13px;
@@ -261,13 +304,27 @@ legend {
   border-color: #ceaf67;
   background: #fff3d7;
 }
+.character.ham:has(input:checked) {
+  border-color: #d9a253;
+  background: #fff3dc;
+}
+.character.tapi:has(input:checked) {
+  border-color: #dba1b0;
+  background: #fff0f4;
+}
+.ham .selected-mark {
+  background: #b78036;
+}
+.tapi .selected-mark {
+  background: #ba7b93;
+}
 .character:has(input:focus-visible),
 .difficulty-options label:has(input:focus-visible) {
   outline: 3px solid #9674b0;
   outline-offset: 3px;
 }
 .character:has(input:checked) img {
-  transform: translateY(-3px) rotate(-4deg);
+  transform: translateY(-3px) rotate(-4deg) scale(var(--portrait-scale, 1));
 }
 .selected-mark {
   display: none;
@@ -1116,6 +1173,11 @@ dialog::backdrop {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+@media (max-width: 480px) {
+  .stage-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @media (max-width: 360px) {
   .player-label {

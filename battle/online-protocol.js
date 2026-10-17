@@ -4,9 +4,10 @@ import {
   isCharacter,
   MATCH_TIME,
   STOCKS,
-} from "./engine.js?v=20261014-battle11";
-import { STAGES } from "./stages.js?v=20261014-battle11";
-export const PROTOCOL = "poyon-online-20261001-3";
+} from "./engine.js?v=20261017-battle19";
+import { STAGES } from "./stages.js?v=20261017-battle19";
+import { GIANT_DURATION } from "./items.js?v=20261017-battle19";
+export const PROTOCOL = "poyon-online-20261017-10";
 export const SEND_MS = 100;
 export const ACTIONS = ["jump", "attack", "special"];
 export const emptyEdges = () => ({ jump: 0, attack: 0, special: 0 });
@@ -38,18 +39,20 @@ const fighterNumbers = {
   respawn: [0, 1],
   cooldown: [0, 1],
   specialCooldown: [0, 2],
+  giantTime: [0, GIANT_DURATION],
 };
-const fighterFlags = ["grounded", "guarding", "airSpecial"];
-function readFighter(f, base) {
+const fighterFlags = ["grounded", "guarding", "airSpecial", "giant"];
+function readFighter(f, base, stage) {
   if (
     !f ||
     !isCharacter(f.character) ||
     ![-1, 1].includes(f.facing) ||
     !int(f.stocks, 0, STOCKS) ||
-    !int(f.jumps, 0, 2) ||
+    !int(f.jumps, 0, CHARACTERS[f.character].maxJumps) ||
     !fighterFlags.every((k) => bool(f[k])) ||
+    f.giant !== f.giantTime > 0 ||
     !Object.entries(fighterNumbers).every(([k, [lo, hi]]) => num(f[k], lo, hi)) ||
-    !(f.platformId === null || int(f.platformId, 0, 3)) ||
+    !(f.platformId === null || stage.platforms.some((p) => p.id === f.platformId)) ||
     !f.buffered ||
     !ACTIONS.every((k) => num(f.buffered[k], 0, 0.121))
   )
@@ -96,9 +99,36 @@ export function readGame(raw) {
     raw.events.length > 32
   )
     return null;
+  const items = raw.items;
+  if (!items || !int(items.seed, 0, 2 ** 32 - 1) || !num(items.wait, 0, 20)) return null;
+  let potion = null;
+  if (items.potion !== null) {
+    const p = items.potion;
+    if (
+      !p ||
+      !num(p.x, -200, 1000) ||
+      !num(p.y, -18, 600) ||
+      !num(p.vy, 0, 240) ||
+      !(
+        p.platformId === null ||
+        STAGES.find((s) => s.id === raw.stageId).platforms.some(
+          (floor) => floor.id === p.platformId,
+        )
+      ) ||
+      items.wait !== 0
+    )
+      return null;
+    potion = { x: p.x, y: p.y, vy: p.vy, platformId: p.platformId };
+  }
   if (raw.phase === "paused" && !["playing", "countdown"].includes(raw.beforePause)) return null;
-  const g = createMatch("tak", "normal", raw.stageId);
-  g.fighters = raw.fighters.map((f, i) => readFighter(f, g.fighters[i]));
+  const g = createMatch("tak", "normal", raw.stageId, undefined, 0);
+  g.fighters = raw.fighters.map((f, i) =>
+    readFighter(
+      f,
+      g.fighters[i],
+      STAGES.find((s) => s.id === raw.stageId),
+    ),
+  );
   if (g.fighters.some((f) => !f)) return null;
   if (raw.phase !== "finished" && (raw.winner !== null || raw.reason !== "")) return null;
   if (
@@ -113,7 +143,7 @@ export function readGame(raw) {
   for (const e of raw.effects) {
     if (
       !e ||
-      !["hit", "guard", "jump", "out"].includes(e.type) ||
+      !["hit", "guard", "jump", "out", "grow"].includes(e.type) ||
       !num(e.x, -200, 1000) ||
       !num(e.y, -300, 800) ||
       !num(e.life, 0, 1) ||
@@ -137,7 +167,18 @@ export function readGame(raw) {
           : null;
     if (winner !== raw.winner) return null;
   }
-  const types = ["start", "jump", "special", "swing", "break", "hit", "block", "out", "finish"];
+  const types = [
+    "start",
+    "jump",
+    "special",
+    "swing",
+    "break",
+    "hit",
+    "block",
+    "out",
+    "finish",
+    "grow",
+  ];
   let prev = 0;
   const events = [];
   for (const e of raw.events) {
@@ -157,6 +198,7 @@ export function readGame(raw) {
     eventId: raw.eventId,
     events,
     effects,
+    items: { seed: items.seed, wait: items.wait, potion },
     accumulator: 0,
   });
   return g;
@@ -175,6 +217,7 @@ export function gameView(g) {
     events,
     fighters,
     effects,
+    items,
   } = g;
   return structuredClone({
     stageId,
@@ -189,6 +232,7 @@ export function gameView(g) {
     events,
     fighters,
     effects,
+    items,
   });
 }
 export function validState(m) {

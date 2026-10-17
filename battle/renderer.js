@@ -1,7 +1,30 @@
-import { CHARACTERS, WIDTH, HEIGHT } from "./engine.js?v=20261014-battle11";
-import { fighterAppearance, tintFur } from "./appearance.js?v=20261014-battle11";
-import { getStage, platformsAt, surfaceAt } from "./stages.js?v=20261014-battle11";
+import {
+  CHARACTERS,
+  WIDTH,
+  HEIGHT,
+  fighterSize,
+  attackScale,
+} from "./engine.js?v=20261017-battle19";
+import { fighterAppearance, tintFur } from "./appearance.js?v=20261017-battle19";
+import { getStage, platformsAt, surfaceAt } from "./stages.js?v=20261017-battle19";
+import { GIANT_WARNING } from "./items.js?v=20261017-battle19";
 const FRAMES = {
+  ham: [
+    [82, 58, 389, 439],
+    [587, 52, 401, 444],
+    [1105, 40, 374, 439],
+    [61, 539, 484, 438],
+    [591, 521, 426, 445],
+    [1067, 526, 442, 449],
+  ],
+  tapi: [
+    [76, 83, 380, 359],
+    [587, 86, 381, 359],
+    [1083, 57, 374, 369],
+    [60, 573, 430, 338],
+    [583, 560, 392, 356],
+    [1077, 558, 378, 358],
+  ],
   cream: [
     [92, 62, 378, 408],
     [580, 62, 384, 414],
@@ -75,6 +98,26 @@ function alternateArt(source, character) {
   ctx.putImageData(data, 0, 0);
   return canvas;
 }
+function spritePortrait(source, sheet, pose) {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 256;
+  const [sx, sy, sw, sh] = FRAMES[sheet][pose];
+  const ratio = 240 / Math.max(sw, sh);
+  canvas
+    .getContext("2d")
+    .drawImage(
+      source,
+      sx,
+      sy,
+      sw,
+      sh,
+      (256 - sw * ratio) / 2,
+      (256 - sh * ratio) / 2,
+      sw * ratio,
+      sh * ratio,
+    );
+  return canvas.toDataURL();
+}
 export async function loadArt() {
   const entries = await Promise.all(
     ["cream", "lavender", "meadow"].map(async (key) => {
@@ -89,6 +132,24 @@ export async function loadArt() {
   art.creamAlt = alternateArt(art.cream, "meg");
   art.portraits = {};
   await Promise.all(
+    ["ham", "tapi"].map(async (character) => {
+      const image = new Image();
+      image.src = `./art/${character === "ham" ? "normal-ham" : "tapi"}.png?v=20261017-battle19`;
+      await image.decode();
+      art[character] = image;
+      art[character + "Alt"] = alternateArt(image, character);
+      for (const alternate of [false, true]) {
+        const key = character + (alternate ? "Alt" : "");
+        for (const [kind, pose] of [
+          ["icon", 0],
+          ["win", 5],
+        ]) {
+          art.portraits[`${key}-${kind}`] = spritePortrait(art[key], character, pose);
+        }
+      }
+    }),
+  );
+  await Promise.all(
     ["tak", "meg"].map(async (character) => {
       for (const kind of ["icon", "win"]) {
         const src =
@@ -102,6 +163,13 @@ export async function loadArt() {
         art.portraits[`${character}Alt-${kind}`] = alternateArt(image, character).toDataURL();
       }
     }),
+  );
+  // Full-body selection art is separate from the HUD icons and result portraits.
+  art.selection = Object.fromEntries(
+    Object.entries(CHARACTERS).map(([key, character]) => [
+      key,
+      spritePortrait(art[character.sheet], character.sheet, 5),
+    ]),
   );
   return art;
 }
@@ -131,24 +199,58 @@ function star(c, x, y, r, color, rotation = 0) {
   c.fill();
   c.restore();
 }
+export function giantWarningOpacity(f, reduced = false) {
+  if (!f.giant || f.giantTime > GIANT_WARNING) return 1;
+  // Two gentle fades per second; use simulation time so pause also freezes the cue.
+  return reduced ? 0.72 : 0.72 + 0.28 * Math.cos((GIANT_WARNING - f.giantTime) * Math.PI * 4);
+}
 function sprite(c, art, f, pose, time, reduced, alternate) {
   const sheet = CHARACTERS[f.character].sheet,
     [sx, sy, sw, sh] = FRAMES[sheet][pose];
-  const h = 84,
+  const h = 84 * fighterSize(f),
     w = (h * sw) / sh;
   c.save();
   c.translate(f.x, f.y + 2);
   if (f.invincible > 0 && !reduced) c.globalAlpha = 0.65 + 0.35 * Math.cos(time * 22) ** 2;
+  c.globalAlpha *= giantWarningOpacity(f, reduced);
   if (f.attack?.kind === "special") {
-    c.translate(0, -40);
+    c.translate(0, -h / 2);
     if (!reduced) c.rotate(f.facing * f.attack.age * 17);
-    c.translate(0, 40);
+    c.translate(0, h / 2);
   } else if (f.attack) {
     c.rotate(f.facing * 0.14);
     c.scale(1.1, 0.94);
   } else if (f.stun > 0 && !reduced) c.rotate(f.facing * -0.2);
   c.scale(f.facing, 1);
   c.drawImage(art[sheet + (alternate ? "Alt" : "")], sx, sy, sw, sh, -w / 2, -h, w, h);
+  c.restore();
+}
+function drawPotion(c, p, time, reduced) {
+  c.save();
+  c.translate(p.x, p.y);
+  const glow = c.createRadialGradient(0, 0, 5, 0, 0, 34);
+  glow.addColorStop(0, "#fff8cce6");
+  glow.addColorStop(1, "#fff8cc00");
+  c.fillStyle = glow;
+  c.beginPath();
+  c.arc(0, 0, 34, 0, Math.PI * 2);
+  c.fill();
+  // A corked purple bottle with an up-arrow remains legible at phone size.
+  box(c, -7, -22, 14, 11, 3, "#e8bd82", "#8c6c62");
+  box(c, -6, -12, 12, 8, 2, "#fff9ef", "#9375a8");
+  box(c, -15, -7, 30, 25, 10, "#b28bdb", "#775b96");
+  c.strokeStyle = "#ffffff";
+  c.lineWidth = 3;
+  c.lineCap = "round";
+  c.lineJoin = "round";
+  c.beginPath();
+  c.moveTo(0, 12);
+  c.lineTo(0, -1);
+  c.moveTo(-5, 4);
+  c.lineTo(0, -1);
+  c.lineTo(5, 4);
+  c.stroke();
+  star(c, 23, -13, 5, "#f9d47b", reduced ? 0 : time * 1.5);
   c.restore();
 }
 export function render(c, art, g, time, reduced = false, preview = false) {
@@ -166,10 +268,13 @@ export function render(c, art, g, time, reduced = false, preview = false) {
   c.beginPath();
   c.rect(0, 0, WIDTH, HEIGHT);
   c.clip();
-  if (stage.id === "cloud") {
+  if (["cloud", "islands", "planet"].includes(stage.id)) {
     const sky = c.createLinearGradient(0, 0, 0, HEIGHT);
-    sky.addColorStop(0, "#dce5f8");
-    sky.addColorStop(1, "#f5ecf5");
+    sky.addColorStop(
+      0,
+      stage.id === "planet" ? "#c9c5e6" : stage.id === "cloud" ? "#dce5f8" : stage.theme.sky,
+    );
+    sky.addColorStop(1, stage.id === "islands" ? "#edf9ed" : "#f5ecf5");
     c.fillStyle = sky;
     c.fillRect(0, 0, WIDTH, HEIGHT);
     for (const [x, y, size] of [
@@ -193,6 +298,20 @@ export function render(c, art, g, time, reduced = false, preview = false) {
       [735, 220],
     ])
       star(c, x, y, 5, "#fff4c8");
+    if (stage.id === "planet") {
+      for (const [x, y, r] of [
+        [85, 160, 9],
+        [665, 65, 8],
+        [540, 125, 5],
+        [280, 90, 6],
+      ])
+        star(c, x, y, r, "#fff3c6", 0.15);
+      c.strokeStyle = "#ffffff65";
+      c.lineWidth = 3;
+      c.beginPath();
+      c.ellipse(400, 425, 315, 85, -0.2, 0, Math.PI * 2);
+      c.stroke();
+    }
   } else {
     c.drawImage(art.meadow, 0, 0, WIDTH, HEIGHT);
     c.fillStyle = theme.tint;
@@ -254,14 +373,38 @@ export function render(c, art, g, time, reduced = false, preview = false) {
       c.restore();
     }
     if (p.profile) {
+      if (p.tilt) {
+        // The fulcrum is decoration; only the sloping board is a landing surface.
+        c.beginPath();
+        c.moveTo(p.x + p.w / 2, p.y + 9);
+        c.lineTo(p.x + p.w / 2 + 35, p.y + 65);
+        c.lineTo(p.x + p.w / 2 - 35, p.y + 65);
+        c.closePath();
+        c.fillStyle = "#c7b3b3";
+        c.fill();
+        c.strokeStyle = theme.line;
+        c.stroke();
+      }
       c.beginPath();
       p.profile.forEach(([x, y], i) =>
         i ? c.lineTo(p.x + x, p.y + y) : c.moveTo(p.x + x, p.y + y),
       );
-      c.lineTo(p.x + p.w, p.y + 38);
-      c.lineTo(p.x, p.y + 38);
+      if (p.round) c.arc(p.x + p.w / 2, p.y, p.w / 2, 0, Math.PI);
+      else if (p.tilt) {
+        c.lineTo(p.x + p.w, surfaceAt(p, p.x + p.w) + 22);
+        c.lineTo(p.x, surfaceAt(p, p.x) + 22);
+      } else {
+        c.lineTo(p.x + p.w, p.y + 38);
+        c.lineTo(p.x, p.y + 38);
+      }
       c.closePath();
       c.fillStyle = theme.soil;
+      if (p.round) {
+        const planet = c.createLinearGradient(0, p.y - p.w / 2, 0, p.y + 80);
+        planet.addColorStop(0, "#e8dced");
+        planet.addColorStop(1, "#b8acce");
+        c.fillStyle = planet;
+      }
       c.fill();
       c.strokeStyle = theme.line;
       c.lineWidth = 2;
@@ -275,6 +418,18 @@ export function render(c, art, g, time, reduced = false, preview = false) {
       c.lineJoin = "round";
       c.stroke();
       c.lineJoin = "miter";
+      if (p.round) {
+        for (const [x, y, r] of [
+          [330, 330, 24],
+          [480, 385, 38],
+          [380, 460, 17],
+        ]) {
+          c.fillStyle = "#aa9bc333";
+          c.beginPath();
+          c.ellipse(x, y, r, r * 0.65, -0.25, 0, Math.PI * 2);
+          c.fill();
+        }
+      }
     } else {
       box(
         c,
@@ -297,14 +452,15 @@ export function render(c, art, g, time, reduced = false, preview = false) {
     c.lineWidth = 2;
     c.setLineDash([3, 10]);
     c.beginPath();
-    c.moveTo(p.x + 15, p.y + 22);
-    c.lineTo(p.x + p.w - 15, p.y + 22);
+    c.moveTo(p.x + 15, surfaceAt(p, p.x + 15) + 22);
+    c.lineTo(p.x + p.w - 15, surfaceAt(p, p.x + p.w - 15) + 22);
     c.stroke();
     c.setLineDash([]);
     if (p.main) {
       c.font = "bold 13px sans-serif";
       c.fillStyle = "#947558";
-      c.fillText(stage.name, p.x + p.w / 2, p.y + 27);
+      if (!p.tilt)
+        c.fillText(stage.name, p.x + p.w / 2, (p.round ? surfaceAt(p, p.x + p.w / 2) : p.y) + 27);
       for (const x of [p.x + 23, p.x + 55, p.x + p.w - 55, p.x + p.w - 23]) {
         c.strokeStyle = theme.edge;
         c.beginPath();
@@ -312,14 +468,17 @@ export function render(c, art, g, time, reduced = false, preview = false) {
         c.moveTo(x, ground - 5);
         c.lineTo(x, ground - 18);
         c.stroke();
-        star(c, x, ground - 20, 6, x % 2 ? "#fff0c6" : "#f4d8dc");
+        if (!p.tilt) star(c, x, ground - 20, 6, x % 2 ? "#fff0c6" : "#f4d8dc");
       }
     }
   }
+  if (g.items.potion) drawPotion(c, g.items.potion, g.elapsed, reduced);
   for (const [i, f] of g.fighters.entries()) {
     const look = fighterAppearance(g, i);
+    const size = fighterSize(f);
     if (!f.stocks || f.respawn > 0) continue;
-    const visible = f.x > -42 && f.x < WIDTH + 42 && f.y > -70 && f.y < HEIGHT + 80;
+    const visible =
+      f.x > -42 * size && f.x < WIDTH + 42 * size && f.y > -70 && f.y < HEIGHT + 84 * size;
     if (!visible) {
       const x = Math.max(25, Math.min(WIDTH - 25, f.x)),
         y = Math.max(32, Math.min(HEIGHT - 27, f.y - 40));
@@ -332,7 +491,7 @@ export function render(c, art, g, time, reduced = false, preview = false) {
     if (f.grounded) {
       c.fillStyle = "#6656401a";
       c.beginPath();
-      c.ellipse(f.x, f.y + 3, 32, 6, 0, 0, Math.PI * 2);
+      c.ellipse(f.x, f.y + 3, 32 * size, 6 * size, 0, 0, Math.PI * 2);
       c.fill();
     }
     if (f.invincible > 0) {
@@ -340,10 +499,11 @@ export function render(c, art, g, time, reduced = false, preview = false) {
       c.lineWidth = 3;
       c.setLineDash([5, 6]);
       c.beginPath();
-      c.ellipse(f.x, f.y - 38, 46, 51, 0, 0, Math.PI * 2);
+      c.ellipse(f.x, f.y - 38 * size, 46 * size, 51 * size, 0, 0, Math.PI * 2);
       c.stroke();
       c.setLineDash([]);
     }
+    const newSheet = f.character === "ham" || f.character === "tapi";
     const pose = preview
       ? 0
       : f.stun > 0
@@ -351,18 +511,23 @@ export function render(c, art, g, time, reduced = false, preview = false) {
         : f.attack?.kind === "special"
           ? 3
           : f.attack
-            ? 1
-            : !f.grounded
+            ? newSheet
               ? 3
+              : 1
+            : !f.grounded
+              ? newSheet
+                ? 2
+                : 3
               : Math.abs(f.vx) > 30
-                ? 1 + (Math.floor(g.elapsed * 9) % 2)
+                ? (newSheet ? 0 : 1) + (Math.floor(g.elapsed * 9) % 2)
                 : 0;
     sprite(c, art, f, pose, time, reduced, look.alternate);
     if (f.attack) {
       const a = f.attack;
       c.save();
-      c.translate(f.x, f.y - 38);
-      c.scale(f.facing, 1);
+      c.translate(f.x, f.y - 38 * size);
+      const reach = attackScale(f);
+      c.scale(f.facing * reach, reach);
       c.lineWidth = a.kind === "special" ? 7 : 9;
       c.lineCap = "round";
       c.strokeStyle = a.kind === "special" ? "#f7d577dd" : "#fff8e4dd";
@@ -384,19 +549,20 @@ export function render(c, art, g, time, reduced = false, preview = false) {
       c.strokeStyle = "#80b2b3";
       c.lineWidth = 3;
       c.beginPath();
-      c.ellipse(f.x, f.y - 36, 43 + f.shield * 0.055, 48, 0, 0, Math.PI * 2);
+      c.ellipse(f.x, f.y - 36 * size, (43 + f.shield * 0.055) * size, 48 * size, 0, 0, Math.PI * 2);
       c.fill();
       c.stroke();
     }
-    box(c, f.x - 24, f.y - 108, 48, 20, 10, look.fill);
+    const labelY = f.y - 84 * size - 24;
+    box(c, f.x - 24, labelY, 48, 20, 10, look.fill);
     c.fillStyle = look.ink;
     c.font = "bold 11px sans-serif";
-    c.fillText(i === (g.localPlayer ?? 0) ? "YOU" : g.online ? "相手" : "CPU", f.x, f.y - 94);
+    c.fillText(i === (g.localPlayer ?? 0) ? "YOU" : g.online ? "相手" : "CPU", f.x, labelY + 14);
     c.fillStyle = look.color;
     c.beginPath();
-    c.moveTo(f.x - 4, f.y - 84);
-    c.lineTo(f.x + 4, f.y - 84);
-    c.lineTo(f.x, f.y - 79);
+    c.moveTo(f.x - 4, labelY + 24);
+    c.lineTo(f.x + 4, labelY + 24);
+    c.lineTo(f.x, labelY + 29);
     c.fill();
   }
   for (const e of g.effects) {
@@ -422,10 +588,10 @@ export function render(c, art, g, time, reduced = false, preview = false) {
           a + e.age * 3,
         );
       }
-      if (e.type === "hit") {
+      if (e.type === "hit" || e.type === "grow") {
         c.font = "bold 21px sans-serif";
         c.fillStyle = "#927159";
-        c.fillText("ぽよん！", e.x, e.y - 35 - e.age * 25);
+        c.fillText(e.type === "grow" ? "ぐーん！" : "ぽよん！", e.x, e.y - 35 - e.age * 25);
       }
     }
     c.restore();
@@ -454,7 +620,8 @@ export function renderStageMap(canvas, stage) {
   c.clearRect(0, 0, w, h);
   c.fillStyle = stage.theme.sky;
   c.fillRect(0, 0, w, h);
-  for (const p of platformsAt(stage, 0)) {
+  // Show the seesaw at its maximum tilt so its miniature differs from a flat floor.
+  for (const p of platformsAt(stage, stage.id === "seesaw" ? 1.75 : 0)) {
     const mapX = (x) => (x / WIDTH) * w,
       mapY = (y) => ((y - 100) / 350) * h;
     if (p.profile) {
@@ -462,11 +629,20 @@ export function renderStageMap(canvas, stage) {
       p.profile.forEach(([x, y], i) =>
         i ? c.lineTo(mapX(p.x + x), mapY(p.y + y)) : c.moveTo(mapX(p.x + x), mapY(p.y + y)),
       );
-      c.lineTo(mapX(p.x + p.w), mapY(p.y) + 8);
-      c.lineTo(mapX(p.x), mapY(p.y) + 8);
+      c.lineTo(mapX(p.x + p.w), mapY(surfaceAt(p, p.x + p.w)) + 8);
+      c.lineTo(mapX(p.x), mapY(surfaceAt(p, p.x)) + 8);
       c.closePath();
       c.fillStyle = stage.theme.turf;
       c.fill();
+      if (p.tilt) {
+        c.beginPath();
+        c.moveTo(mapX(400), mapY(p.y) + 4);
+        c.lineTo(mapX(365), mapY(p.y) + 18);
+        c.lineTo(mapX(435), mapY(p.y) + 18);
+        c.closePath();
+        c.fillStyle = stage.theme.line;
+        c.fill();
+      }
     } else
       box(
         c,

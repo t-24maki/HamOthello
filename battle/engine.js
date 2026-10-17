@@ -1,10 +1,18 @@
 import {
   getStage,
-  mainPlatform,
+  spawnPoint,
   platformsAt,
   surfaceAt,
   supports,
-} from "./stages.js?v=20261014-battle11";
+} from "./stages.js?v=20261017-battle19";
+import {
+  createItems,
+  movePotion,
+  potionCollector,
+  consumePotion,
+  GIANT_POWER,
+  GIANT_DURATION,
+} from "./items.js?v=20261017-battle19";
 // Feet-based coordinates; deterministic 120 Hz simulation, independent of rendering.
 export const STEP = 1 / 120;
 export const INPUT_GRACE = 0.12;
@@ -20,6 +28,8 @@ export const CHARACTERS = {
   tak: {
     name: "たくハム",
     sheet: "lavender",
+    size: 1,
+    maxJumps: 2,
     speed: 300,
     jump: 670,
     color: "#a98ac5",
@@ -45,6 +55,8 @@ export const CHARACTERS = {
   meg: {
     name: "めぐハム",
     sheet: "cream",
+    size: 1,
+    maxJumps: 2,
     speed: 250,
     jump: 730,
     color: "#e2b967",
@@ -67,8 +79,84 @@ export const CHARACTERS = {
       jump: 665,
     },
   },
+  ham: {
+    name: "ノーマルハム",
+    sheet: "ham",
+    size: 1.2,
+    hurtboxScale: 1.1,
+    maxJumps: 2,
+    speed: 205,
+    jump: 560,
+    color: "#e8ad59",
+    normal: {
+      damage: 14,
+      startup: 0.1,
+      activeEnd: 0.23,
+      duration: 0.44,
+      cooldown: 0.53,
+      shieldDamage: 35,
+      power: 1.15,
+    },
+    special: {
+      damage: 22,
+      startup: 0.055,
+      activeEnd: 0.34,
+      duration: 0.52,
+      cooldown: 1.65,
+      shieldDamage: 48,
+      speed: 250,
+      jump: 510,
+      power: 1.15,
+    },
+  },
+  tapi: {
+    name: "たぴ",
+    sheet: "tapi",
+    size: 0.5,
+    hurtboxScale: 0.9,
+    attackScale: 0.85,
+    maxJumps: 4,
+    groundedSpecialImmune: true,
+    speed: 345,
+    jump: 520,
+    color: "#df9eaa",
+    normal: {
+      damage: 6,
+      startup: 0.065,
+      activeEnd: 0.17,
+      duration: 0.28,
+      cooldown: 0.35,
+      shieldDamage: 16,
+      power: 0.9,
+    },
+    special: {
+      damage: 9,
+      startup: 0.04,
+      activeEnd: 0.3,
+      duration: 0.38,
+      cooldown: 1.25,
+      shieldDamage: 23,
+      speed: 270,
+      jump: 470,
+      power: 0.9,
+    },
+  },
 };
-export const isCharacter = (value) => value === "tak" || value === "meg";
+export const isCharacter = (value) => typeof value === "string" && Object.hasOwn(CHARACTERS, value);
+export function chooseOpponent(character, random = Math.random) {
+  const choices = Object.keys(CHARACTERS).filter((key) => key !== character);
+  return choices[Math.min(choices.length - 1, Math.max(0, Math.floor(random() * choices.length)))];
+}
+export function hurtbox(f) {
+  const character = CHARACTERS[f.character],
+    size = fighterSize(f),
+    hitSize = size * (character.hurtboxScale ?? 1);
+  return { x: f.x, y: f.y - 32 * size, rx: 23 * hitSize, ry: 29 * hitSize };
+}
+export const growthScale = (f) => (f.giant ? (f.character === "tapi" ? 4 : 2) : 1);
+export const fighterSize = (f) => CHARACTERS[f.character].size * growthScale(f);
+export const attackScale = (f) =>
+  (CHARACTERS[f.character].attackScale ?? CHARACTERS[f.character].size) * growthScale(f);
 export const EMPTY_INPUT = Object.freeze({
   move: 0,
   jump: false,
@@ -83,13 +171,13 @@ export function makeFighter(character, index, stocks = STOCKS, stageId = "hill")
   const stage = getStage(stageId);
   return {
     character,
-    x: stage.spawns[index],
-    y: surfaceAt(mainPlatform(stage), stage.spawns[index]),
+    giant: false,
+    giantTime: 0,
+    ...spawnPoint(stage, index),
     vx: 0,
     vy: 0,
     facing: index ? -1 : 1,
     grounded: true,
-    platformId: mainPlatform(stage).id,
     jumps: 0,
     damage: 0,
     stocks,
@@ -106,7 +194,13 @@ export function makeFighter(character, index, stocks = STOCKS, stageId = "hill")
     buffered: { jump: 0, attack: 0, special: 0 },
   };
 }
-export function createMatch(character = "tak", difficulty = "normal", stageId = "hill", opponent) {
+export function createMatch(
+  character = "tak",
+  difficulty = "normal",
+  stageId = "hill",
+  opponent,
+  itemSeed = Math.floor(Math.random() * 2 ** 32),
+) {
   const stage = getStage(stageId);
   if (!isCharacter(character)) character = "tak";
   if (!isCharacter(opponent)) opponent = character === "tak" ? "meg" : "tak";
@@ -125,6 +219,7 @@ export function createMatch(character = "tak", difficulty = "normal", stageId = 
     winner: null,
     reason: "",
     effects: [],
+    items: createItems(itemSeed),
     eventId: 0,
     events: [],
     accumulator: 0,
@@ -163,16 +258,24 @@ export function attackArea(f) {
   const a = f.attack;
   const move = CHARACTERS[f.character][a.kind];
   if (a.hit || a.age < move.startup || a.age > move.activeEnd) return null;
+  const size = fighterSize(f);
+  const reach = attackScale(f);
   return {
-    x: f.x + f.facing * (a.kind === "special" ? 22 : 42),
-    y: f.y - 34,
-    rx: a.kind === "special" ? 54 : 42,
-    ry: a.kind === "special" ? 53 : 33,
+    x: f.x + f.facing * (a.kind === "special" ? 22 : 42) * reach,
+    y: f.y - 34 * size,
+    rx: (a.kind === "special" ? 54 : 42) * reach,
+    ry: (a.kind === "special" ? 53 : 33) * reach,
   };
+}
+function updateGrowth(f, dt) {
+  f.giantTime = Math.max(0, f.giantTime - dt);
+  if (f.giantTime < 1e-9) f.giantTime = 0;
+  f.giant = f.giantTime > 0;
 }
 function moveFighter(g, f, raw, dt, previousPlatforms, platforms) {
   const input = raw || EMPTY_INPUT;
   const character = CHARACTERS[f.character];
+  const size = fighterSize(f);
   if (!f.stocks) return;
   for (const key of ["stun", "invincible", "cooldown", "specialCooldown", "guardLock"])
     f[key] = Math.max(0, f[key] - dt);
@@ -186,7 +289,9 @@ function moveFighter(g, f, raw, dt, previousPlatforms, platforms) {
     f.buffered[action] = input[action] ? INPUT_GRACE : Math.max(0, f.buffered[action] - dt);
   const oldSupport =
     f.grounded &&
-    previousPlatforms.find((p) => supports(p, f.x) && Math.abs(surfaceAt(p, f.x) - f.y) < 1);
+    previousPlatforms.find(
+      (p) => supports(p, f.x, 18 * size) && Math.abs(surfaceAt(p, f.x) - f.y) < 1,
+    );
   const support = oldSupport && platforms.find((p) => p.id === oldSupport.id);
   if (support) {
     // Carry first, then apply player input. Jumping detaches on this same tick.
@@ -211,7 +316,7 @@ function moveFighter(g, f, raw, dt, previousPlatforms, platforms) {
   const canAct = f.stun === 0 && !f.guarding;
   if (canAct) {
     if (move && !f.attack) f.facing = Math.sign(move);
-    if (f.buffered.jump > 0 && f.jumps < 2 && !f.attack) {
+    if (f.buffered.jump > 0 && f.jumps < character.maxJumps && !f.attack) {
       f.buffered.jump = 0;
       f.vy = -character.jump * (f.jumps ? 0.91 : 1);
       f.jumps++;
@@ -254,7 +359,7 @@ function moveFighter(g, f, raw, dt, previousPlatforms, platforms) {
   f.y += f.vy * dt;
   f.grounded = false;
   f.platformId = null;
-  if (wasGrounded && support && supports(support, f.x)) {
+  if (wasGrounded && support && supports(support, f.x, 18 * size)) {
     // Continuous contact across uphill/downhill segments, without tiny falls.
     f.y = surfaceAt(support, f.x);
     f.vy = 0;
@@ -263,7 +368,7 @@ function moveFighter(g, f, raw, dt, previousPlatforms, platforms) {
   } else {
     const landings = [];
     for (const p of platforms) {
-      if (!supports(p, f.x)) continue;
+      if (!supports(p, f.x, 18 * size)) continue;
       const before = previousPlatforms.find((q) => q.id === p.id);
       const oldSurface = surfaceAt(before, oldX),
         nextSurface = surfaceAt(p, f.x);
@@ -288,17 +393,20 @@ function moveFighter(g, f, raw, dt, previousPlatforms, platforms) {
     f.jumps = 0;
     f.airSpecial = false;
   }
-  // Walking off a ledge leaves one air jump, instead of two fresh jumps.
+  // Walking off a ledge consumes the ground jump, including Tapi's first of four.
   if (wasGrounded && !f.grounded && f.jumps === 0) f.jumps = 1;
 }
 function hit(g, attacker, defender, area) {
   const special = attacker.attack.kind === "special";
   const move = CHARACTERS[attacker.character][attacker.attack.kind];
+  const offense = attacker.giant ? GIANT_POWER : 1;
+  const defense = defender.giant ? GIANT_POWER : 1;
+  const strength = offense / defense;
   attacker.attack.hit = true;
   const dir = Math.sign(defender.x - attacker.x) || attacker.facing;
   if (defender.guarding) {
-    defender.shield = Math.max(0, defender.shield - move.shieldDamage);
-    defender.vx = dir * 95;
+    defender.shield = Math.max(0, defender.shield - move.shieldDamage * strength);
+    defender.vx = dir * 95 * strength;
     if (defender.shield === 0) {
       defender.guarding = false;
       defender.guardLock = 1.3;
@@ -308,14 +416,16 @@ function hit(g, attacker, defender, area) {
     emit(g, "block");
     return;
   }
-  defender.damage = Math.min(999, defender.damage + move.damage);
+  defender.damage = Math.min(999, defender.damage + move.damage * strength);
   // Low percentages give a short nudge; accumulated damage increasingly matters.
   // Bound the extreme end so a single fixed step never tunnels across a platform.
   const d = defender.damage,
     growth = d * 1.6 + d * d * 0.03;
-  const power = Math.min(1650, (special ? 205 : 140) + growth * (special ? 1.12 : 1));
+  const power =
+    Math.min(1650, ((special ? 205 : 140) + growth * (special ? 1.12 : 1)) * (move.power ?? 1)) *
+    strength;
   defender.vx = dir * power;
-  defender.vy = -Math.min(880, (special ? 235 : 145) + d * 1.2 + d * d * 0.008);
+  defender.vy = -Math.min(880, (special ? 235 : 145) + d * 1.2 + d * d * 0.008) * strength;
   defender.grounded = false;
   defender.platformId = null;
   defender.jumps = Math.max(1, defender.jumps);
@@ -347,18 +457,37 @@ export function tick(g, inputs = [EMPTY_INPUT, EMPTY_INPUT], dt = STEP) {
   g.elapsed += dt;
   const platforms = platformsAt(stage, g.elapsed);
   g.remaining = Math.max(0, g.remaining - dt);
+  g.fighters.forEach((f) => updateGrowth(f, dt));
   g.fighters.forEach((f, i) => moveFighter(g, f, inputs[i], dt, previousPlatforms, platforms));
+  movePotion(g.items, stage, previousPlatforms, platforms, dt);
+  const collector = potionCollector(g.items, g.fighters, hurtbox);
+  if (collector !== null) {
+    const f = g.fighters[collector];
+    if (!f.giant) {
+      f.giant = true;
+      effect(g, "grow", f.x, f.y - 40 * fighterSize(f), "#b591dd");
+      emit(g, "grow");
+    }
+    f.giantTime = GIANT_DURATION;
+    consumePotion(g.items);
+  }
   // Snapshot both attack areas before applying hits, so simultaneous strikes trade fairly.
   const strikes = g.fighters.map((f, i) => {
     const d = g.fighters[1 - i],
-      area = attackArea(f);
+      area = attackArea(f),
+      body = hurtbox(d);
     return area &&
       !f.respawn &&
       !d.respawn &&
       !d.invincible &&
       d.stocks > 0 &&
-      Math.abs(area.x - d.x) < area.rx + 23 &&
-      Math.abs(area.y - (d.y - 32)) < area.ry + 29
+      !(
+        f.attack.kind === "special" &&
+        d.grounded &&
+        CHARACTERS[d.character].groundedSpecialImmune
+      ) &&
+      Math.abs(area.x - body.x) < area.rx + body.rx &&
+      Math.abs(area.y - body.y) < area.ry + body.ry
       ? { f, d, area, attack: f.attack }
       : null;
   });
@@ -379,9 +508,10 @@ export function tick(g, inputs = [EMPTY_INPUT, EMPTY_INPUT], dt = STEP) {
       stocks = f.stocks - 1;
     effect(g, "out", x, y, CHARACTERS[f.character].color);
     emit(g, "out", { player: i });
+    const spawn = spawnPoint(stage, i, g.elapsed, true);
     Object.assign(f, makeFighter(f.character, i, stocks, g.stageId), {
-      x: i ? 475 : 325,
-      y: mainPlatform(getStage(g.stageId)).y - 265,
+      x: spawn.x,
+      y: spawn.y - 265,
       grounded: false,
       platformId: null,
       respawn: stocks ? 0.8 : 0,
@@ -397,6 +527,8 @@ export function predictMovement(g, index, input, dt = STEP) {
   const stage = getStage(g.stageId),
     before = platformsAt(stage, g.elapsed);
   g.elapsed += dt;
+  // Expiry is deterministic from the host's timer; pickup still requires a host snapshot.
+  g.fighters.forEach((f) => updateGrowth(f, dt));
   moveFighter(g, g.fighters[index], input, dt, before, platformsAt(stage, g.elapsed));
   g.events = [];
   g.effects = [];

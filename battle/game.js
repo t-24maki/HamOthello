@@ -1,23 +1,25 @@
 import {
   createMatch,
+  chooseOpponent,
+  isCharacter,
   advance,
   pause,
   resume,
   CHARACTERS,
   STEP,
-} from "./engine.js?v=20261014-battle11";
-import { createCPU, cpuInput } from "./cpu.js?v=20261014-battle11";
-import { createInput, KEY_ACTIONS } from "./input.js?v=20261014-battle11";
-import { bindControls, protectGameSurface } from "./controls.js?v=20261014-battle11";
-import { loadArt, render, renderStageMap } from "./renderer.js?v=20261014-battle11";
-import { getStage, STAGES } from "./stages.js?v=20261014-battle11";
-import { createBattleMusic, wantsMusic } from "./music.js?v=20261014-battle11";
-import { fighterAppearance } from "./appearance.js?v=20261014-battle11";
+} from "./engine.js?v=20261017-battle19";
+import { createCPU, cpuInput } from "./cpu.js?v=20261017-battle19";
+import { createInput, KEY_ACTIONS } from "./input.js?v=20261017-battle19";
+import { bindControls, protectGameSurface } from "./controls.js?v=20261017-battle19";
+import { loadArt, render, renderStageMap } from "./renderer.js?v=20261017-battle19";
+import { getStage, STAGES, platformsAt, surfaceAt } from "./stages.js?v=20261017-battle19";
+import { createBattleMusic, wantsMusic } from "./music.js?v=20261017-battle19";
+import { fighterAppearance } from "./appearance.js?v=20261017-battle19";
 import {
   createBattleOnline,
   generateRoomCode,
   normalizeRoomCode,
-} from "./online.js?v=20261014-battle11";
+} from "./online.js?v=20261017-battle19";
 const $ = (id) => document.getElementById(id);
 const arena = $("arena"),
   preview = $("preview"),
@@ -66,7 +68,7 @@ function setupOptions() {
   $("cpu-settings").hidden = net;
   $("stage-settings").hidden = net && roomRole === "guest";
   $("character-note").hidden = !net;
-  for (const el of $("settings").querySelectorAll("input")) el.disabled = busy;
+  for (const el of $("settings").querySelectorAll("input, select")) el.disabled = busy;
   $("host-room").disabled = $("join-room").disabled = busy;
   $("host-room").setAttribute("aria-pressed", String(roomRole === "host"));
   $("join-room").setAttribute("aria-pressed", String(roomRole === "guest"));
@@ -109,13 +111,22 @@ let previewMatch;
 for (const stage of STAGES) renderStageMap($("map-" + stage.id), stage);
 function updatePreview() {
   const data = new FormData($("settings"));
-  previewMatch = createMatch(data.get("character"), data.get("difficulty"), data.get("stage"));
+  previewMatch = createMatch(
+    data.get("character"),
+    data.get("difficulty"),
+    data.get("stage"),
+    onlineMode() ? undefined : data.get("opponent"),
+  );
+  $("jump-rule").textContent = `↑ ${CHARACTERS[data.get("character")].maxJumps}段ジャンプ`;
   previewMatch.online = onlineMode();
   const stage = getStage(previewMatch.stageId);
   $("stage-number").textContent = `STAGE ${stage.number}`;
   $("stage-name").textContent = stage.name;
   $("stage-description").textContent = stage.description;
-  preview.setAttribute("aria-label", `${stage.name}のプレビュー。${stage.description}`);
+  preview.setAttribute(
+    "aria-label",
+    `${stage.name}のプレビュー。${fighterAppearance(previewMatch, 0).name}と${fighterAppearance(previewMatch, 1).name}。${stage.description}`,
+  );
   if (art) render(previewContext, art, previewMatch, 0, true, true);
 }
 $("settings").addEventListener("change", () => {
@@ -176,7 +187,10 @@ function sound(type) {
   else if (type === "block") tone(750, 0.06, 540);
   else if (type === "swing") tone(260, 0.05, 180);
   else if (type === "out") tone(650, 0.32, 110);
-  else if (type === "finish") {
+  else if (type === "grow") {
+    tone(390, 0.18, 650);
+    tone(650, 0.22, 980, 0.12);
+  } else if (type === "finish") {
     tone(523, 0.18, 523);
     tone(659, 0.18, 659, 0.15);
     tone(784, 0.3, 784, 0.3);
@@ -202,11 +216,19 @@ function clearInput() {
 function interactive() {
   return match?.phase === "playing" && !networkError && !online?.info().waiting;
 }
-function startMatch() {
+function startMatch(opponent) {
   leaveOnline();
   localSeat = 0;
   const data = new FormData($("settings"));
-  match = createMatch(data.get("character"), data.get("difficulty"), data.get("stage"));
+  match = createMatch(
+    data.get("character"),
+    data.get("difficulty"),
+    data.get("stage"),
+    opponent ??
+      (isCharacter(data.get("opponent"))
+        ? data.get("opponent")
+        : chooseOpponent(data.get("character"))),
+  );
   brain = createCPU();
   beginMatchUI();
   syncMusic();
@@ -234,6 +256,9 @@ function beginMatchUI() {
     $(prefix + "-name").textContent = CHARACTERS[char].name;
     $(prefix + "-icon").src = art.portraits[`${look.key}-icon`];
     $(prefix + "-name").closest(".fighter-hud").dataset.palette = look.key;
+    $(prefix + "-name")
+      .closest(".fighter-hud")
+      .style.setProperty("--fighter-ink", look.ink);
     const player = i ? (onlineMode() ? "相手" : "CPU") : "YOU";
     $(i ? "opponent-label" : "you-label").textContent =
       player + (look.alternate ? `・${look.label}` : "");
@@ -420,7 +445,7 @@ $("rematch").addEventListener("click", () => {
     return;
   }
   $("result-dialog").close();
-  startMatch();
+  startMatch(match.fighters[1].character);
 });
 $("pause-dialog").addEventListener("cancel", (e) => {
   e.preventDefault();
@@ -450,14 +475,14 @@ function showResult() {
         : winner === localSeat
           ? "やったね！ 最後まで残れたよ。"
           : "おつかれさま。もうひと勝負してみよう！") +
-    `\nあなた ${you.stocks}回・${you.damage}% ／ ${online ? "相手" : "CPU"} ${cpu.stocks}回・${cpu.damage}%`;
+    `\nあなた ${you.stocks}回・${Math.round(you.damage)}% ／ ${online ? "相手" : "CPU"} ${cpu.stocks}回・${Math.round(cpu.damage)}%`;
   $("match-status").textContent = winner === null ? "いい勝負だったね！" : `${look.name}の勝ち！`;
   $("result-dialog").showModal();
 }
 function updateHUD() {
   for (const [i, prefix] of ["you", "cpu"].entries()) {
     const f = match.fighters[i ? 1 - localSeat : localSeat];
-    const damageHTML = `${f.damage}<small>%</small>`;
+    const damageHTML = `${Math.round(f.damage)}<small>%</small>`;
     if ($(prefix + "-damage").innerHTML !== damageHTML)
       $(prefix + "-damage").innerHTML = damageHTML;
     $(prefix + "-damage").classList.toggle("danger", f.damage >= 80);
@@ -552,8 +577,13 @@ function frame(now) {
       reducedMotion.matches,
     );
     if (match.phase === "finished" && !resultShown && !networkError) showResult();
-  } else if (art && getStage(previewMatch.stageId).platforms.some((p) => p.motion)) {
+  } else if (art && getStage(previewMatch.stageId).platforms.some((p) => p.motion || p.tilt)) {
     previewMatch.elapsed += reducedMotion.matches ? 0 : Math.min(seconds, 0.05);
+    const floors = platformsAt(getStage(previewMatch.stageId), previewMatch.elapsed);
+    for (const f of previewMatch.fighters) {
+      const floor = floors.find((p) => p.id === f.platformId);
+      if (floor && f.grounded) f.y = surfaceAt(floor, f.x);
+    }
     render(previewContext, art, previewMatch, now / 1000, reducedMotion.matches, true);
   }
   requestAnimationFrame(frame);
@@ -563,6 +593,8 @@ async function prepare() {
   $("start").textContent = "絵をじゅんび中…";
   try {
     art = await loadArt();
+    for (const img of document.querySelectorAll("[data-character-art]"))
+      img.src = art.selection[img.dataset.characterArt];
     fit(preview);
     render(previewContext, art, previewMatch, 0, true, true);
     $("start").textContent = "バトル、はじめる！ →";

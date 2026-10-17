@@ -6,11 +6,11 @@
     <meta name="theme-color" content="#fff9ef" />
     <meta
       name="description"
-      content="たくハムとめぐハムの、ぽよんとかわいい場外バトル。CPUと腕だめし、通信でふたり対戦も！"
+      content="たくハム・めぐハム・ノーマルハム・たぴの、ぽよんとかわいい場外バトル。CPU戦・通信対戦で遊ぼう！"
     />
     <title>たくめぐのぽよんバトル | たくめぐのあそびば</title>
-    <link rel="stylesheet" href="./style.css?v=20261014-battle11" />
-    <script type="module" src="./game.js?v=20261014-battle11"></script>
+    <link rel="stylesheet" href="./style.css?v=20261017-battle19" />
+    <script type="module" src="./game.js?v=20261017-battle19"></script>
   </head>
   <body>
     <audio
@@ -51,7 +51,7 @@
               aria-label="草の足場に立つたくハムとめぐハム。空中に3つの小さな足場があります。"
             ></canvas>
             <div class="rule-strip">
-              <span>♥ 残り3回</span><span>◷ 2分間</span><span>↑ 2段ジャンプ</span>
+              <span>♥ 残り3回</span><span>◷ 2分間</span><span id="jump-rule">↑ 2段ジャンプ</span>
             </div>
           </div>
           <form id="settings" class="settings">
@@ -73,18 +73,34 @@
               <div class="character-options">
                 <label class="character tak"
                   ><input type="radio" name="character" value="tak" checked />
-                  <img src="../assets/tak-win.png" alt="" /><strong>たくハム</strong
+                  <img data-character-art="tak" alt="" /><strong>たくハム</strong
                   ><small>すばやく、こつこつ</small
                   ><span class="character-traits">足が速く、手数が得意<br />一発の力はひかえめ</span
                   ><span class="selected-mark" aria-hidden="true">✓</span></label
                 >
                 <label class="character meg"
                   ><input type="radio" name="character" value="meg" />
-                  <img src="../assets/meg-win.png" alt="" /><strong>めぐハム</strong
+                  <img data-character-art="meg" alt="" /><strong>めぐハム</strong
                   ><small>高く跳んで、どーん</small
                   ><span class="character-traits"
                     >ジャンプと一撃が得意<br />攻撃後のすきは大きめ</span
                   ><span class="selected-mark" aria-hidden="true">✓</span></label
+                >
+                <label class="character ham"
+                  ><input type="radio" name="character" value="ham" />
+                  <img data-character-art="ham" alt="" /><strong>ノーマルハム</strong>
+                  <small>おおきく、どっしり</small>
+                  <span class="character-traits">力もち・ゆっくり<br />ジャンプは低め</span>
+                  <span class="selected-mark" aria-hidden="true">✓</span></label
+                >
+                <label class="character tapi"
+                  ><input type="radio" name="character" value="tapi" />
+                  <img data-character-art="tapi" alt="" /><strong>たぴ</strong>
+                  <small>ちいさく、4段ジャンプ</small>
+                  <span class="character-traits"
+                    >地上では必殺をすりぬける<br />すばやい・攻撃弱め</span
+                  >
+                  <span class="selected-mark" aria-hidden="true">✓</span></label
                 >
               </div>
             </fieldset>
@@ -92,8 +108,19 @@
               ふたりとも好きな子を選べるよ。同じ子なら、へやに入った人が色違いになるよ。
             </p>
             <fieldset id="cpu-settings">
-              <legend><span class="step-number">2</span> CPUのつよさ</legend>
-              <div class="difficulty-options">
+              <legend><span class="step-number">2</span> CPU</legend>
+              <label class="cpu-character-choice" for="cpu-character"
+                >相手のキャラ
+                <select id="cpu-character" name="opponent">
+                  <option value="random">おまかせ</option>
+                  <option value="tak">たくハム</option>
+                  <option value="meg">めぐハム</option>
+                  <option value="ham">ノーマルハム</option>
+                  <option value="tapi">たぴ</option>
+                </select>
+              </label>
+              <span class="cpu-level-label" id="cpu-level-label">つよさ</span>
+              <div class="difficulty-options" role="group" aria-labelledby="cpu-level-label">
                 <label
                   ><input type="radio" name="difficulty" value="easy" /><span>のんびり</span></label
                 >
@@ -126,6 +153,24 @@
                   ><input type="radio" name="stage" value="cloud" /><span
                     ><canvas id="map-cloud" width="180" height="80" aria-hidden="true"></canvas
                     ><b>わたぐもテラス</b></span
+                  ></label
+                >
+                <label
+                  ><input type="radio" name="stage" value="islands" /><span
+                    ><canvas id="map-islands" width="180" height="80" aria-hidden="true"></canvas
+                    ><b>ふたごのうきしま</b></span
+                  ></label
+                >
+                <label
+                  ><input type="radio" name="stage" value="seesaw" /><span
+                    ><canvas id="map-seesaw" width="180" height="80" aria-hidden="true"></canvas
+                    ><b>ゆらゆらシーソー</b></span
+                  ></label
+                >
+                <label
+                  ><input type="radio" name="stage" value="planet" /><span
+                    ><canvas id="map-planet" width="180" height="80" aria-hidden="true"></canvas
+                    ><b>まんまるプラネット</b></span
                   ></label
                 >
               </div>
@@ -191,13 +236,17 @@
           <p>
             十字キー：左右で移動、↑でジャンプ、↓長押しでガード。Aでこうげき、Bでひっさつ。<br />
             PCはA・D：移動、W：ジャンプ、S：ガード、I：左のBボタン、O：右のAボタン。<br />
-            空中でもう1回ジャンプできるよ。矢印キーとSpaceも使えます。Esc / P：ひとやすみ
+            空中でもう1回、たぴはもう3回ジャンプできるよ。矢印キーとSpaceも使えます。Esc /
+            P：ひとやすみ
           </p>
           <p>
             「ひっさつ」は上に飛びながら回転する技。空中では着地まで1回だけ。薄く点線になったボタンは回復・着地待ちです。ガードは地上で使え、長く守りすぎると少し動けなくなるよ。「ひだまりひろば」は坂道、「わたぐもテラス」は動く床にも注目。画面を離れると自動で一時停止し、BGMも止まります。
           </p>
           <p>
-            たくハムはすばやく近づいて、こつこつ攻撃。めぐハムは高いジャンプと強い一撃で勝負。「ひっさつ」も、たくハムは横へ、めぐハムは上へ進みやすいよ。色違いでも強さは同じです。
+            たくハムはすばやく近づいて、こつこつ攻撃。めぐハムは高いジャンプと強い一撃で勝負。「ひっさつ」も、たくハムは横へ、めぐハムは上へ進みやすいよ。ノーマルハムは大きな体と強い一撃、たぴは小さな体と4段ジャンプ、たくハムより速い足が特徴。たぴは床に立っている間、相手の必殺技に当たりません。通常攻撃と空中での必殺技は当たります。色違いでも強さは同じです。CPUの相手も選べます。「おまかせ」は自分以外から選ばれ、再戦では同じ子と遊べます。同じ子ならCPU側・通信の参加側が色違いになります。ノーマルハムは緑のまわし、たぴは水色です。
+          </p>
+          <p>
+            空から落ちてくる「巨大化薬」にタッチすると、10秒間、体が2倍（たぴは4倍）に！攻撃・防御も1.2倍になります。大きいぶん攻撃を受ける範囲も広がります。残り3秒になると体がチカチカ。巨大化中にもう一度取ると、そこからまた10秒です。大きさや強さは重ならず、場外に落ちても元に戻ります。薬は同時に1つまで。
           </p>
           <p>
             通信対戦は、同じキーワードでふたりをつなぐよ。ふたりの準備が揃うと開始。画面を離れたり、通信が遅くなると一時停止します。再戦もふたりが選ぶと始まるよ。<br />

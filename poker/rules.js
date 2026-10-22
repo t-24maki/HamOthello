@@ -11,6 +11,8 @@ export const ROLES = [
   "ストレートフラッシュ",
   "スリーカード",
 ];
+export const MATCH_ROUNDS = 5;
+export const WINS_TO_WIN = 3;
 
 export function createDeck() {
   return Object.keys(METALS).flatMap((metal) =>
@@ -48,8 +50,8 @@ export function evaluateHand(hand) {
   const straight = unique === 3 && values[0] - values[2] === 2;
   const rank =
     unique === 1 ? 5 : straight && flush ? 4 : straight ? 3 : flush ? 2 : unique === 2 ? 1 : 0;
-  // Compare the number making the role first. For a pair, its two cards take
-  // priority over the kicker; metal breaks a tie in that number.
+  // Flushes compare their metal first, then numbers when both metals match.
+  // Other roles compare their defining number first (the pair before its kicker).
   const ordered =
     rank === 1
       ? [...sorted].sort(
@@ -57,7 +59,10 @@ export function evaluateHand(hand) {
             values.filter((n) => n === b.value).length - values.filter((n) => n === a.value).length,
         )
       : sorted;
-  const key = ordered.flatMap((card) => [card.value, METALS[card.metal].strength]);
+  const key =
+    rank === 2 || rank === 4
+      ? [METALS[ordered[0].metal].strength, ...ordered.map((card) => card.value)]
+      : ordered.flatMap((card) => [card.value, METALS[card.metal].strength]);
   return { rank, name: ROLES[rank], sorted: ordered, key };
 }
 
@@ -83,6 +88,9 @@ export function createRound(mode = "cpu", random = Math.random) {
   }
   return {
     mode,
+    roundNumber: 1,
+    wins: [0, 0],
+    history: [],
     phase: mode === "local" ? "handoff" : "choose",
     active: 0,
     hands: [deck.slice(0, 3), deck.slice(3, 6)],
@@ -127,7 +135,43 @@ export function continueRound(state) {
   if (state.mode === "cpu") return { ...state, phase: "cpu" };
   return state.active === 0
     ? { ...state, active: 1, phase: "handoff" }
-    : { ...state, phase: "result" };
+    : recordRound({ ...state, phase: "result" });
+}
+
+// Score only the transition into a result, never a render or a repeated message.
+export function recordRound(state) {
+  if (
+    state.phase !== "result" ||
+    state.history.length !== state.roundNumber - 1 ||
+    state.roundNumber > MATCH_ROUNDS ||
+    [0, 1].some((p) => state.history.filter((winner) => winner === p).length >= WINS_TO_WIN)
+  )
+    return null;
+  const { winner } = roundResult(state);
+  const history = [...state.history, winner];
+  return { ...state, history, wins: [0, 1].map((p) => history.filter((w) => w === p).length) };
+}
+
+export function matchResult(state) {
+  if (
+    state.phase !== "result" ||
+    (!state.wins.some((wins) => wins >= WINS_TO_WIN) && state.history.length < MATCH_ROUNDS)
+  )
+    return null;
+  const [left, right] = state.wins;
+  return { winner: left === right ? null : left > right ? 0 : 1, wins: [...state.wins] };
+}
+
+export function nextRound(state, random = Math.random) {
+  if (state.phase !== "result" || matchResult(state) || state.history.length !== state.roundNumber)
+    return null;
+  return {
+    ...createRound(state.mode === "online" ? "cpu" : state.mode, random),
+    mode: state.mode,
+    roundNumber: state.roundNumber + 1,
+    wins: [...state.wins],
+    history: [...state.history],
+  };
 }
 
 function* combinations(cards, count, offset = 0, chosen = []) {
@@ -154,7 +198,11 @@ export function chooseCpuExchange(hand) {
       count = 0;
     for (const draw of combinations(unseen, indices.length)) {
       const result = evaluateHand([...kept, ...draw]);
-      total += result.rank * 100 + result.key[0] * 3 + result.key[1];
+      const tieValue =
+        result.rank === 2 || result.rank === 4
+          ? result.key[0] * 10 + result.key[1]
+          : result.key[0] * 3 + result.key[1];
+      total += result.rank * 100 + tieValue;
       count++;
     }
     const expected = total / count;
@@ -168,7 +216,10 @@ export function chooseCpuExchange(hand) {
 
 export function finishCpuTurn(state) {
   if (state.mode !== "cpu" || state.phase !== "cpu" || state.exchanges[1] !== null) return null;
-  return { ...replaceCards(state, 1, chooseCpuExchange(state.hands[1])), phase: "result" };
+  return recordRound({
+    ...replaceCards(state, 1, chooseCpuExchange(state.hands[1])),
+    phase: "result",
+  });
 }
 
 export function roundResult(state) {
@@ -176,11 +227,16 @@ export function roundResult(state) {
   const comparison = compareHands(...state.hands);
   const winner = comparison > 0 ? 0 : comparison < 0 ? 1 : null;
   const roles = state.hands.map(evaluateHand);
-  let reason = "役もカードも、ぴったり同じ。なかよく引き分け！";
+  let reason = "役の強さが同じ。なかよく引き分け！";
   if (winner !== null) {
     const win = roles[winner],
       lose = roles[1 - winner];
     if (win.rank !== lose.rank) reason = `「${win.name}」は「${lose.name}」より強いよ。`;
+    else if (win.rank === 2 || win.rank === 4)
+      reason =
+        win.key[0] !== lose.key[0]
+          ? `同じ「${win.name}」。金 ＞ 銀 ＞ 銅の順。${METALS[win.sorted[0].metal].name}は${METALS[lose.sorted[0].metal].name}より強いよ。`
+          : `同じ「${win.name}」で色も${METALS[win.sorted[0].metal].name}。いちばん大きい数字の ${win.key[1]} と ${lose.key[1]} でくらべたよ。`;
     else if (win.key[0] !== lose.key[0])
       reason = `同じ「${win.name}」。${win.rank === 1 ? "ペアの数字" : "いちばん大きい数字"}の ${win.key[0]} と ${lose.key[0]} でくらべたよ。`;
     else

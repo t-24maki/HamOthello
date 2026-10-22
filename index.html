@@ -6,194 +6,752 @@
     <meta name="theme-color" content="#fff9ef" />
     <meta
       name="description"
-      content="たくハムとめぐハムと遊ぶ、オセロ・おさんぽ・ミニポーカー・たべものしりとり・しょうぎ・ビリヤード・ぽよんバトル・ブロックつめこみ。スマホでもパソコンでも、のんびり遊ぼう。"
+      content="たくハムとめぐハムと遊ぶ、オセロ・おさんぽ・ミニポーカー・たべものしりとり・しょうぎ・ビリヤード・ぽよんバトル・ブロックつめこみ・ミニまーじゃん・じんとりがっせん。スマホでもパソコンでも、のんびり遊ぼう。"
     />
     <title>たくめぐのあそびば</title>
-    <link rel="stylesheet" href="./hub.css?v=20261010-blocks1" />
+    <link rel="stylesheet" href="./hub.css?v=20261022-site1" />
+    <link rel="stylesheet" href="./site-layout.css?v=20261022-site1" />
+    <script type="module" src="./site-header.js?v=20261022-site3"></script>
+    <script type="module" src="./hub-art.js?v=20261022-site1"></script>
   </head>
-  <body>
-    <div class="wrap">
-      <header class="masthead">
-        <a class="brand" href="./" aria-label="たくめぐのあそびば ホーム">
-          <span class="friends" aria-hidden="true"
-            ><img src="./assets/pink-piece.png" alt="" width="43" height="43" /><img
-              src="./assets/cream-piece.png"
-              alt=""
-              width="43"
-              height="43"
-          /></span>
-          <span>たくめぐのあそびば</span>
-        </a>
-        <span class="device-note">スマホでも、パソコンでも。</span>
-      </header>
-      <main>
-        <h1>きょうは、なにしてあそぶ？</h1>
+  <body data-site-page="home">
+    <takumegu-header data-page="home"></takumegu-header>
+    <main class="hub-main">
+      <header class="welcome">
+        <p class="eyebrow">TAK&MEG PLAYGROUND</p>
+        <h1>きょうは、<br class="phone-break" />なにしてあそぶ？</h1>
         <p class="intro">たくハムとめぐハムと、のんびり遊ぼう。</p>
+      </header>
+      <nav class="genre-nav" aria-label="ジャンルから選ぶ">
+        <a href="#action">アクション系<span aria-hidden="true">↓</span></a
+        ><a href="#board">ボードゲーム系<span aria-hidden="true">↓</span></a
+        ><a href="#other">その他<span aria-hidden="true">↓</span></a>
+      </nav>
+      <section class="genre-section" id="action" aria-labelledby="action-title">
+        <div class="genre-heading">
+          <h2 id="action-title">アクション系</h2>
+          <span>3ゲーム</span>
+        </div>
         <div class="games">
-          <a class="game othello" href="./othello.html" aria-label="ぷにっとオセロで遊ぶ">
-            <div class="art" aria-hidden="true">
-              <img
-                src="./assets/pink-piece.png"
-                alt=""
-                width="165"
-                height="165"
-                decoding="async"
-              /><img
-                src="./assets/cream-piece.png"
-                alt=""
-                width="165"
-                height="165"
-                decoding="async"
-              />
-            </div>
-            <div class="copy">
-              <span class="tag">CPU・2人・通信対戦</span>
-              <h2>ぷにっとオセロ</h2>
-              <p class="description">
-                はさんで、くるん。<br />とっておきの「カードあり」も遊べるよ。
-              </p>
-              <span class="play"><span>オセロであそぶ</span><span aria-hidden="true">→</span></span>
-            </div>
-          </a>
-          <a class="game sanpo" href="./sanpo/" aria-label="たくめぐのおさんぽで遊ぶ">
-            <div class="art" aria-hidden="true">
-              <img
-                src="./assets/tak-win.png"
-                alt=""
-                width="165"
-                height="165"
-                decoding="async"
-              /><img src="./assets/meg-win.png" alt="" width="165" height="165" decoding="async" />
+          <a class="game sanpo" href="./sanpo/" aria-label="たくめぐのおさんぽで遊ぶ"
+            ><div class="art" aria-hidden="true">
+              <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+                <image href="./sanpo/art/meadow.png" x="0" y="-48" width="480" height="320" />
+                <path d="M0 202 Q80 183 160 201T320 199T480 193V240H0" fill="#b5c58d" />
+                <rect x="40" y="181" width="110" height="15" rx="6" fill="#b99a75" stroke="none" />
+                <rect x="40" y="181" width="110" height="7" rx="4" fill="#829c66" stroke="none" />
+                <rect x="204" y="142" width="91" height="15" rx="6" fill="#b99a75" stroke="none" />
+                <rect x="204" y="142" width="91" height="7" rx="4" fill="#829c66" stroke="none" />
+                <rect x="350" y="99" width="92" height="15" rx="6" fill="#b99a75" stroke="none" />
+                <rect x="350" y="99" width="92" height="7" rx="4" fill="#829c66" stroke="none" />
+                <svg
+                  x="76"
+                  y="78"
+                  width="91"
+                  height="98"
+                  viewBox="579 57 392 423"
+                  style="mix-blend-mode: multiply"
+                >
+                  <image
+                    href="./sanpo/art/lavender.png"
+                    x="0"
+                    y="0"
+                    width="1536"
+                    height="1024"
+                  /></svg
+                ><svg
+                  x="260"
+                  y="32"
+                  width="88"
+                  height="82"
+                  viewBox="93 544 414 386"
+                  style="mix-blend-mode: multiply"
+                >
+                  <image href="./sanpo/art/cream.png" x="0" y="0" width="1536" height="1024" />
+                </svg>
+                <circle cx="192" cy="106" r="6" fill="#796293" />
+                <circle cx="201" cy="106" r="6" fill="#9582b2" />
+                <circle cx="196" cy="99" r="6" fill="#7f6b9f" />
+                <path d="M196 96q3 -10 11 -8q-1 10 -11 8" fill="#87a56f" />
+                <circle cx="217" cy="91" r="6" fill="#796293" />
+                <circle cx="226" cy="91" r="6" fill="#9582b2" />
+                <circle cx="221" cy="84" r="6" fill="#7f6b9f" />
+                <path d="M221 81q3 -10 11 -8q-1 10 -11 8" fill="#87a56f" />
+                <circle cx="241" cy="85" r="6" fill="#796293" />
+                <circle cx="250" cy="85" r="6" fill="#9582b2" />
+                <circle cx="245" cy="78" r="6" fill="#7f6b9f" />
+                <path d="M245 75q3 -10 11 -8q-1 10 -11 8" fill="#87a56f" />
+                <circle cx="366" cy="68" r="6" fill="#796293" />
+                <circle cx="375" cy="68" r="6" fill="#9582b2" />
+                <circle cx="370" cy="61" r="6" fill="#7f6b9f" />
+                <path d="M370 58q3 -10 11 -8q-1 10 -11 8" fill="#87a56f" />
+                <circle cx="398" cy="61" r="6" fill="#796293" />
+                <circle cx="407" cy="61" r="6" fill="#9582b2" />
+                <circle cx="402" cy="54" r="6" fill="#7f6b9f" />
+                <path d="M402 51q3 -10 11 -8q-1 10 -11 8" fill="#87a56f" />
+              </svg>
             </div>
             <div class="copy">
               <span class="tag">ひとりで・横スクロール</span>
-              <h2>たくめぐのおさんぽ</h2>
+              <h3>たくめぐのおさんぽ</h3>
               <p class="description">
                 ジャンプしながら、おやつを50こ。<br />ピクニックへ出かけよう。
               </p>
               <span class="play"
                 ><span>おさんぽにでかける</span><span aria-hidden="true">→</span></span
               >
-            </div>
-          </a>
-          <a class="game poker" href="./poker/" aria-label="ミニポーカーで遊ぶ">
-            <div class="art" aria-hidden="true">
-              <span class="preview-card gold">7<small>金</small></span
-              ><span class="preview-card silver">7<small>銀</small></span
-              ><span class="preview-card bronze">7<small>銅</small></span>
+            </div> </a
+          ><a class="game battle" href="./battle/" aria-label="たくめぐのぽよんバトルで遊ぶ"
+            ><div class="art" aria-hidden="true">
+              <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+                <image href="./sanpo/art/meadow.png" x="0" y="-90" width="480" height="320" />
+                <rect x="70" y="186" width="345" height="24" rx="8" fill="#baa17d" stroke="none" />
+                <rect x="70" y="182" width="345" height="10" rx="5" fill="#7f9c72" stroke="none" />
+                <rect x="40" y="112" width="94" height="13" rx="7" fill="#c3bce2" stroke="none" />
+                <rect x="314" y="78" width="107" height="13" rx="7" fill="#c3bce2" stroke="none" />
+                <svg
+                  x="129"
+                  y="99"
+                  width="90"
+                  height="87"
+                  viewBox="69 520 429 416"
+                  style="mix-blend-mode: multiply"
+                >
+                  <image
+                    href="./sanpo/art/lavender.png"
+                    x="0"
+                    y="0"
+                    width="1536"
+                    height="1024"
+                  /></svg
+                ><svg
+                  x="272"
+                  y="34"
+                  width="81"
+                  height="76"
+                  viewBox="93 544 414 386"
+                  style="mix-blend-mode: multiply"
+                >
+                  <image href="./sanpo/art/cream.png" x="0" y="0" width="1536" height="1024" /></svg
+                ><svg
+                  x="332"
+                  y="90"
+                  width="84"
+                  height="95"
+                  viewBox="82 58 389 439"
+                  style="mix-blend-mode: multiply"
+                >
+                  <image
+                    href="./battle/art/normal-ham.png"
+                    x="0"
+                    y="0"
+                    width="1536"
+                    height="1024"
+                  /></svg
+                ><svg
+                  x="59"
+                  y="66"
+                  width="42"
+                  height="40"
+                  viewBox="76 83 380 359"
+                  style="mix-blend-mode: multiply"
+                >
+                  <image href="./battle/art/tapi.png" x="0" y="0" width="1536" height="1024" />
+                </svg>
+                <path
+                  d="M229 101l6 19 21-7-10 19 18 10-21 4 1 23-15-15-17 14 3-23-20-7 20-9z"
+                  fill="#fff3ba"
+                  stroke="#d9b96d"
+                  stroke-width="2"
+                />
+                <path
+                  d="M242 88q15-27 39-33M251 98q29-23 40-23"
+                  fill="none"
+                  stroke="#c39bba"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                />
+                <text
+                  x="152"
+                  y="226"
+                  font-size="17"
+                  fill="#82659b"
+                  text-anchor="middle"
+                  font-weight="700"
+                >
+                  38%
+                </text>
+                <text
+                  x="368"
+                  y="226"
+                  font-size="17"
+                  fill="#aa7952"
+                  text-anchor="middle"
+                  font-weight="700"
+                >
+                  62%
+                </text>
+              </svg>
             </div>
             <div class="copy">
               <span class="tag">CPU・通信対戦</span>
-              <h2>ミニポーカー</h2>
-              <p class="description">3枚を、1回チェンジ。<br />金・銀・銅で、ちいさな役くらべ。</p>
-              <span class="play"><span>カードであそぶ</span><span aria-hidden="true">→</span></span>
+              <h3>たくめぐのぽよんバトル</h3>
+              <p class="description">
+                とんで、はじいて、ぽよーん！<br />4匹のキャラで、2人・4人の場外バトル。
+              </p>
+              <span class="play"><span>バトルであそぶ</span><span aria-hidden="true">→</span></span>
             </div>
           </a>
-          <a class="game shiritori" href="./shiritori/" aria-label="たべものしりとりで遊ぶ">
-            <div class="art" aria-hidden="true">
-              <span class="word-chip">りん<span>ご</span></span
-              ><span class="word-link">→</span><span class="word-chip"><span>ご</span>ま</span>
+          <a class="game jintori" href="./jintori/" aria-label="じんとりがっせんで遊ぶ"
+            ><div class="art" aria-hidden="true">
+              <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+                <rect width="480" height="240" fill="#dfebdf" />
+                <rect x="80" y="14" width="320" height="212" rx="18" fill="#b7c9ac" />
+                <rect x="87" y="21" width="306" height="198" rx="12" fill="#fcf5e7" />
+                <path d="M87 33Q87 21 99 21H204V70H176V111H137V139H87Z" fill="#aa82d0" />
+                <path d="M204 21H381Q393 21 393 33V90H344V66H276V111H230V70H204Z" fill="#efc55a" />
+                <path d="M393 90V207Q393 219 381 219H261V176H295V139H344V90Z" fill="#f19379" />
+                <path d="M87 139H137V175H219V142H261V219H99Q87 219 87 207Z" fill="#59ae68" />
+                <rect x="198" y="94" width="84" height="52" rx="16" fill="#b8dce1" />
+                <path
+                  d="M215 116h15m14 17h17"
+                  stroke="#e6f4f0"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                />
+                <image href="./assets/pink-piece.png" x="127" y="56" width="43" height="43" />
+                <image href="./assets/cream-piece.png" x="299" y="38" width="43" height="43" />
+                <svg x="304" y="160" width="43" height="48" viewBox="82 58 389 439">
+                  <image href="./battle/art/normal-ham.png" width="1536" height="1024" /></svg
+                ><svg x="156" y="173" width="43" height="41" viewBox="76 83 380 359">
+                  <image href="./battle/art/tapi.png" width="1536" height="1024" />
+                </svg>
+                <circle cx="409" cy="48" r="27" fill="#fffaf1" />
+                <text
+                  x="409"
+                  y="54"
+                  text-anchor="middle"
+                  fill="#765e4d"
+                  font-size="17"
+                  font-weight="bold"
+                >
+                  30秒
+                </text>
+              </svg>
             </div>
             <div class="copy">
-              <span class="tag">2人・通信対戦</span>
-              <h2>たべものしりとり</h2>
+              <span class="tag">4人戦・CPU・通信対戦</span>
+              <h3>じんとりがっせん</h3>
               <p class="description">
-                りんご、ごま、まぐろ…<br />食べ物と飲み物で、ことばをつなごう。
+                歩いたところが、自分の色に。<br />4匹でぬりあう、30秒の陣取り勝負。
               </p>
               <span class="play"
-                ><span>しりとりであそぶ</span><span aria-hidden="true">→</span></span
+                ><span>じんとりであそぶ</span><span aria-hidden="true">→</span></span
               >
+            </div></a
+          >
+        </div>
+      </section>
+      <section class="genre-section" id="board" aria-labelledby="board-title">
+        <div class="genre-heading">
+          <h2 id="board-title">ボードゲーム系</h2>
+          <span>5ゲーム</span>
+        </div>
+        <div class="games">
+          <a class="game othello" href="./othello.html" aria-label="ぷにっとオセロで遊ぶ"
+            ><div class="art" aria-hidden="true">
+              <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+                <rect
+                  x="112"
+                  y="13"
+                  width="256"
+                  height="214"
+                  rx="15"
+                  fill="#dbc8a9"
+                  stroke="none"
+                />
+                <rect x="136" y="22" width="208" height="208" rx="5" fill="#89a68a" stroke="none" />
+                <path d="M136 22v208M136 22h208" stroke="#607f68" stroke-width="1" />
+                <path d="M162 22v208M136 48h208" stroke="#607f68" stroke-width="1" />
+                <path d="M188 22v208M136 74h208" stroke="#607f68" stroke-width="1" />
+                <path d="M214 22v208M136 100h208" stroke="#607f68" stroke-width="1" />
+                <path d="M240 22v208M136 126h208" stroke="#607f68" stroke-width="1" />
+                <path d="M266 22v208M136 152h208" stroke="#607f68" stroke-width="1" />
+                <path d="M292 22v208M136 178h208" stroke="#607f68" stroke-width="1" />
+                <path d="M318 22v208M136 204h208" stroke="#607f68" stroke-width="1" />
+                <path d="M344 22v208M136 230h208" stroke="#607f68" stroke-width="1" />
+                <image href="./assets/pink-piece.png" x="216" y="102" width="22" height="22" />
+                <image href="./assets/cream-piece.png" x="242" y="102" width="22" height="22" />
+                <image href="./assets/cream-piece.png" x="216" y="128" width="22" height="22" />
+                <image href="./assets/pink-piece.png" x="242" y="128" width="22" height="22" />
+                <image href="./assets/pink-piece.png" x="190" y="102" width="22" height="22" />
+                <image href="./assets/cream-piece.png" x="268" y="102" width="22" height="22" />
+                <image href="./assets/pink-piece.png" x="242" y="76" width="22" height="22" />
+                <image href="./assets/cream-piece.png" x="216" y="154" width="22" height="22" />
+                <image href="./assets/pink-piece.png" x="190" y="128" width="22" height="22" />
+                <image href="./assets/cream-piece.png" x="268" y="128" width="22" height="22" />
+                <image href="./assets/pink-piece.png" x="20" y="139" width="83" height="83" />
+                <image href="./assets/cream-piece.png" x="380" y="49" width="83" height="83" />
+                <circle cx="279" cy="165" r="8" fill="#e8e9b266" />
+              </svg>
             </div>
-          </a>
-          <a class="game shogi" href="./shogi/" aria-label="たくめぐしょうぎで遊ぶ">
-            <div class="art" aria-hidden="true">
-              <span class="shogi-preview-piece"><img src="./shogi/art/king.png" alt="" /></span>
-              <span class="shogi-preview-piece"><img src="./shogi/art/taku.png" alt="" /></span>
-              <span class="shogi-preview-piece"><img src="./shogi/art/megu.png" alt="" /></span>
+            <div class="copy">
+              <span class="tag">CPU・2人・通信対戦</span>
+              <h3>ぷにっとオセロ</h3>
+              <p class="description">
+                はさんで、くるん。<br />とっておきの「カードあり」も遊べるよ。
+              </p>
+              <span class="play"><span>オセロであそぶ</span><span aria-hidden="true">→</span></span>
+            </div> </a
+          ><a class="game shogi" href="./shogi/" aria-label="たくめぐしょうぎで遊ぶ"
+            ><div class="art" aria-hidden="true">
+              <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+                <rect
+                  x="137"
+                  y="17"
+                  width="206"
+                  height="206"
+                  rx="12"
+                  fill="#cba573"
+                  stroke="none"
+                />
+                <rect x="148" y="28" width="184" height="184" rx="2" fill="#f4dfb9" stroke="none" />
+                <path d="M148 28v184M148 28h184" stroke="#b99a6d" />
+                <path d="M194 28v184M148 74h184" stroke="#b99a6d" />
+                <path d="M240 28v184M148 120h184" stroke="#b99a6d" />
+                <path d="M286 28v184M148 166h184" stroke="#b99a6d" />
+                <path d="M332 28v184M148 212h184" stroke="#b99a6d" />
+                <rect
+                  x="198"
+                  y="31"
+                  width="38"
+                  height="39"
+                  rx="5"
+                  fill="#ffedcd"
+                  stroke="#c19a65"
+                />
+                <image href="./shogi/art/king.png" x="199" y="32" width="36" height="37" />
+                <rect
+                  x="244"
+                  y="31"
+                  width="38"
+                  height="39"
+                  rx="5"
+                  fill="#ffedcd"
+                  stroke="#c19a65"
+                />
+                <image href="./shogi/art/taku.png" x="245" y="32" width="36" height="37" />
+                <rect
+                  x="152"
+                  y="77"
+                  width="38"
+                  height="39"
+                  rx="5"
+                  fill="#ffedcd"
+                  stroke="#c19a65"
+                />
+                <image href="./shogi/art/ham.png" x="153" y="78" width="36" height="37" />
+                <rect
+                  x="244"
+                  y="123"
+                  width="38"
+                  height="39"
+                  rx="5"
+                  fill="#ffedcd"
+                  stroke="#c19a65"
+                />
+                <image href="./shogi/art/tapi.png" x="245" y="124" width="36" height="37" />
+                <rect
+                  x="198"
+                  y="169"
+                  width="38"
+                  height="39"
+                  rx="5"
+                  fill="#ffedcd"
+                  stroke="#c19a65"
+                />
+                <image href="./shogi/art/megu.png" x="199" y="170" width="36" height="37" />
+                <rect
+                  x="244"
+                  y="169"
+                  width="38"
+                  height="39"
+                  rx="5"
+                  fill="#ffedcd"
+                  stroke="#c19a65"
+                />
+                <image href="./shogi/art/king.png" x="245" y="170" width="36" height="37" />
+                <image href="./assets/pink-piece.png" x="35" y="104" width="75" height="75" />
+                <image href="./assets/cream-piece.png" x="375" y="51" width="70" height="70" />
+              </svg>
             </div>
             <div class="copy">
               <span class="tag">CPU・ふたり・通信対戦</span>
-              <h2>たくめぐしょうぎ</h2>
+              <h3>たくめぐしょうぎ</h3>
               <p class="description">
                 ちいさな盤で、のんびりひと勝負。<br />相手のハム王を、つかまえよう。
               </p>
               <span class="play"
                 ><span>しょうぎであそぶ</span><span aria-hidden="true">→</span></span
               >
-            </div>
-          </a>
-          <a class="game billiards" href="./billiards/" aria-label="まんまるビリヤードで遊ぶ">
-            <div class="art" aria-hidden="true">
-              <span class="billiards-preview">
-                <i class="mini-hole" style="--angle: 0deg"></i
-                ><i class="mini-hole" style="--angle: 60deg"></i
-                ><i class="mini-hole" style="--angle: 120deg"></i
-                ><i class="mini-hole" style="--angle: 180deg"></i
-                ><i class="mini-hole" style="--angle: 240deg"></i
-                ><i class="mini-hole" style="--angle: 300deg"></i>
-                <span class="mini-ball purple"></span><span class="mini-ball cream"></span
-                ><span class="mini-ball white"></span><span class="mini-score">+5</span>
-              </span>
-            </div>
-            <div class="copy">
-              <span class="tag">1台でふたり・通信対戦</span>
-              <h2>まんまるビリヤード</h2>
-              <p class="description">
-                白球をぶつけて、自分の色をころん。<br />まあるい台で、得点くらべ。
-              </p>
-              <span class="play"
-                ><span>ビリヤードであそぶ</span><span aria-hidden="true">→</span></span
-              >
-            </div>
-          </a>
-          <a class="game battle" href="./battle/" aria-label="たくめぐのぽよんバトルで遊ぶ">
-            <div class="art" aria-hidden="true">
-              <img src="./assets/tak-win.png" alt="" width="165" height="165" decoding="async" />
-              <span class="battle-star">✦</span>
-              <img src="./assets/meg-win.png" alt="" width="165" height="165" decoding="async" />
+            </div> </a
+          ><a class="game poker" href="./poker/" aria-label="ミニポーカーで遊ぶ"
+            ><div class="art" aria-hidden="true">
+              <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+                <g transform="rotate(-11 142 123)">
+                  <image
+                    href="./poker/art/classic-bronze-v2.webp"
+                    x="86"
+                    y="39"
+                    width="112"
+                    height="168"
+                  />
+                  <text
+                    x="146"
+                    y="115"
+                    font-size="56"
+                    fill="#74533d"
+                    text-anchor="middle"
+                    font-family="Georgia,serif"
+                    font-weight="700"
+                  >
+                    7
+                  </text>
+                  <text x="102" y="60" font-size="14" fill="#795f47" text-anchor="middle">7</text>
+                  <text x="142" y="196" font-size="8" fill="#795f47" text-anchor="middle">
+                    BRONZE
+                  </text>
+                </g>
+                <g transform="rotate(0 240 104)">
+                  <image
+                    href="./poker/art/classic-silver-v2.webp"
+                    x="184"
+                    y="20"
+                    width="112"
+                    height="168"
+                  />
+                  <text
+                    x="244"
+                    y="96"
+                    font-size="56"
+                    fill="#74533d"
+                    text-anchor="middle"
+                    font-family="Georgia,serif"
+                    font-weight="700"
+                  >
+                    7
+                  </text>
+                  <text x="200" y="41" font-size="14" fill="#795f47" text-anchor="middle">7</text>
+                  <text x="240" y="177" font-size="8" fill="#795f47" text-anchor="middle">
+                    SILVER
+                  </text>
+                </g>
+                <g transform="rotate(11 336 123)">
+                  <image
+                    href="./poker/art/classic-gold-v2.webp"
+                    x="280"
+                    y="39"
+                    width="112"
+                    height="168"
+                  />
+                  <text
+                    x="340"
+                    y="115"
+                    font-size="56"
+                    fill="#74533d"
+                    text-anchor="middle"
+                    font-family="Georgia,serif"
+                    font-weight="700"
+                  >
+                    7
+                  </text>
+                  <text x="296" y="60" font-size="14" fill="#795f47" text-anchor="middle">7</text>
+                  <text x="336" y="196" font-size="8" fill="#795f47" text-anchor="middle">
+                    GOLD
+                  </text>
+                </g>
+              </svg>
             </div>
             <div class="copy">
               <span class="tag">CPU・通信対戦</span>
-              <h2>たくめぐのぽよんバトル</h2>
+              <h3>ミニポーカー</h3>
               <p class="description">
-                とんで、はじいて、ぽよーん！<br />ふたりの小さな場外バトル。
+                3枚を、1回チェンジ。<br />金・銀・銅の役くらべ、先に3勝で優勝！
               </p>
-              <span class="play"><span>バトルであそぶ</span><span aria-hidden="true">→</span></span>
-            </div>
-          </a>
-          <a class="game blocks" href="./blocks/" aria-label="ブロックつめこみで遊ぶ">
-            <div class="art" aria-hidden="true">
-              <img src="./assets/pink-piece.png" alt="" width="120" height="120" decoding="async" />
-              <svg class="blocks-preview" viewBox="0 0 100 112">
-                <rect x="2" y="2" width="96" height="108" rx="15" fill="#e4cfaf" />
-                <g fill="#fff8e9" stroke="#b99e79" stroke-width="1">
-                  <rect x="10" y="10" width="80" height="92" rx="8" />
-                </g>
-                <g fill="#b09acb" stroke="#7f619f" stroke-width="1.5">
-                  <rect x="16" y="16" width="20" height="20" rx="4" />
-                  <rect x="39" y="16" width="20" height="20" rx="4" />
-                  <rect x="62" y="16" width="20" height="20" rx="4" />
-                  <rect x="39" y="39" width="20" height="20" rx="4" />
-                </g>
-                <g fill="#efd095" stroke="#ad8549" stroke-width="1.5">
-                  <rect x="16" y="48" width="20" height="20" rx="4" />
-                  <rect x="16" y="71" width="20" height="20" rx="4" />
-                  <rect x="39" y="71" width="20" height="20" rx="4" />
-                  <rect x="62" y="71" width="20" height="20" rx="4" />
-                </g>
-                <rect x="63" y="40" width="20" height="20" rx="4" fill="#565354" />
+              <span class="play"><span>カードであそぶ</span><span aria-hidden="true">→</span></span>
+            </div> </a
+          ><a class="game mahjong" href="./mahjong/" aria-label="ミニまーじゃんで遊ぶ"
+            ><div class="art" aria-hidden="true">
+              <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+                <rect x="27" y="32" width="426" height="179" rx="24" fill="#93ad99" stroke="none" />
+                <rect x="38" y="43" width="404" height="156" rx="18" fill="#658b76" stroke="none" />
+                <rect x="48" y="83" width="34" height="76" rx="4" fill="#c8c0a6" stroke="none" />
+                <rect x="48" y="79" width="34" height="74" rx="4" fill="#fffaf0" stroke="#d4cdb6" />
+                <text
+                  x="57"
+                  y="101"
+                  font-size="19"
+                  fill="#8f6aa0"
+                  text-anchor="middle"
+                  font-weight="700"
+                >
+                  1
+                </text>
+                <image href="./assets/pink-piece.png" x="52" y="114" width="26" height="30" />
+                <rect x="87" y="83" width="34" height="76" rx="4" fill="#c8c0a6" stroke="none" />
+                <rect x="87" y="79" width="34" height="74" rx="4" fill="#fffaf0" stroke="#d4cdb6" />
+                <text
+                  x="96"
+                  y="101"
+                  font-size="19"
+                  fill="#8f6aa0"
+                  text-anchor="middle"
+                  font-weight="700"
+                >
+                  2
+                </text>
+                <image href="./assets/pink-piece.png" x="91" y="114" width="26" height="30" />
+                <rect x="126" y="83" width="34" height="76" rx="4" fill="#c8c0a6" stroke="none" />
+                <rect
+                  x="126"
+                  y="79"
+                  width="34"
+                  height="74"
+                  rx="4"
+                  fill="#fffaf0"
+                  stroke="#d4cdb6"
+                />
+                <text
+                  x="135"
+                  y="101"
+                  font-size="19"
+                  fill="#8f6aa0"
+                  text-anchor="middle"
+                  font-weight="700"
+                >
+                  3
+                </text>
+                <image href="./assets/pink-piece.png" x="130" y="114" width="26" height="30" />
+                <rect x="179" y="89" width="34" height="76" rx="4" fill="#c8c0a6" stroke="none" />
+                <rect
+                  x="179"
+                  y="85"
+                  width="34"
+                  height="74"
+                  rx="4"
+                  fill="#fffaf0"
+                  stroke="#d4cdb6"
+                />
+                <text
+                  x="188"
+                  y="107"
+                  font-size="19"
+                  fill="#a68242"
+                  text-anchor="middle"
+                  font-weight="700"
+                >
+                  3
+                </text>
+                <image href="./assets/cream-piece.png" x="183" y="120" width="26" height="30" />
+                <rect x="218" y="89" width="34" height="76" rx="4" fill="#c8c0a6" stroke="none" />
+                <rect
+                  x="218"
+                  y="85"
+                  width="34"
+                  height="74"
+                  rx="4"
+                  fill="#fffaf0"
+                  stroke="#d4cdb6"
+                />
+                <text
+                  x="227"
+                  y="107"
+                  font-size="19"
+                  fill="#a68242"
+                  text-anchor="middle"
+                  font-weight="700"
+                >
+                  3
+                </text>
+                <image href="./assets/cream-piece.png" x="222" y="120" width="26" height="30" />
+                <rect x="257" y="89" width="34" height="76" rx="4" fill="#c8c0a6" stroke="none" />
+                <rect
+                  x="257"
+                  y="85"
+                  width="34"
+                  height="74"
+                  rx="4"
+                  fill="#fffaf0"
+                  stroke="#d4cdb6"
+                />
+                <text
+                  x="266"
+                  y="107"
+                  font-size="19"
+                  fill="#a68242"
+                  text-anchor="middle"
+                  font-weight="700"
+                >
+                  3
+                </text>
+                <image href="./assets/cream-piece.png" x="261" y="120" width="26" height="30" />
+                <rect x="310" y="83" width="34" height="76" rx="4" fill="#c8c0a6" stroke="none" />
+                <rect
+                  x="310"
+                  y="79"
+                  width="34"
+                  height="74"
+                  rx="4"
+                  fill="#fffaf0"
+                  stroke="#d4cdb6"
+                />
+                <svg
+                  x="313"
+                  y="107"
+                  width="28"
+                  height="32"
+                  viewBox="76 83 380 359"
+                  style="mix-blend-mode: multiply"
+                >
+                  <image href="./battle/art/tapi.png" x="0" y="0" width="1536" height="1024" />
+                </svg>
+                <rect x="349" y="83" width="34" height="76" rx="4" fill="#c8c0a6" stroke="none" />
+                <rect
+                  x="349"
+                  y="79"
+                  width="34"
+                  height="74"
+                  rx="4"
+                  fill="#fffaf0"
+                  stroke="#d4cdb6"
+                />
+                <svg
+                  x="352"
+                  y="107"
+                  width="28"
+                  height="32"
+                  viewBox="76 83 380 359"
+                  style="mix-blend-mode: multiply"
+                >
+                  <image href="./battle/art/tapi.png" x="0" y="0" width="1536" height="1024" />
+                </svg>
+                <rect x="388" y="83" width="34" height="76" rx="4" fill="#c8c0a6" stroke="none" />
+                <rect
+                  x="388"
+                  y="79"
+                  width="34"
+                  height="74"
+                  rx="4"
+                  fill="#fffaf0"
+                  stroke="#d4cdb6"
+                />
+                <svg
+                  x="391"
+                  y="107"
+                  width="28"
+                  height="32"
+                  viewBox="76 83 380 359"
+                  style="mix-blend-mode: multiply"
+                >
+                  <image href="./battle/art/tapi.png" x="0" y="0" width="1536" height="1024" />
+                </svg>
+                <path d="M49 169v5h110v-5" fill="none" stroke="#dce7ca" stroke-width="2" />
+                <path d="M180 169v5h110v-5" fill="none" stroke="#dce7ca" stroke-width="2" />
+                <path d="M311 169v5h110v-5" fill="none" stroke="#dce7ca" stroke-width="2" />
+                <text x="240" y="62" font-size="12" fill="#edf1dd" text-anchor="middle">
+                  3枚ずつ、3つの組
+                </text>
               </svg>
-              <img
-                src="./assets/cream-piece.png"
-                alt=""
-                width="120"
-                height="120"
-                decoding="async"
-              />
+            </div>
+            <div class="copy">
+              <span class="tag">CPU・通信対戦</span>
+              <h3>ミニまーじゃん</h3>
+              <p class="description">
+                9枚でつくる、3つの組。<br />たくハム・めぐハム・たぴの4局勝負。
+              </p>
+              <span class="play"
+                ><span>まーじゃんであそぶ</span><span aria-hidden="true">→</span></span
+              >
+            </div> </a
+          ><a class="game blocks" href="./blocks/" aria-label="ブロックつめこみで遊ぶ"
+            ><div class="art" aria-hidden="true">
+              <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+                <rect
+                  x="144"
+                  y="16"
+                  width="208"
+                  height="208"
+                  rx="12"
+                  fill="#dac6a6"
+                  stroke="none"
+                />
+                <rect x="152" y="24" width="192" height="192" rx="4" fill="#fff8e9" stroke="none" />
+                <path d="M152 24v192M152 24h192" stroke="#d9c7ad" />
+                <path d="M176 24v192M152 48h192" stroke="#d9c7ad" />
+                <path d="M200 24v192M152 72h192" stroke="#d9c7ad" />
+                <path d="M224 24v192M152 96h192" stroke="#d9c7ad" />
+                <path d="M248 24v192M152 120h192" stroke="#d9c7ad" />
+                <path d="M272 24v192M152 144h192" stroke="#d9c7ad" />
+                <path d="M296 24v192M152 168h192" stroke="#d9c7ad" />
+                <path d="M320 24v192M152 192h192" stroke="#d9c7ad" />
+                <path d="M344 24v192M152 216h192" stroke="#d9c7ad" />
+                <rect x="154" y="26" width="20" height="20" rx="3" fill="#b19cc9" stroke="none" />
+                <rect x="154" y="50" width="20" height="20" rx="3" fill="#b19cc9" stroke="none" />
+                <rect x="154" y="74" width="20" height="20" rx="3" fill="#b19cc9" stroke="none" />
+                <rect x="178" y="74" width="20" height="20" rx="3" fill="#b19cc9" stroke="none" />
+                <rect x="202" y="26" width="20" height="20" rx="3" fill="#efd293" stroke="none" />
+                <rect x="226" y="26" width="20" height="20" rx="3" fill="#efd293" stroke="none" />
+                <rect x="250" y="26" width="20" height="20" rx="3" fill="#efd293" stroke="none" />
+                <rect x="226" y="50" width="20" height="20" rx="3" fill="#efd293" stroke="none" />
+                <rect x="274" y="74" width="20" height="20" rx="3" fill="#c3a8cc" stroke="none" />
+                <rect x="298" y="74" width="20" height="20" rx="3" fill="#c3a8cc" stroke="none" />
+                <rect x="274" y="98" width="20" height="20" rx="3" fill="#c3a8cc" stroke="none" />
+                <rect x="298" y="98" width="20" height="20" rx="3" fill="#c3a8cc" stroke="none" />
+                <rect x="154" y="146" width="20" height="20" rx="3" fill="#e6bc75" stroke="none" />
+                <rect x="178" y="146" width="20" height="20" rx="3" fill="#e6bc75" stroke="none" />
+                <rect x="202" y="146" width="20" height="20" rx="3" fill="#e6bc75" stroke="none" />
+                <rect x="226" y="146" width="20" height="20" rx="3" fill="#e6bc75" stroke="none" />
+                <rect x="298" y="170" width="20" height="20" rx="3" fill="#b39ac8" stroke="none" />
+                <rect x="322" y="170" width="20" height="20" rx="3" fill="#b39ac8" stroke="none" />
+                <rect x="274" y="194" width="20" height="20" rx="3" fill="#b39ac8" stroke="none" />
+                <rect x="298" y="194" width="20" height="20" rx="3" fill="#b39ac8" stroke="none" />
+                <rect x="178" y="98" width="20" height="20" rx="3" fill="#5f5b5a" stroke="none" />
+                <rect x="298" y="26" width="20" height="20" rx="3" fill="#5f5b5a" stroke="none" />
+                <rect x="250" y="122" width="20" height="20" rx="3" fill="#5f5b5a" stroke="none" />
+                <rect x="178" y="194" width="20" height="20" rx="3" fill="#5f5b5a" stroke="none" />
+                <rect x="64" y="76" width="22" height="22" rx="4" fill="#c3a7d6" stroke="#9676b0" />
+                <rect x="88" y="76" width="22" height="22" rx="4" fill="#c3a7d6" stroke="#9676b0" />
+                <rect
+                  x="88"
+                  y="100"
+                  width="22"
+                  height="22"
+                  rx="4"
+                  fill="#c3a7d6"
+                  stroke="#9676b0"
+                />
+                <rect
+                  x="88"
+                  y="124"
+                  width="22"
+                  height="22"
+                  rx="4"
+                  fill="#c3a7d6"
+                  stroke="#9676b0"
+                />
+                <path
+                  d="M72 162q38 15 59-10m-16 0 16 0-3 15"
+                  fill="none"
+                  stroke="#af9581"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                />
+                <image href="./assets/cream-piece.png" x="377" y="134" width="63" height="63" />
+              </svg>
             </div>
             <div class="copy">
               <span class="tag">CPU・1台でふたり・通信対戦</span>
-              <h2>ブロックつめこみ</h2>
+              <h3>ブロックつめこみ</h3>
               <p class="description">
                 くるっと回して、ぴったり置こう。<br />7つの形で、ふたりのつめこみ勝負。
               </p>
@@ -203,8 +761,150 @@
             </div>
           </a>
         </div>
-      </main>
-      <footer>すきなゲームで、ひとやすみ。</footer>
-    </div>
+      </section>
+      <section class="genre-section" id="other" aria-labelledby="other-title">
+        <div class="genre-heading">
+          <h2 id="other-title">その他</h2>
+          <span>2ゲーム</span>
+        </div>
+        <div class="games">
+          <a class="game billiards" href="./billiards/" aria-label="まんまるビリヤードで遊ぶ"
+            ><div class="art" aria-hidden="true">
+              <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="252" cy="120" r="110" fill="#c5a477" />
+                <circle cx="252" cy="117" r="98" fill="#59846e" />
+                <circle cx="252" cy="117" r="91" fill="#6f9780" />
+                <circle cx="252.0" cy="21.0" r="10" fill="#314d40" />
+                <circle cx="335.1" cy="69.0" r="10" fill="#314d40" />
+                <circle cx="335.1" cy="165.0" r="10" fill="#314d40" />
+                <circle cx="252.0" cy="213.0" r="10" fill="#314d40" />
+                <circle cx="168.9" cy="165.0" r="10" fill="#314d40" />
+                <circle cx="168.9" cy="69.0" r="10" fill="#314d40" />
+                <image
+                  href="./billiards/art/tak-meg-yellow-outline.png"
+                  x="212"
+                  y="78"
+                  width="80"
+                  height="80"
+                />
+                <circle cx="205" cy="152" r="13" fill="#35594855" />
+                <circle cx="204" cy="149" r="12" fill="#fffef1" />
+                <circle cx="201" cy="145" r="3" fill="#ffffff66" />
+                <circle cx="287" cy="80" r="13" fill="#35594855" />
+                <circle cx="286" cy="77" r="12" fill="#b597d0" />
+                <circle cx="283" cy="73" r="3" fill="#ffffff66" />
+                <circle cx="273" cy="168" r="13" fill="#35594855" />
+                <circle cx="272" cy="165" r="12" fill="#b597d0" />
+                <circle cx="269" cy="161" r="3" fill="#ffffff66" />
+                <circle cx="310" cy="148" r="13" fill="#35594855" />
+                <circle cx="309" cy="145" r="12" fill="#efd7a0" />
+                <circle cx="306" cy="141" r="3" fill="#ffffff66" />
+                <circle cx="216" cy="76" r="13" fill="#35594855" />
+                <circle cx="215" cy="73" r="12" fill="#efd7a0" />
+                <circle cx="212" cy="69" r="3" fill="#ffffff66" />
+                <path d="M63 218l115-55" stroke="#a17b50" stroke-width="9" stroke-linecap="round" />
+                <path d="M176 164l15-8" stroke="#f4e1bd" stroke-width="6" />
+                <path d="M224 137l32-34" stroke="#f1e9cc" stroke-width="2" stroke-dasharray="5 6" />
+              </svg>
+            </div>
+            <div class="copy">
+              <span class="tag">1台でふたり・通信対戦</span>
+              <h3>まんまるビリヤード</h3>
+              <p class="description">
+                白球をぶつけて、自分の色をころん。<br />まあるい台で、得点くらべ。
+              </p>
+              <span class="play"
+                ><span>ビリヤードであそぶ</span><span aria-hidden="true">→</span></span
+              >
+            </div> </a
+          ><a class="game shiritori" href="./shiritori/" aria-label="たべものしりとりで遊ぶ"
+            ><div class="art" aria-hidden="true">
+              <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+                <rect x="44" y="45" width="165" height="121" rx="21" fill="#fffaf1" stroke="none" />
+                <rect
+                  x="275"
+                  y="45"
+                  width="165"
+                  height="121"
+                  rx="21"
+                  fill="#fffaf1"
+                  stroke="none"
+                />
+                <circle cx="107" cy="90" r="23" fill="#d98c80" />
+                <circle cx="131" cy="90" r="23" fill="#de9987" />
+                <path d="M119 69q-3-22 11-27" fill="none" stroke="#9b7953" stroke-width="5" />
+                <path d="M123 55q14-16 26-4q-11 15-26 4" fill="#92a87c" />
+                <text x="126" y="148" font-size="22" fill="#795f47" text-anchor="middle">
+                  りんご
+                </text>
+                <text x="242" y="112" font-size="26" fill="#795f47" text-anchor="middle">→</text>
+                <text x="357" y="148" font-size="22" fill="#795f47" text-anchor="middle">ごま</text>
+                <ellipse
+                  cx="331"
+                  cy="83"
+                  rx="5"
+                  ry="9"
+                  fill="#b7a27a"
+                  transform="rotate(-20 331 83)"
+                />
+                <ellipse
+                  cx="354"
+                  cy="74"
+                  rx="5"
+                  ry="9"
+                  fill="#b7a27a"
+                  transform="rotate(22 354 74)"
+                />
+                <ellipse
+                  cx="374"
+                  cy="86"
+                  rx="5"
+                  ry="9"
+                  fill="#b7a27a"
+                  transform="rotate(-10 374 86)"
+                />
+                <ellipse
+                  cx="345"
+                  cy="98"
+                  rx="5"
+                  ry="9"
+                  fill="#b7a27a"
+                  transform="rotate(30 345 98)"
+                />
+                <ellipse
+                  cx="366"
+                  cy="106"
+                  rx="5"
+                  ry="9"
+                  fill="#b7a27a"
+                  transform="rotate(-25 366 106)"
+                />
+                <ellipse
+                  cx="326"
+                  cy="104"
+                  rx="5"
+                  ry="9"
+                  fill="#b7a27a"
+                  transform="rotate(16 326 104)"
+                />
+                <image href="./assets/pink-piece.png" x="172" y="160" width="63" height="63" />
+                <image href="./assets/cream-piece.png" x="237" y="160" width="63" height="63" />
+              </svg>
+            </div>
+            <div class="copy">
+              <span class="tag">2人・通信対戦</span>
+              <h3>たべものしりとり</h3>
+              <p class="description">
+                りんご、ごま、まぐろ…<br />食べ物と飲み物で、ことばをつなごう。
+              </p>
+              <span class="play"
+                ><span>しりとりであそぶ</span><span aria-hidden="true">→</span></span
+              >
+            </div>
+          </a>
+        </div>
+      </section>
+    </main>
+    <footer class="hub-footer">すきなゲームで、ひとやすみ。<span>TAK&MEG</span></footer>
   </body>
 </html>

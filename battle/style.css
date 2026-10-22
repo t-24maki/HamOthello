@@ -1184,3 +1184,99 @@ dialog::backdrop {
     letter-spacing: 0;
   }
 }
+
+/* Four fighters share one fixed-height strip, including on narrow phones. */
+.cpu-character-choice + .cpu-character-choice {
+  margin-top: 8px;
+}
+.fighter-hud :is(.percent:not(.danger), .stocks, .player-label) {
+  color: var(--fighter-ink);
+}
+.fighter-hud.eliminated {
+  opacity: 0.38;
+}
+.four-player .hud {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) 52px repeat(2, minmax(0, 1fr));
+  height: 94px;
+  gap: 2px;
+}
+.four-player .you {
+  order: 1;
+}
+.four-player .cpu {
+  order: 2;
+}
+.four-player .clock {
+  order: 3;
+}
+.four-player .cpu2 {
+  order: 4;
+}
+.four-player .cpu3 {
+  order: 5;
+}
+.four-player .fighter-hud {
+  flex-direction: column;
+  gap: 0;
+  padding: 0 2px;
+  text-align: center;
+  justify-content: center;
+}
+.four-player .fighter-hud img {
+  order: -1;
+  width: 24px;
+  height: 24px;
+}
+.four-player .player-label {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  clip: auto;
+  clip-path: none;
+  font-size: 10px;
+  line-height: 1.1;
+}
+.four-player .player-label b {
+  display: none;
+}
+.four-player .percent {
+  font-size: 24px;
+}
+.four-player .percent small {
+  font-size: 11px;
+}
+.four-player .stocks {
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.four-player .clock > span {
+  font-size: 17px;
+}
+.arena {
+  position: relative;
+}
+.spectator {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 10px;
+  transform: translateX(-50%);
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: #fff9efdd;
+  color: #6e665e;
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.controls.spectating :is(.move-controls, .action-controls) {
+  opacity: 0.35;
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  #match.four-player {
+    grid-template-rows: 94px minmax(0, 1fr);
+  }
+}

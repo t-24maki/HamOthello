@@ -1,18 +1,22 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-    <meta name="theme-color" content="#faf5e9">
-    <meta name="description" content="たくハムとめぐハムと、おやつを50こ集める横スクロールゲーム。スマホでも遊べます。">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#faf5e9" />
+    <meta
+      name="description"
+      content="たくハムとめぐハムと、おやつを50こ集める横スクロールゲーム。スマホでも遊べます。"
+    />
     <title>たくめぐのおさんぽ</title>
-    <link rel="stylesheet" href="./game.css?v=timer-bgm-20260913">
-    <link rel="stylesheet" href="../game-menu.css">
+    <link rel="stylesheet" href="./game.css?v=20261022-site1" />
+    <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
+    <script type="module" src="../site-header.js?v=20261022-site3"></script>
   </head>
-  <body>
-    <nav class="game-menu" aria-label="ゲーム一覧"><a href="../">← ゲーム一覧へ</a></nav>
+  <body data-site-page="sanpo">
+    <takumegu-header data-page="sanpo"></takumegu-header>
     <div id="root"></div>
     <script src="./art-paths.js?v=timer-bgm-20260913"></script>
-    <script src="./game.js?v=goal-fanfare-20260913" defer></script>
+    <script src="./game.js?v=20261022-site1" defer></script>
   </body>
 </html>

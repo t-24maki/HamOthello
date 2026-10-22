@@ -3,14 +3,17 @@ import {
   generateRoomCode,
   normalizeRoomCode,
 } from "../src/online-game.js?v=poker-rooms-20260908";
-import { createBattlePeer } from "./online-peer.js?v=20261017-battle19";
-import { PROTOCOL, SEND_MS } from "./online-protocol.js?v=20261017-battle19";
+import { createBattlePeer } from "./online-peer.js?v=20261021-battle21";
+import { PROTOCOL, SEND_MS } from "./online-protocol.js?v=20261021-battle21";
 export { generateRoomCode, normalizeRoomCode };
 export async function createBattleOnline({
   role,
   roomCode,
   character,
   stageId,
+  playerCount,
+  cpuCharacters,
+  difficulty,
   onChange,
   onError,
   sessionFactory = createOnlineSession,
@@ -77,6 +80,9 @@ export async function createBattleOnline({
       matchId: role === "host" ? transport.clientId : null,
       character,
       stageId,
+      playerCount,
+      cpuCharacters,
+      difficulty,
       now,
       send(message) {
         void transport.send(message).catch(fail);

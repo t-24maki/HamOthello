@@ -1,4 +1,4 @@
-import { surfaceAt, supports } from "./stages.js?v=20261017-battle19";
+import { surfaceAt, supports } from "./stages.js?v=20261021-battle21";
 
 export const POTION_RADIUS = 18;
 export const GIANT_POWER = 1.2;
@@ -82,7 +82,8 @@ export function potionCollector(items, fighters, bodyFor) {
   });
   touching.sort((a, b) => a.distance - b.distance);
   if (!touching.length) return null;
-  return touching.length === 2 && touching[0].distance === touching[1].distance
-    ? touching[Math.floor(random(items) * 2)].player
+  const tied = touching.filter((f) => f.distance === touching[0].distance);
+  return tied.length > 1
+    ? tied[Math.floor(random(items) * tied.length)].player
     : touching[0].player;
 }

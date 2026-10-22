@@ -1,5 +1,6 @@
 import {
   createMatch,
+  createRoster,
   tick,
   predictMovement,
   pause,
@@ -7,7 +8,8 @@ import {
   STEP,
   EMPTY_INPUT,
   isCharacter,
-} from "./engine.js?v=20261017-battle19";
+} from "./engine.js?v=20261021-battle21";
+import { createCPU, cpuInput } from "./cpu.js?v=20261021-battle21";
 import {
   PROTOCOL,
   ACTIONS,
@@ -16,7 +18,7 @@ import {
   validState,
   readGame,
   gameView,
-} from "./online-protocol.js?v=20261017-battle19";
+} from "./online-protocol.js?v=20261021-battle21";
 
 const copy = (value) => structuredClone(value);
 const empty = () => ({ ...EMPTY_INPUT });
@@ -26,6 +28,9 @@ export function createBattlePeer({
   matchId,
   character = "tak",
   stageId = "hill",
+  playerCount = 2,
+  cpuCharacters = ["random", "random"],
+  difficulty = "normal",
   now,
   send,
   onChange = () => {},
@@ -34,6 +39,8 @@ export function createBattlePeer({
   const seat = role === "host" ? 0 : 1;
   const selectedCharacter = isCharacter(character) ? character : "tak";
   let guestCharacter = null;
+  let roster = null,
+    brains = [];
   let game = null,
     prediction = null,
     round = 0,
@@ -103,7 +110,12 @@ export function createBattlePeer({
   function newRound() {
     round++;
     epoch++;
-    game = createMatch(selectedCharacter, "normal", stageId, guestCharacter);
+    roster ||= createRoster(selectedCharacter, [
+      guestCharacter,
+      ...(playerCount === 4 ? [cpuCharacters[0], cpuCharacters[1]] : []),
+    ]);
+    game = createMatch(roster[0], difficulty, stageId, roster[1], undefined, roster.slice(2));
+    brains = game.fighters.map(() => createCPU());
     pause(game);
     ready = [false, false];
     rematch = [false, false];
@@ -198,7 +210,7 @@ export function createBattlePeer({
   function reconcile(next, m) {
     const oldView = renderGame(0),
       changed = m.round !== round || m.epoch !== epoch;
-    previousRemote = oldView ? copy(oldView.fighters[0]) : null;
+    previousRemote = oldView ? copy(oldView.fighters) : null;
     game = next;
     round = m.round;
     epoch = m.epoch;
@@ -267,7 +279,11 @@ export function createBattlePeer({
       if (
         !next ||
         next.fighters[seat].character !== selectedCharacter ||
-        (game && next.fighters[0].character !== game.fighters[0].character)
+        (game &&
+          (next.stageId !== game.stageId ||
+            next.difficulty !== game.difficulty ||
+            next.fighters.length !== game.fighters.length ||
+            next.fighters.some((f, i) => f.character !== game.fighters[i].character)))
       )
         return;
       matchId = m.matchId;
@@ -373,7 +389,10 @@ export function createBattlePeer({
           }
         }
         const before = game.phase;
-        tick(game, [input, remote]);
+        const inputs = game.fighters.map((_, i) =>
+          i === 0 ? input : i === 1 ? remote : cpuInput(game, brains[i], STEP, i),
+        );
+        tick(game, inputs);
         if (before !== game.phase) {
           if (game.phase === "finished") {
             epoch++;
@@ -412,17 +431,20 @@ export function createBattlePeer({
     smoothing.y *= Math.exp(-Math.max(0, seconds) * 18);
     view.fighters[seat].x += smoothing.x;
     if (!view.fighters[seat].grounded) view.fighters[seat].y += smoothing.y;
-    const target = game.fighters[0];
-    if (
-      previousRemote &&
-      target.stocks === previousRemote.stocks &&
-      !target.respawn &&
-      game.phase === "playing" &&
-      Math.hypot(target.x - previousRemote.x, target.y - previousRemote.y) < 180
-    ) {
-      const t = Math.min(1, (now() - snapshotAt) / 100);
-      view.fighters[0].x = previousRemote.x + (target.x - previousRemote.x) * t;
-      view.fighters[0].y = previousRemote.y + (target.y - previousRemote.y) * t;
+    for (const [i, target] of game.fighters.entries()) {
+      if (i === seat) continue;
+      const previous = previousRemote?.[i];
+      if (
+        previous &&
+        target.stocks === previous.stocks &&
+        !target.respawn &&
+        game.phase === "playing" &&
+        Math.hypot(target.x - previous.x, target.y - previous.y) < 180
+      ) {
+        const t = Math.min(1, (now() - snapshotAt) / 100);
+        view.fighters[i].x = previous.x + (target.x - previous.x) * t;
+        view.fighters[i].y = previous.y + (target.y - previous.y) * t;
+      }
     }
     return view;
   }

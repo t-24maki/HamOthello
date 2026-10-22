@@ -775,6 +775,18 @@ button.playing-card:hover {
   font-size: 13px;
   color: #9c7b4f;
 }
+.role-list .role-tie {
+  grid-column: 1 / -1;
+  border-top: 1px solid #cdbca766;
+  padding-top: 8px;
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.75;
+  color: #76624f;
+}
+.role-tie b {
+  color: #5f4e40;
+}
 footer {
   margin: 26px 0;
   text-align: center;
@@ -917,6 +929,148 @@ footer {
   }
 }
 /* Reserve every row and text slot. Content changes never move the cards. */
+.match-scoreboard {
+  margin-bottom: 12px;
+  padding: 10px 12px 0;
+  border: 1px solid #e9eedc60;
+  border-radius: 13px;
+  background: #294c3e66;
+  color: #f8f3dd;
+  font-variant-numeric: tabular-nums;
+}
+.scoreboard-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 22px;
+  font-size: 13px;
+}
+.scoreboard-heading > span {
+  font-size: 11px;
+  opacity: 0.85;
+}
+.score-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  text-align: center;
+}
+.score-name-column {
+  width: 110px;
+}
+.score-total-column {
+  width: 60px;
+}
+.score-table thead th {
+  height: 24px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #e3e7d2;
+}
+.score-table tbody th {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  padding-left: 6px;
+}
+.score-table tbody tr {
+  height: 32px;
+}
+.score-table tbody td,
+.score-table tbody th {
+  border-top: 1px solid #e9eedc30;
+}
+.score-table .score-cell {
+  font-size: 20px;
+  line-height: 24px;
+}
+.score-table .won {
+  color: #ffe39b;
+  font-weight: 800;
+}
+.score-table .lost {
+  color: #d8e0d1;
+}
+.score-table .unplayed {
+  color: #b6c9ba88;
+  font-size: 14px;
+}
+.score-table .current-round {
+  background: #e4f1ce12;
+}
+.score-total {
+  background: #e4f1ce12;
+}
+.score-total strong {
+  font-size: 24px;
+  color: #fff;
+}
+.score-table .champion {
+  background: #f8dc8b25;
+}
+.score-table .champion th,
+.score-table .champion .score-total strong {
+  color: #ffe49b;
+}
+.match-outcome {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  margin: 0;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.match-outcome.is-final {
+  color: #ffe49b;
+  font-size: 19px;
+  font-weight: 800;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 600px) {
+  .match-scoreboard {
+    padding: 7px 7px 0;
+    margin-bottom: 10px;
+  }
+  .scoreboard-heading {
+    font-size: 12px;
+  }
+  .scoreboard-heading > span {
+    font-size: 10px;
+  }
+  .score-name-column {
+    width: 64px;
+  }
+  .score-total-column {
+    width: 34px;
+  }
+  .score-table tbody th {
+    font-size: 10px;
+    padding-left: 2px;
+  }
+  .score-table .score-cell {
+    font-size: 17px;
+  }
+  .score-total strong {
+    font-size: 22px;
+  }
+  .match-outcome {
+    font-size: 10px;
+  }
+  .match-outcome.is-final {
+    font-size: 17px;
+  }
+}
 .game-table {
   --own-card-height: 166px;
   padding: 20px 30px 26px;
@@ -1018,6 +1172,8 @@ footer {
   align-content: center;
 }
 .table-ornament {
+  font-size: 11px;
+  letter-spacing: 0.03em;
   height: 18px;
   margin: 0;
   line-height: 18px;

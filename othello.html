@@ -10,10 +10,11 @@
     <meta name="theme-color" content="#f6ccef" />
     <title>ぷにっとオセロ — ゆるっと遊べるオセロゲーム</title>
     <link rel="stylesheet" href="./styles.css?v=cards-layout-20260909" />
-    <link rel="stylesheet" href="./game-menu.css" />
+    <link rel="stylesheet" href="./site-layout.css?v=20261022-site1" />
+    <script type="module" src="./site-header.js?v=20261022-site3"></script>
   </head>
-  <body>
-    <nav class="game-menu" aria-label="ゲーム一覧"><a href="./">← ゲーム一覧へ</a></nav>
+  <body data-site-page="othello">
+    <takumegu-header data-page="othello"></takumegu-header>
     <div class="background-decor" aria-hidden="true">
       <span class="floaty floaty--one"></span>
       <span class="floaty floaty--two"></span>

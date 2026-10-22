@@ -1,12 +1,16 @@
 import {
   METALS,
+  MATCH_ROUNDS,
+  WINS_TO_WIN,
   createRound,
+  nextRound,
+  matchResult,
   evaluateHand,
   exchangeCards,
   continueRound,
   finishCpuTurn,
   roundResult,
-} from "./rules.js?v=poker-20260908";
+} from "./rules.js?v=poker-scoreboard-20261022";
 import { createDealer } from "./dealer.js?v=poker-table-20260908";
 import { appendCardArtwork } from "./cards.js?v=poker-cards-20261010";
 import {
@@ -14,7 +18,7 @@ import {
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js?v=poker-online-20260908";
+} from "./online.js?v=poker-scoreboard-20261022";
 
 const $ = (id) => document.getElementById(id);
 for (const node of document.querySelectorAll("[data-sample-metal]")) {
@@ -97,12 +101,12 @@ async function dealExchange(next, handId, indices) {
   render();
   focusTurn();
 }
-function startCpu() {
+function startCpu(next = createRound("cpu")) {
   cancelCpu();
   cancelDeal();
   selected.clear();
   changed.clear();
-  void dealOpening(createRound("cpu"));
+  void dealOpening(next);
 }
 function stopOnline() {
   networkEpoch++;
@@ -324,6 +328,44 @@ function renderSetup() {
     button.setAttribute("aria-pressed", String(button.dataset.roomAction === roomAction));
   }
 }
+function renderScoreboard(final) {
+  $("match-round").textContent = final ? "対戦終了" : `第${round.roundNumber}回戦`;
+  $("score-head").innerHTML = `<tr><th scope="col">対戦成績</th>${Array.from(
+    { length: MATCH_ROUNDS },
+    (_, i) =>
+      `<th scope="col"${i + 1 === round.roundNumber ? ' class="current-round"' : ""}>${i + 1}<span class="sr-only">回戦</span></th>`,
+  ).join("")}<th scope="col">勝数</th></tr>`;
+  $("score-rows").innerHTML = players
+    .map((player, p) => {
+      const champion = final?.winner === p;
+      const cells = Array.from({ length: MATCH_ROUNDS }, (_, i) => {
+        const played = i < round.history.length;
+        const winner = round.history[i];
+        const current = !final && i + 1 === round.roundNumber && !played;
+        const result = !played
+          ? current
+            ? "対戦中"
+            : final
+              ? "未実施"
+              : "未対戦"
+          : winner === null
+            ? "引き分け"
+            : winner === p
+              ? "勝ち"
+              : "負け";
+        const mark = !played ? "—" : winner === null ? "△" : winner === p ? "○" : "×";
+        return `<td class="score-cell ${played ? (winner === p ? "won" : "lost") : current ? "current-round" : "unplayed"}" aria-label="${i + 1}回戦：${result}">${mark}</td>`;
+      }).join("");
+      return `<tr class="${p === 0 ? "tak-score" : "meg-score"}${champion ? " champion" : ""}"><th scope="row">${player.name}</th>${cells}<td class="score-total"><strong>${round.wins[p]}</strong></td></tr>`;
+    })
+    .join("");
+  $("match-outcome").classList.toggle("is-final", Boolean(final));
+  $("match-outcome").textContent = final
+    ? final.winner === null
+      ? "対戦終了 · 引き分け"
+      : `優勝　${players[final.winner].name}！`
+    : `○ 勝ち　× 負け　·　先に${WINS_TO_WIN}勝で優勝`;
+}
 function render() {
   $("setup").hidden = round !== null;
   $("game").hidden = round === null;
@@ -343,6 +385,9 @@ function render() {
   $("discard-count").textContent = round.discardCount ?? round.discards.length;
   $("discard-back").hidden = (round.discardCount ?? round.discards.length) === 0;
   const result = isDealing ? null : roundResult(round);
+  const final = isDealing ? null : matchResult(round);
+  renderScoreboard(final);
+  $("round-context").textContent = `第${round.roundNumber}回戦${result ? "の結果" : ""}`;
   const active = self(),
     rival = 1 - active;
   playerPanel("self", active, result);
@@ -365,14 +410,16 @@ function render() {
     label = mode === "online" ? "この手札で、準備OK！" : "ふたりで役くらべ！";
     note = "チェンジはおしまい。この手札でいくよ。";
   } else if (round.phase === "result") {
-    label = mode === "cpu" ? "もういちど配る ↻" : "もういちど遊ぶ ↻";
-    note = "どんな手札でも、のんびりいこう。";
-    if (mode === "online" && round.rematch[active]) {
+    label = final ? "もう一度対戦する ↻" : "次の勝負へ →";
+    note = final
+      ? "勝数をリセットして、新しい対戦へ。"
+      : `次は第${round.roundNumber + 1}回戦。先に${WINS_TO_WIN}勝で優勝！`;
+    if (mode === "online" && round.proceed[active]) {
       button.disabled = true;
       label = "相手の返事を待っているよ";
-      note = "相手も「もういちど遊ぶ」で、次の勝負へ。";
-    } else if (mode === "online" && round.rematch[rival])
-      note = "相手が、もういちど遊びたいみたい。";
+      note = final ? "相手も「もう一度対戦する」で再戦。" : "相手も「次の勝負へ」で次の回戦へ。";
+    } else if (mode === "online" && round.proceed[rival])
+      note = final ? "相手が、もう一度対戦したいみたい。" : "相手は次の勝負を待っているよ。";
   } else {
     button.disabled = true;
     label = "相手を待っているよ…";
@@ -399,7 +446,7 @@ function render() {
     $("turn-hint").textContent = "もうすぐ手札がそろうよ。";
   } else if (result) {
     $("turn-title").textContent =
-      result.winner === null ? "なかよく引き分け！" : `${players[result.winner].name}のかち！`;
+      result.winner === null ? "この勝負は引き分け！" : `${players[result.winner].name}の勝ち！`;
     $("turn-hint").textContent = result.reason;
   } else if (round.phase === "choose") {
     $("turn-title").textContent = `${players[active].name}の番だよ`;
@@ -461,7 +508,9 @@ $("main-action").addEventListener("click", () => {
         : round.phase === "review"
           ? "ready"
           : round.phase === "result"
-            ? "rematch"
+            ? matchResult(round)
+              ? "rematch"
+              : "next"
             : null;
     if (type)
       sendOnlineAction(
@@ -496,7 +545,8 @@ $("main-action").addEventListener("click", () => {
       );
       void dealExchange(next, "opponent-hand", indices);
     }, 550);
-  } else if (round.phase === "result") startCpu();
+  } else if (round.phase === "result")
+    startCpu(matchResult(round) ? createRound("cpu") : nextRound(round));
 });
 window.addEventListener("resize", () => dealer.finish());
 document.addEventListener("visibilitychange", () => {

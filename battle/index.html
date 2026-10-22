@@ -9,10 +9,17 @@
       content="たくハム・めぐハム・ノーマルハム・たぴの、ぽよんとかわいい場外バトル。CPU戦・通信対戦で遊ぼう！"
     />
     <title>たくめぐのぽよんバトル | たくめぐのあそびば</title>
-    <link rel="stylesheet" href="./style.css?v=20261017-battle19" />
-    <script type="module" src="./game.js?v=20261017-battle19"></script>
+    <link rel="stylesheet" href="./style.css?v=20261021-battle21" />
+    <script type="module" src="./game.js?v=20261022-site1"></script>
+    <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
+    <script type="module" src="../site-header.js?v=20261022-site3"></script>
   </head>
-  <body>
+  <body data-site-page="battle">
+    <takumegu-header data-page="battle"
+      ><button slot="actions" id="sound" class="small-button" type="button" aria-pressed="false">
+        ♪ 音 OFF
+      </button></takumegu-header
+    >
     <audio
       id="bgm"
       src="./audio/takumegu-battle.mp3"
@@ -22,11 +29,6 @@
       aria-hidden="true"
     ></audio>
     <main class="wrap">
-      <header class="topbar">
-        <a href="../" class="back">← ゲーム一覧へ</a>
-        <span class="wordmark">TAK&MEG <span>あそびば</span></span>
-        <button id="sound" class="small-button" type="button" aria-pressed="false">♪ 音 OFF</button>
-      </header>
       <section id="setup" aria-labelledby="title">
         <div class="heading">
           <span class="eyebrow">ひとりでも、ふたりでも。ぽよんとひと勝負</span>
@@ -35,7 +37,7 @@
           </h1>
           <p>
             とんで、はじいて、ぽよーん！<br class="mobile-break" />
-            ふたりの小さな場外バトル。
+            みんなの小さな場外バトル。
           </p>
         </div>
         <div class="setup-grid">
@@ -55,6 +57,17 @@
             </div>
           </div>
           <form id="settings" class="settings">
+            <fieldset id="player-count-settings">
+              <legend>対戦人数</legend>
+              <div class="difficulty-options mode-options">
+                <label
+                  ><input type="radio" name="players" value="2" checked /><span
+                    >2人対戦</span
+                  ></label
+                >
+                <label><input type="radio" name="players" value="4" /><span>4人対戦</span></label>
+              </div>
+            </fieldset>
             <fieldset>
               <legend>あそびかた</legend>
               <div class="difficulty-options mode-options">
@@ -96,7 +109,7 @@
                 <label class="character tapi"
                   ><input type="radio" name="character" value="tapi" />
                   <img data-character-art="tapi" alt="" /><strong>たぴ</strong>
-                  <small>ちいさく、4段ジャンプ</small>
+                  <small>ふわふわ、4段ジャンプ</small>
                   <span class="character-traits"
                     >地上では必殺をすりぬける<br />すばやい・攻撃弱め</span
                   >
@@ -105,12 +118,12 @@
               </div>
             </fieldset>
             <p id="character-note" class="room-help" hidden>
-              ふたりとも好きな子を選べるよ。同じ子なら、へやに入った人が色違いになるよ。
+              ふたりとも好きな子を選べるよ。同じ子なら、それぞれ色違いになるよ。
             </p>
             <fieldset id="cpu-settings">
               <legend><span class="step-number">2</span> CPU</legend>
               <label class="cpu-character-choice" for="cpu-character"
-                >相手のキャラ
+                ><span id="cpu-character-label">相手のキャラ</span>
                 <select id="cpu-character" name="opponent">
                   <option value="random">おまかせ</option>
                   <option value="tak">たくハム</option>
@@ -119,6 +132,24 @@
                   <option value="tapi">たぴ</option>
                 </select>
               </label>
+              <label id="cpu-choice-2" class="cpu-character-choice" for="cpu-character-2" hidden
+                >CPU 2<select id="cpu-character-2" name="opponent2">
+                  <option value="random">おまかせ</option>
+                  <option value="tak">たくハム</option>
+                  <option value="meg">めぐハム</option>
+                  <option value="ham">ノーマルハム</option>
+                  <option value="tapi">たぴ</option>
+                </select></label
+              >
+              <label id="cpu-choice-3" class="cpu-character-choice" for="cpu-character-3" hidden
+                >CPU 3<select id="cpu-character-3" name="opponent3">
+                  <option value="random">おまかせ</option>
+                  <option value="tak">たくハム</option>
+                  <option value="meg">めぐハム</option>
+                  <option value="ham">ノーマルハム</option>
+                  <option value="tapi">たぴ</option>
+                </select></label
+              >
               <span class="cpu-level-label" id="cpu-level-label">つよさ</span>
               <div class="difficulty-options" role="group" aria-labelledby="cpu-level-label">
                 <label
@@ -228,7 +259,7 @@
           <div>
             <span>03</span>
             <h2>最後まで残ろう</h2>
-            <p>相手を3回、場外へ飛ばすと勝ち。<br />時間切れは残り回数→低い％で勝負。</p>
+            <p>3回落ちたら脱落。最後の1匹が勝ち。<br />時間切れは残り回数→低い％で勝負。</p>
           </div>
         </div>
         <details class="keyboard-guide">
@@ -243,13 +274,13 @@
             「ひっさつ」は上に飛びながら回転する技。空中では着地まで1回だけ。薄く点線になったボタンは回復・着地待ちです。ガードは地上で使え、長く守りすぎると少し動けなくなるよ。「ひだまりひろば」は坂道、「わたぐもテラス」は動く床にも注目。画面を離れると自動で一時停止し、BGMも止まります。
           </p>
           <p>
-            たくハムはすばやく近づいて、こつこつ攻撃。めぐハムは高いジャンプと強い一撃で勝負。「ひっさつ」も、たくハムは横へ、めぐハムは上へ進みやすいよ。ノーマルハムは大きな体と強い一撃、たぴは小さな体と4段ジャンプ、たくハムより速い足が特徴。たぴは床に立っている間、相手の必殺技に当たりません。通常攻撃と空中での必殺技は当たります。色違いでも強さは同じです。CPUの相手も選べます。「おまかせ」は自分以外から選ばれ、再戦では同じ子と遊べます。同じ子ならCPU側・通信の参加側が色違いになります。ノーマルハムは緑のまわし、たぴは水色です。
+            たくハムはすばやく近づいて、こつこつ攻撃。めぐハムは高いジャンプと強い一撃で勝負。「ひっさつ」も、たくハムは横へ、めぐハムは上へ進みやすいよ。ノーマルハムは大きな体と強い一撃、たぴは小さな体とふわふわの4段ジャンプ、たくハムより速い足が特徴。たぴは床に立っている間、相手の必殺技に当たりません。通常攻撃と空中での必殺技は当たります。色違いでも強さは同じです。CPUの相手も選べます。「おまかせ」はなるべく違う子から選ばれ、再戦では同じ顔ぶれで遊べます。同じ子が重なると体が色違いに。ノーマルハムはまわしの色が変わります。
           </p>
           <p>
             空から落ちてくる「巨大化薬」にタッチすると、10秒間、体が2倍（たぴは4倍）に！攻撃・防御も1.2倍になります。大きいぶん攻撃を受ける範囲も広がります。残り3秒になると体がチカチカ。巨大化中にもう一度取ると、そこからまた10秒です。大きさや強さは重ならず、場外に落ちても元に戻ります。薬は同時に1つまで。
           </p>
           <p>
-            通信対戦は、同じキーワードでふたりをつなぐよ。ふたりの準備が揃うと開始。画面を離れたり、通信が遅くなると一時停止します。再戦もふたりが選ぶと始まるよ。<br />
+            2人戦と4人戦を選べます。4人戦は全員が相手の個人戦。CPU戦ではあなた＋CPU3匹、通信では人間ふたり＋CPU2匹です。脱落したら最後まで観戦できます。<br />通信対戦は、同じキーワードでふたりをつなぐよ。ふたりの準備が揃うと開始。画面を離れたり、通信が遅くなると一時停止します。再戦もふたりが選ぶと始まるよ。<br />
             十字キーは、押したまま斜めにすべらせると移動とジャンプ・ガードを組み合わせられるよ。別の指でA・Bを押しながらの操作もできるよ。
           </p>
         </details>
@@ -288,8 +319,29 @@
             </div>
             <img id="cpu-icon" src="../assets/cream-piece.png" alt="" />
           </div>
+          <div class="fighter-hud extra-hud cpu2" hidden>
+            <img id="cpu2-icon" src="../assets/cream-piece.png" alt="" />
+            <div class="fighter-stats">
+              <span class="player-label sr-only"
+                ><span id="cpu2-label">CPU 2</span><b id="cpu2-name"></b
+              ></span>
+              <strong class="percent" id="cpu2-damage">0<small>%</small></strong>
+              <span id="cpu2-stocks" class="stocks" aria-label="残り3回">♥ ♥ ♥</span>
+            </div>
+          </div>
+          <div class="fighter-hud extra-hud cpu3" hidden>
+            <img id="cpu3-icon" src="../assets/cream-piece.png" alt="" />
+            <div class="fighter-stats">
+              <span class="player-label sr-only"
+                ><span id="cpu3-label">CPU 3</span><b id="cpu3-name"></b
+              ></span>
+              <strong class="percent" id="cpu3-damage">0<small>%</small></strong>
+              <span id="cpu3-stocks" class="stocks" aria-label="残り3回">♥ ♥ ♥</span>
+            </div>
+          </div>
         </div>
         <div class="arena">
+          <span id="spectator" class="spectator" hidden>観戦中</span>
           <canvas
             id="arena"
             width="800"

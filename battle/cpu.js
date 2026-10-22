@@ -4,15 +4,15 @@ import {
   fighterSize,
   attackScale,
   growthScale,
-} from "./engine.js?v=20261017-battle19";
+} from "./engine.js?v=20261021-battle21";
 import {
   getStage,
   stageBounds,
   platformsAt,
   surfaceAt,
   supports,
-} from "./stages.js?v=20261017-battle19";
-import { GIANT_WARNING } from "./items.js?v=20261017-battle19";
+} from "./stages.js?v=20261021-battle21";
+import { GIANT_WARNING } from "./items.js?v=20261021-battle21";
 const LEVELS = {
   easy: { reaction: 0.48, attack: 1.2, guard: 0.02, special: 0.06 },
   normal: { reaction: 0.17, attack: 0.46, guard: 0.28, special: 0.32 },
@@ -57,8 +57,24 @@ export function cpuInput(g, brain, dt, index = 1) {
     platforms = platformsAt(stage, g.elapsed),
     base = stageBounds(stage);
   const f = g.fighters[index],
-    other = g.fighters[1 - index],
     level = LEVELS[g.difficulty];
+  if (!f || !f.stocks) return { ...EMPTY_INPUT };
+  const rivals = g.fighters
+    .map((rival, seat) => ({ rival, seat }))
+    .filter(({ rival, seat }) => seat !== index && rival.stocks > 0);
+  const active = rivals.filter(({ rival }) => !rival.respawn);
+  const distance = (rival) => Math.hypot(rival.x - f.x, (rival.y - f.y) * 0.65);
+  const nearest = (active.length ? active : rivals).sort(
+    (a, b) => distance(a.rival) - distance(b.rival),
+  );
+  if (!nearest.length) return { ...EMPTY_INPUT };
+  const previous = nearest.find(({ seat }) => seat === brain.target);
+  const target =
+    previous && distance(previous.rival) < distance(nearest[0].rival) * 1.2 + 12
+      ? previous
+      : nearest[0];
+  brain.target = target.seat;
+  const other = target.rival;
   const character = CHARACTERS[f.character],
     otherCharacter = CHARACTERS[other.character],
     reachHeight = Math.min(
@@ -118,13 +134,13 @@ export function cpuInput(g, brain, dt, index = 1) {
   brain.think = level.reaction * (0.8 + brain.random() * 0.4);
   // Seek a useful potion on the stage; recovery above always takes priority.
   const potion = (!f.giant || f.giantTime <= GIANT_WARNING) && g.items.potion;
-  const target =
+  const objective =
     potion && potion.x > base.x + 20 && potion.x < base.x + base.w - 20
       ? { x: potion.x, y: potion.y + 18 }
       : other;
-  const targetDY = target.y - f.y;
+  const targetDY = objective.y - f.y;
   // Never chase an opponent out of bounds; wait near the edge instead.
-  let targetX = Math.max(base.x + 42, Math.min(base.x + base.w - 42, target.x));
+  let targetX = Math.max(base.x + 42, Math.min(base.x + base.w - 42, objective.x));
   // Route via a reachable side platform when the opponent is on the high center
   // platform. Standing directly underneath it is too far for a single jump.
   if (targetDY < -65 && f.grounded && !(standing?.main && base.profile)) {
@@ -133,8 +149,8 @@ export function cpuInput(g, brain, dt, index = 1) {
       .sort(
         (a, b) =>
           Math.abs(a.x + a.w / 2 - f.x) +
-          Math.abs(a.x + a.w / 2 - target.x) -
-          (Math.abs(b.x + b.w / 2 - f.x) + Math.abs(b.x + b.w / 2 - target.x)),
+          Math.abs(a.x + a.w / 2 - objective.x) -
+          (Math.abs(b.x + b.w / 2 - f.x) + Math.abs(b.x + b.w / 2 - objective.x)),
       );
     if (routes.length)
       targetX = Math.max(routes[0].x + 30, Math.min(routes[0].x + routes[0].w - 30, targetX));
@@ -154,7 +170,7 @@ export function cpuInput(g, brain, dt, index = 1) {
   }
   input.move =
     Math.abs(targetX - f.x) >
-    (target !== other || Math.abs(targetDY) > 65 ? 12 : Math.min(48, reach * 0.65))
+    (objective !== other || Math.abs(targetDY) > 65 ? 12 : Math.min(48, reach * 0.65))
       ? Math.sign(targetX - f.x)
       : Math.abs(dx) > 9
         ? Math.sign(dx) * 0.12

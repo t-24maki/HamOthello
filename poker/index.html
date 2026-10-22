@@ -6,15 +6,16 @@
     <meta name="theme-color" content="#fff9ef" />
     <meta
       name="description"
-      content="金・銀・銅の27枚で遊ぶミニポーカー。3枚の手札を1回チェンジして、たくハムとめぐハムで役くらべ。"
+      content="金・銀・銅の27枚で遊ぶミニポーカー。3枚の手札を1回チェンジして役くらべ。先に3勝で優勝！"
     />
     <title>ミニポーカー — たくめぐのあそびば</title>
-    <link rel="stylesheet" href="./style.css?v=poker-cards-v2-20261010" />
+    <link rel="stylesheet" href="./style.css?v=poker-scoreboard-20261022" />
     <link rel="preload" as="image" href="./art/classic-back.webp" />
-    <link rel="stylesheet" href="../game-menu.css" />
+    <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
+    <script type="module" src="../site-header.js?v=20261022-site3"></script>
   </head>
-  <body>
-    <nav class="game-menu" aria-label="ゲーム一覧"><a href="../">← ゲーム一覧へ</a></nav>
+  <body data-site-page="poker">
+    <takumegu-header data-page="poker"></takumegu-header>
     <main class="poker-page">
       <header class="page-heading">
         <div class="heading-friends" aria-hidden="true">
@@ -34,7 +35,7 @@
         <div class="setup-intro">
           <p class="setup-kicker">たくハムと めぐハムの</p>
           <h2 id="setup-title">ミニ<span>ポーカー</span></h2>
-          <p class="setup-lead">3枚で、ちいさな運だめし。<br />どんな役ができるかな？</p>
+          <p class="setup-lead">3枚で、ちいさな運だめし。<br />先に3勝で、優勝！</p>
         </div>
         <div class="setup-visual" role="img" aria-label="カードを並べて遊ぶ、たくハムとめぐハム">
           <div class="visual-blob" aria-hidden="true"></div>
@@ -110,6 +111,21 @@
           <div><span id="mode-label"></span><small id="table-room-code"></small></div>
           <button type="button" id="settings" class="text-button">メニューへ</button>
         </div>
+        <section class="match-scoreboard" aria-label="対戦スコアボード">
+          <div class="scoreboard-heading">
+            <b id="match-round">第1回戦</b><span>最大5回戦・3勝先取</span>
+          </div>
+          <table class="score-table" aria-label="各回の勝敗と通算勝数">
+            <colgroup>
+              <col class="score-name-column" />
+              <col span="5" />
+              <col class="score-total-column" />
+            </colgroup>
+            <thead id="score-head"></thead>
+            <tbody id="score-rows"></tbody>
+          </table>
+          <p id="match-outcome" class="match-outcome" role="status"></p>
+        </section>
         <div id="play-area">
           <section id="opponent" class="hand-panel opponent" aria-labelledby="opponent-name">
             <div class="player-heading">
@@ -139,7 +155,7 @@
               <span class="pile-label">山札 <b id="deck-count">21</b></span>
             </div>
             <div class="turn-banner" role="status">
-              <span class="table-ornament" aria-hidden="true">✧ ─ ✦ ─ ✧</span>
+              <span id="round-context" class="table-ornament">第1回戦</span>
               <h2 id="turn-title" tabindex="-1"></h2>
               <p id="turn-hint"></p>
             </div>
@@ -182,36 +198,58 @@
           チェンジはひとり1回、0〜3枚。交換したカードは、この勝負では山札に戻らないよ。2人とも決めたら、手札をひらいて役くらべ！
         </p>
         <p>
-          通信対戦は「へやをつくる」でキーワードを相手に教えてね。相手が「へやに入る」で入力すると始まるよ。それぞれの画面でチェンジして、ふたりとも「準備OK！」で手札をひらこう。
+          <strong>先に3勝した方が優勝！ 最大5回戦。</strong>
+          毎回27枚を集めて配り直すよ。スコアボードの○は勝ち、×は負け。3勝になった時点で対戦終了だよ。
+        </p>
+        <p>
+          通信対戦は「へやをつくる」でキーワードを相手に教えてね。相手が「へやに入る」で入力すると始まるよ。それぞれの画面でチェンジして、ふたりとも「準備OK！」で手札をひらこう。ふたりとも「次の勝負へ」で次の回戦、優勝が決まったら「もう一度対戦する」で勝数をリセットして再戦できるよ。
         </p>
         <h2>上ほど強いよ</h2>
         <ol class="role-list">
-          <li><strong>スリーカード</strong><span>同じ数字が3枚</span><small>7・7・7</small></li>
+          <li>
+            <strong>スリーカード</strong><span>同じ数字が3枚</span><small>7・7・7</small>
+            <p class="role-tie"><b>同じ役なら</b> 3枚そろった数字が大きい方の勝ち。</p>
+          </li>
           <li>
             <strong>ストレートフラッシュ</strong><span>同じ色で、数字が3つ続く</span
             ><small>金の5・6・7</small>
+            <p class="role-tie">
+              <b>同じ役なら</b> まず金 ＞ 銀 ＞
+              銅。同じ色のときだけ、いちばん大きい数字で比較。金の1・2・3は銀の7・8・9より強いよ。
+            </p>
           </li>
-          <li><strong>ストレート</strong><span>数字が3つ続く</span><small>3・4・5</small></li>
+          <li>
+            <strong>ストレート</strong><span>数字が3つ続く</span><small>3・4・5</small>
+            <p class="role-tie">
+              <b>同じ役なら</b> いちばん大きい数字で比較。その数字も同じなら、そのカードの金 ＞ 銀
+              ＞ 銅で決まるよ。
+            </p>
+          </li>
           <li>
             <strong>フラッシュ</strong><span>金・銀・銅のどれかで3枚そろう</span
             ><small>銀の2・5・8</small>
+            <p class="role-tie">
+              <b>同じ役なら</b> まず金 ＞ 銀 ＞ 銅。同じ色のときだけ、いちばん大きい数字で比較。
+            </p>
           </li>
-          <li><strong>ワンペア</strong><span>同じ数字が2枚</span><small>4・4・9</small></li>
+          <li>
+            <strong>ワンペア</strong><span>同じ数字が2枚</span><small>4・4・9</small>
+            <p class="role-tie">
+              <b>同じ役なら</b> ペアの数字が大きい方の勝ち。8・8・1は2・2・9より強いよ。
+            </p>
+          </li>
           <li>
             <strong>役なし</strong><span>どの役にもあてはまらない</span><small>1・4・8</small>
+            <p class="role-tie">
+              <b>同じ役なら</b> いちばん大きい数字で比較。その数字も同じなら、そのカードの金 ＞ 銀
+              ＞ 銅で決まるよ。
+            </p>
           </li>
         </ol>
         <p>数字のつながりは1・2・3から7・8・9まで。8・9・1のようにはつながらないよ。</p>
-        <p id="tie-rule">
-          <strong>同じ役なら、役を作る数字をくらべるよ。</strong
-          >ワンペアはペアの数字が大きい方の勝ち。「8・8・1」は「2・2・9」より強いよ。それ以外の役は、いちばん大きい数字でくらべるよ。
-        </p>
-        <p>
-          くらべる数字も同じなら、その数字のカードが<strong>金 ＞ 銀 ＞ 銅</strong>の順で強いよ。
-        </p>
       </details>
       <footer>どんな手札でも、のんびりいこう。</footer>
     </main>
-    <script type="module" src="./game.js?v=poker-cards-20261010"></script>
+    <script type="module" src="./game.js?v=poker-scoreboard-20261022"></script>
   </body>
 </html>

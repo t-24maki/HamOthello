@@ -10,7 +10,8 @@ import {
   applyOnlineAction,
   playerView,
   validView,
-} from "./online-rules.js?v=poker-online-20260908";
+} from "./online-rules.js?v=poker-scoreboard-20261022";
+import { matchResult } from "./rules.js?v=poker-scoreboard-20261022";
 export { generateRoomCode, normalizeRoomCode, isOnlineConfigured };
 
 export async function createPokerMatch({
@@ -64,7 +65,7 @@ export async function createPokerMatch({
       (next.roundId !== pending.roundId ||
         (pending.type === "exchange" && next.exchanges[player] !== null) ||
         (pending.type === "ready" && next.ready[player]) ||
-        (pending.type === "rematch" && next.rematch[player]))
+        (["next", "rematch"].includes(pending.type) && next.proceed[player]))
     ) {
       pending = null;
       onStatus("connected");
@@ -137,7 +138,7 @@ export async function createPokerMatch({
   }
   announce();
   // Sync repairs lost broadcasts. Repeating a pending action is safe because
-  // each round allows one exchange, one reveal, and one rematch vote per seat.
+  // Each round allows one exchange, one reveal, and one continuation vote per seat.
   interval = timers.setInterval(() => {
     if (pending) {
       if (Date.now() - pending.since > 15000) {
@@ -164,8 +165,13 @@ export async function createPokerMatch({
       } else if (type === "ready") {
         if (view.phase !== "choose" || view.exchanges[player] === null || view.ready[player])
           return false;
-      } else if (type === "rematch") {
-        if (view.phase !== "result" || view.rematch[player]) return false;
+      } else if (type === "next" || type === "rematch") {
+        if (
+          view.phase !== "result" ||
+          view.proceed[player] ||
+          type !== (matchResult(view) ? "rematch" : "next")
+        )
+          return false;
       } else return false;
       const action = { type, indices, matchId: view.matchId, roundId: view.roundId };
       if (role === "host") {

@@ -4,10 +4,15 @@ import {
   HEIGHT,
   fighterSize,
   attackScale,
-} from "./engine.js?v=20261017-battle19";
-import { fighterAppearance, tintFur } from "./appearance.js?v=20261017-battle19";
-import { getStage, platformsAt, surfaceAt } from "./stages.js?v=20261017-battle19";
-import { GIANT_WARNING } from "./items.js?v=20261017-battle19";
+} from "./engine.js?v=20261021-battle21";
+import {
+  fighterAppearance,
+  fighterLabel,
+  tintFur,
+  PALETTE_SUFFIXES,
+} from "./appearance.js?v=20261021-battle21";
+import { getStage, platformsAt, surfaceAt } from "./stages.js?v=20261021-battle21";
+import { GIANT_WARNING } from "./items.js?v=20261021-battle21";
 const FRAMES = {
   ham: [
     [82, 58, 389, 439],
@@ -44,7 +49,7 @@ const FRAMES = {
 };
 // Same edge-connected paper removal as the walk game's sprite-background.ts.
 // The pale character interiors enclosed by their outlines remain opaque.
-function transparentPaper(image) {
+export function transparentPaper(image) {
   const canvas = document.createElement("canvas");
   canvas.width = image.width;
   canvas.height = image.height;
@@ -87,14 +92,14 @@ function transparentPaper(image) {
   ctx.putImageData(data, 0, 0);
   return canvas;
 }
-function alternateArt(source, character) {
+function alternateArt(source, character, variant = 1) {
   const canvas = document.createElement("canvas");
   canvas.width = source.width;
   canvas.height = source.height;
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   ctx.drawImage(source, 0, 0);
   const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  tintFur(data.data, character);
+  tintFur(data.data, character, variant);
   ctx.putImageData(data, 0, 0);
   return canvas;
 }
@@ -128,18 +133,21 @@ export async function loadArt() {
     }),
   );
   const art = Object.fromEntries(entries);
-  art.lavenderAlt = alternateArt(art.lavender, "tak");
-  art.creamAlt = alternateArt(art.cream, "meg");
+  for (const character of ["tak", "meg"])
+    for (let variant = 1; variant < 4; variant++) {
+      const sheet = CHARACTERS[character].sheet;
+      art[sheet + PALETTE_SUFFIXES[variant]] = alternateArt(art[sheet], character, variant);
+    }
   art.portraits = {};
   await Promise.all(
     ["ham", "tapi"].map(async (character) => {
       const image = new Image();
-      image.src = `./art/${character === "ham" ? "normal-ham" : "tapi"}.png?v=20261017-battle19`;
+      image.src = `./art/${character === "ham" ? "normal-ham" : "tapi"}.png?v=20261021-battle21`;
       await image.decode();
       art[character] = image;
-      art[character + "Alt"] = alternateArt(image, character);
-      for (const alternate of [false, true]) {
-        const key = character + (alternate ? "Alt" : "");
+      for (const [variant, suffix] of PALETTE_SUFFIXES.entries()) {
+        const key = character + suffix;
+        if (variant) art[key] = alternateArt(image, character, variant);
         for (const [kind, pose] of [
           ["icon", 0],
           ["win", 5],
@@ -160,7 +168,12 @@ export async function loadArt() {
         image.src = src;
         await image.decode();
         art.portraits[`${character}-${kind}`] = src;
-        art.portraits[`${character}Alt-${kind}`] = alternateArt(image, character).toDataURL();
+        for (let variant = 1; variant < 4; variant++)
+          art.portraits[`${character}${PALETTE_SUFFIXES[variant]}-${kind}`] = alternateArt(
+            image,
+            character,
+            variant,
+          ).toDataURL();
       }
     }),
   );
@@ -204,7 +217,7 @@ export function giantWarningOpacity(f, reduced = false) {
   // Two gentle fades per second; use simulation time so pause also freezes the cue.
   return reduced ? 0.72 : 0.72 + 0.28 * Math.cos((GIANT_WARNING - f.giantTime) * Math.PI * 4);
 }
-function sprite(c, art, f, pose, time, reduced, alternate) {
+function sprite(c, art, f, pose, time, reduced, suffix) {
   const sheet = CHARACTERS[f.character].sheet,
     [sx, sy, sw, sh] = FRAMES[sheet][pose];
   const h = 84 * fighterSize(f),
@@ -222,7 +235,7 @@ function sprite(c, art, f, pose, time, reduced, alternate) {
     c.scale(1.1, 0.94);
   } else if (f.stun > 0 && !reduced) c.rotate(f.facing * -0.2);
   c.scale(f.facing, 1);
-  c.drawImage(art[sheet + (alternate ? "Alt" : "")], sx, sy, sw, sh, -w / 2, -h, w, h);
+  c.drawImage(art[sheet + suffix], sx, sy, sw, sh, -w / 2, -h, w, h);
   c.restore();
 }
 function drawPotion(c, p, time, reduced) {
@@ -485,7 +498,7 @@ export function render(c, art, g, time, reduced = false, preview = false) {
       box(c, x - 23, y - 17, 46, 32, 16, "#fffaf1", look.color);
       c.fillStyle = "#705c55";
       c.font = "bold 15px sans-serif";
-      c.fillText(i === (g.localPlayer ?? 0) ? "YOU" : g.online ? "相手" : "CPU", x, y + 5);
+      c.fillText(fighterLabel(g, i), x, y + 5);
       continue;
     }
     if (f.grounded) {
@@ -521,7 +534,7 @@ export function render(c, art, g, time, reduced = false, preview = false) {
               : Math.abs(f.vx) > 30
                 ? (newSheet ? 0 : 1) + (Math.floor(g.elapsed * 9) % 2)
                 : 0;
-    sprite(c, art, f, pose, time, reduced, look.alternate);
+    sprite(c, art, f, pose, time, reduced, look.suffix);
     if (f.attack) {
       const a = f.attack;
       c.save();
@@ -557,7 +570,7 @@ export function render(c, art, g, time, reduced = false, preview = false) {
     box(c, f.x - 24, labelY, 48, 20, 10, look.fill);
     c.fillStyle = look.ink;
     c.font = "bold 11px sans-serif";
-    c.fillText(i === (g.localPlayer ?? 0) ? "YOU" : g.online ? "相手" : "CPU", f.x, labelY + 14);
+    c.fillText(fighterLabel(g, i), f.x, labelY + 14);
     c.fillStyle = look.color;
     c.beginPath();
     c.moveTo(f.x - 4, labelY + 24);

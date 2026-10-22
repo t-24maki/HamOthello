@@ -228,7 +228,19 @@ export function stageBounds(stage) {
   const x = Math.min(...floors.map((p) => p.x));
   return { ...floors[0], x, w: Math.max(...floors.map((p) => p.x + p.w)) - x };
 }
-export function spawnPoint(stage, index, time = 0, respawn = false) {
+export function spawnPoint(stage, index, time = 0, respawn = false, count = 2) {
+  if (count === 4) {
+    const floors = platformsAt(stage, time).filter((p) => p.main);
+    // Keep the human seats apart, distributing all four over real ground, never a gap.
+    let offset = (([0, 3, 1, 2][index] + 0.5) / 4) * floors.reduce((sum, p) => sum + p.w, 0);
+    const p = floors.find((floor, i) => {
+      if (offset <= floor.w || i === floors.length - 1) return true;
+      offset -= floor.w;
+      return false;
+    });
+    const x = p.x + Math.max(48, Math.min(p.w - 48, offset));
+    return { x, y: surfaceAt(p, x), platformId: p.id };
+  }
   const x = (respawn ? (stage.respawns ?? [325, 475]) : stage.spawns)[index];
   const p = platformsAt(stage, time).find((p) => p.main && supports(p, x, 0));
   return { x, y: respawn && !stage.respawns ? p.y : surfaceAt(p, x), platformId: p.id };

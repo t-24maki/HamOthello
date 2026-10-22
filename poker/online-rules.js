@@ -1,17 +1,28 @@
-import { createRound, exchangeCards, evaluateHand } from "./rules.js?v=poker-20260908";
+import {
+  MATCH_ROUNDS,
+  WINS_TO_WIN,
+  createRound,
+  nextRound,
+  recordRound,
+  roundResult,
+  matchResult,
+  exchangeCards,
+  evaluateHand,
+} from "./rules.js?v=poker-scoreboard-20261022";
 
-export const POKER_PROTOCOL = "mini-poker-1";
+export const POKER_PROTOCOL = "mini-poker-20261022-3";
 
-export function createOnlineRound(matchId, roundId = 1, random = Math.random) {
+export function createOnlineRound(matchId, roundId = 1, random = Math.random, previous = null) {
   return {
-    ...createRound("cpu", random),
+    ...(previous ? nextRound(previous, random) : createRound("cpu", random)),
     mode: "online",
     matchId,
     roundId,
+    seriesStart: previous?.seriesStart ?? roundId,
     revision: 0,
     phase: "choose",
     ready: [false, false],
-    rematch: [false, false],
+    proceed: [false, false],
   };
 }
 
@@ -42,19 +53,27 @@ export function applyOnlineAction(state, player, action, random = Math.random) {
       return null;
     const ready = [...state.ready];
     ready[player] = true;
-    return {
+    const next = {
       ...state,
       ready,
       phase: ready.every(Boolean) ? "result" : "choose",
       revision: state.revision + 1,
     };
+    return next.phase === "result" ? recordRound(next) : next;
   }
-  if (action.type === "rematch") {
-    if (state.phase !== "result" || state.rematch[player]) return null;
-    const rematch = [...state.rematch];
-    rematch[player] = true;
-    if (rematch.every(Boolean)) return createOnlineRound(state.matchId, state.roundId + 1, random);
-    return { ...state, rematch, revision: state.revision + 1 };
+  if (action.type === "next" || action.type === "rematch") {
+    const final = Boolean(matchResult(state));
+    if (
+      state.phase !== "result" ||
+      state.proceed[player] ||
+      action.type !== (final ? "rematch" : "next")
+    )
+      return null;
+    const proceed = [...state.proceed];
+    proceed[player] = true;
+    if (proceed.every(Boolean))
+      return createOnlineRound(state.matchId, state.roundId + 1, random, final ? null : state);
+    return { ...state, proceed, revision: state.revision + 1 };
   }
   return null;
 }
@@ -66,6 +85,10 @@ export function playerView(state, player) {
     protocol: POKER_PROTOCOL,
     matchId: state.matchId,
     roundId: state.roundId,
+    seriesStart: state.seriesStart,
+    roundNumber: state.roundNumber,
+    wins: [...state.wins],
+    history: [...state.history],
     revision: state.revision,
     phase: state.phase,
     hands: state.hands.map((hand, index) =>
@@ -73,7 +96,7 @@ export function playerView(state, player) {
     ),
     exchanges: [...state.exchanges],
     ready: [...state.ready],
-    rematch: [...state.rematch],
+    proceed: [...state.proceed],
     deckCount: state.deck.length,
     discardCount: state.discards.length,
   };
@@ -81,6 +104,7 @@ export function playerView(state, player) {
 
 export function validView(view, player = 1) {
   if (
+    ![0, 1].includes(player) ||
     !view ||
     view.protocol !== POKER_PROTOCOL ||
     typeof view.matchId !== "string" ||
@@ -88,6 +112,18 @@ export function validView(view, player = 1) {
     view.matchId.length > 120 ||
     !Number.isInteger(view.roundId) ||
     view.roundId < 1 ||
+    !Number.isInteger(view.roundNumber) ||
+    view.roundNumber < 1 ||
+    view.roundNumber > MATCH_ROUNDS ||
+    !Number.isInteger(view.seriesStart) ||
+    view.seriesStart < 1 ||
+    view.roundId !== view.seriesStart + view.roundNumber - 1 ||
+    !Array.isArray(view.history) ||
+    view.history.length !== view.roundNumber - (view.phase === "result" ? 0 : 1) ||
+    view.history.some((winner) => ![0, 1, null].includes(winner)) ||
+    !Array.isArray(view.wins) ||
+    view.wins.length !== 2 ||
+    view.wins.some((wins, p) => wins !== view.history.filter((winner) => winner === p).length) ||
     !Number.isInteger(view.revision) ||
     view.revision < 0 ||
     !["choose", "result"].includes(view.phase) ||
@@ -96,7 +132,7 @@ export function validView(view, player = 1) {
     !Array.isArray(view.exchanges) ||
     view.exchanges.length !== 2 ||
     view.exchanges.some((n) => n !== null && (!Number.isInteger(n) || n < 0 || n > 3)) ||
-    ![view.ready, view.rematch].every(
+    ![view.ready, view.proceed].every(
       (values) =>
         Array.isArray(values) && values.length === 2 && values.every((v) => typeof v === "boolean"),
     ) ||
@@ -108,14 +144,19 @@ export function validView(view, player = 1) {
     view.deckCount + view.discardCount !== 21 ||
     view.ready.some((ready, i) => ready && view.exchanges[i] === null) ||
     (view.phase === "result") !== view.ready.every(Boolean) ||
-    (view.phase !== "result" && view.rematch.some(Boolean))
+    (view.phase !== "result" && view.proceed.some(Boolean))
   )
+    return false;
+  // A series cannot continue after either player has already earned three wins.
+  const previousResults = view.phase === "result" ? view.history.slice(0, -1) : view.history;
+  if ([0, 1].some((p) => previousResults.filter((winner) => winner === p).length >= WINS_TO_WIN))
     return false;
   try {
     evaluateHand(view.hands[player]);
     if (view.phase === "result") {
       evaluateHand(view.hands[1 - player]);
       if (new Set(view.hands.flat().map((card) => card.id)).size !== 6) return false;
+      if (view.history.at(-1) !== roundResult(view).winner) return false;
     } else if (view.hands[1 - player] !== null) return false;
   } catch {
     return false;

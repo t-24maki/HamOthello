@@ -1,24 +1,8 @@
 :root {
   color-scheme: light;
   --ink: #654d42;
-  --muted: #897268;
+  --muted: #89786b;
   --line: #e7d9c9;
-}
-.blocks .art {
-  background: #eef0df;
-  gap: 0;
-}
-.blocks .art img {
-  width: 27%;
-  max-width: 120px;
-  height: 140px;
-}
-.blocks-preview {
-  width: 27%;
-  max-width: 114px;
-  height: 150px;
-  transform: rotate(-5deg);
-  filter: drop-shadow(0 5px 0 #c4b08e44);
 }
 * {
   box-sizing: border-box;
@@ -34,247 +18,276 @@ a {
   color: inherit;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 a:focus-visible {
   outline: 3px solid #9871b8;
-  outline-offset: 6px;
+  outline-offset: 5px;
 }
-.wrap {
-  width: min(100% - 48px, 1040px);
-  margin-inline: auto;
+.hub-main {
+  width: min(100% - 56px, 1040px);
+  margin: auto;
 }
-.masthead {
-  min-height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  border-bottom: 1px solid var(--line);
+.welcome {
+  padding: 48px 0 25px;
 }
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-}
-.friends {
-  display: flex;
-  align-items: center;
-  padding-right: 5px;
-}
-.friends img {
-  width: 43px;
-  height: 43px;
-  object-fit: contain;
-}
-.friends img + img {
-  margin-left: -10px;
-  transform: translateY(4px);
-}
-.device-note {
-  font-size: 13px;
-  color: var(--muted);
-}
-main {
-  padding-block: 42px 28px;
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: #a08673;
+  margin: 0 0 12px;
 }
 h1 {
-  margin: 0 0 10px;
-  font-size: clamp(23px, 3.5vw, 32px);
+  margin: 0;
+  font-size: clamp(25px, 3.5vw, 36px);
   letter-spacing: 0.04em;
+  line-height: 1.5;
+}
+.phone-break {
+  display: none;
 }
 .intro {
-  margin: 0 0 29px;
-  font-size: 15px;
+  margin: 13px 0 0;
+  font-size: 14px;
   line-height: 1.8;
   color: var(--muted);
+}
+.genre-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 18px;
+}
+.genre-nav a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  min-height: 44px;
+  padding: 10px 17px;
+  border: 1px solid var(--line);
+  background: #fffdf8;
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.genre-nav a:hover {
+  background: #f3eadf;
+}
+.genre-nav span {
+  color: #af9b88;
+}
+.genre-section {
+  scroll-margin-top: 24px;
+  margin: 28px 0 52px;
+}
+.genre-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 19px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--line);
+}
+.genre-heading h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.genre-heading h2::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 4px;
+  background: #d9aa76;
+  transform: rotate(-12deg);
+}
+#board h2::before {
+  background: #a997bd;
+}
+#other h2::before {
+  background: #91ac97;
+}
+.genre-heading > span {
+  color: #a18b79;
+  font-size: 11px;
 }
 .games {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
+  gap: 24px;
 }
 .game {
+  --accent: #a18bb5;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: #fffdf8;
   border: 1px solid var(--line);
-  border-radius: 27px;
-  box-shadow: 0 5px 0 #e7dbce70;
+  border-radius: 22px;
+  box-shadow: 0 4px 0 #e7dbce60;
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease;
 }
 .game:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 9px 0 #e7dbce70;
+  transform: translateY(-3px);
+  box-shadow: 0 7px 0 #e7dbce60;
 }
 .art {
-  height: 216px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  background: #f1e5f6;
+  aspect-ratio: 2 / 1;
+  overflow: hidden;
+  flex: none;
+  background: #e9e7ef;
 }
-.art img {
-  width: 36%;
-  max-width: 165px;
-  height: 165px;
-  object-fit: contain;
+.art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
-.art img:first-child {
-  transform: rotate(-7deg) translateY(4px);
+.sanpo .art,
+.battle .art {
+  background: #edf1df;
 }
-.art img:last-child {
-  transform: rotate(7deg) translateY(-4px);
+.othello .art {
+  background: #e2e9dc;
 }
-.sanpo .art {
-  background: #fce6bb;
+.shogi .art {
+  background: #f0e4cc;
 }
 .poker .art {
-  background: #e5eddc;
-  gap: 8px;
+  background: #dfe9df;
 }
-.preview-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 72px;
-  height: 108px;
-  border: 2px solid #cfb15e;
-  border-radius: 13px;
-  background: #fff0bd;
-  color: #977027;
-  font-size: 42px;
-  font-weight: 800;
-  box-shadow: 0 5px 0 #667b4220;
+.mahjong .art {
+  background: #e2eadf;
 }
-.preview-card small {
-  font-size: 13px;
+.blocks .art {
+  background: #eee6f0;
 }
-.preview-card.gold {
-  transform: rotate(-10deg) translateY(6px);
+.billiards .art {
+  background: #e0e9e2;
 }
-.preview-card.silver {
-  background: #eef3f4;
-  color: #677b89;
-  border-color: #aab9c1;
-  transform: translateY(-5px);
-}
-.preview-card.bronze {
-  background: #f9e2d2;
-  color: #9d6445;
-  border-color: #ce9c7b;
-  transform: rotate(10deg) translateY(6px);
+.shiritori .art {
+  background: #f1e2d5;
 }
 .copy {
-  padding: 23px 20px 25px;
   display: flex;
   flex: 1;
   flex-direction: column;
+  padding: 19px 22px 20px;
 }
 .tag {
-  font-size: 12px;
-  font-weight: 700;
-  color: #90719e;
-  letter-spacing: 0.09em;
+  color: #9a7e99;
+  font-size: 10px;
+  letter-spacing: 0.04em;
 }
-.sanpo .tag {
-  color: #a87939;
-}
-.poker .tag {
-  color: #718358;
-}
-h2 {
-  margin: 9px 0 11px;
-  font-size: 22px;
-  letter-spacing: 0.01em;
+.game h3 {
+  font-size: 20px;
+  margin: 8px 0 9px;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
 }
 .description {
-  min-height: 55px;
-  margin: 0 0 18px;
+  font-size: 13px;
   color: var(--muted);
-  font-size: 15px;
   line-height: 1.85;
+  min-height: 48px;
+  margin: 0 0 17px;
 }
 .play {
   display: flex;
-  margin-top: auto;
   justify-content: space-between;
   align-items: center;
-  padding: 13px 17px;
-  border-radius: 13px;
-  background: #e8d9ee;
-  color: #755386;
-  font-size: 16px;
+  margin-top: auto;
+  padding-top: 13px;
+  border-top: 1px solid #ece2d8;
+  font-size: 12px;
   font-weight: 700;
 }
-.sanpo .play {
-  background: #f5dfb5;
-  color: #866436;
+.play > span:last-child {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f0e6f1;
+  color: #8a7198;
+  font-size: 16px;
 }
-.poker .play {
-  background: #dce7c9;
-  color: #657a48;
+.sanpo .play > span:last-child,
+.battle .play > span:last-child {
+  background: #f4e5c8;
+  color: #a0804e;
 }
-.play span:last-child {
-  font-size: 22px;
-  line-height: 1;
+.billiards .play > span:last-child,
+.shiritori .play > span:last-child {
+  background: #e4eadf;
+  color: #75916e;
 }
-footer {
-  padding: 24px 0 30px;
+.hub-footer {
   text-align: center;
-  color: #9c897a;
-  font-size: 13px;
+  color: #a18e7d;
+  font-size: 12px;
+  border-top: 1px solid var(--line);
+  padding: 26px 16px 32px;
 }
-@media (min-width: 651px) and (max-width: 900px) {
-  .games {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.hub-footer span {
+  display: block;
+  margin-top: 10px;
+  font-size: 9px;
+  letter-spacing: 0.18em;
 }
 @media (max-width: 650px) {
-  .wrap {
-    width: calc(100% - 32px);
+  .hub-main {
+    width: calc(100% - 28px);
   }
-  .masthead {
-    min-height: 78px;
+  .welcome {
+    padding: 30px 5px 22px;
   }
-  .brand {
-    gap: 9px;
+  .genre-nav {
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+  .genre-nav a {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 6px;
+    gap: 6px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .genre-section {
+    margin: 21px 0 36px;
+  }
+  .genre-heading {
+    margin-bottom: 15px;
+  }
+  .genre-heading h2 {
     font-size: 18px;
-  }
-  .device-note {
-    display: none;
-  }
-  main {
-    padding-top: 27px;
-  }
-  .intro {
-    font-size: 14px;
-    margin-bottom: 22px;
   }
   .games {
     grid-template-columns: 1fr;
-    gap: 23px;
-  }
-  .art {
-    height: 164px;
-  }
-  .art img {
-    width: 125px;
-    height: 125px;
+    gap: 19px;
   }
   .copy {
-    padding: 20px;
+    padding: 16px 18px 17px;
   }
-  .description {
-    min-height: 0;
+  .game h3 {
+    font-size: 19px;
+  }
+  .game {
+    border-radius: 19px;
+  }
+}
+@media (max-width: 370px) {
+  .phone-break {
+    display: block;
+  }
+  .intro {
+    font-size: 12px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -283,190 +296,5 @@ footer {
   }
   .game:hover {
     transform: none;
-  }
-}
-
-.shiritori .art {
-  background: #f3e5d3;
-  gap: 12px;
-}
-.shiritori .tag {
-  color: #a28557;
-}
-.shiritori .play {
-  background: #f0dfbc;
-  color: #93764c;
-}
-.word-chip {
-  padding: 20px 14px;
-  border: 3px solid #fff;
-  border-radius: 25px 25px 8px 25px;
-  background: #fffaf3;
-  font-size: 28px;
-  font-weight: 700;
-  color: #9d8985;
-  box-shadow: 0 7px 0 #c6a77424;
-  transform: rotate(-7deg);
-}
-.word-chip:last-child {
-  background: #ede1f0;
-  transform: rotate(6deg);
-}
-.word-chip span {
-  color: #bd83ae;
-}
-.word-link {
-  color: #b79b70;
-  font-size: 25px;
-}
-.shogi .art {
-  background: #eadcc4;
-  gap: 13px;
-}
-.shogi .tag {
-  color: #9b8057;
-}
-.shogi .play {
-  background: #e7dfc3;
-  color: #88734e;
-}
-.shogi-preview-piece {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: 74px;
-  height: 74px;
-  border-radius: 9px;
-  border: 2px solid #c9a779;
-  background: #fff3dc;
-  box-shadow: 0 5px 0 #b0926340;
-  font-size: 27px;
-  font-weight: 800;
-  color: #8a7295;
-  transform: rotate(-9deg);
-}
-.shogi-preview-piece:first-child {
-  font-size: 37px;
-  color: #a38650;
-}
-.shogi-preview-piece:nth-child(2) {
-  transform: translateY(-9px);
-}
-.shogi-preview-piece:last-child {
-  transform: rotate(9deg);
-  color: #ac8e53;
-}
-.shogi-preview-piece small {
-  font-size: 9px;
-  font-weight: 600;
-}
-.shogi .shogi-preview-piece img {
-  width: 84%;
-  height: 84%;
-  object-fit: contain;
-  transform: none;
-}
-.billiards .art {
-  background: #e1e8d9;
-}
-.billiards .tag {
-  color: #6c8a74;
-}
-.billiards .play {
-  background: #d5e3d2;
-  color: #5e7a60;
-}
-.billiards-preview {
-  position: relative;
-  width: 150px;
-  height: 150px;
-  border: 10px solid #c6a06d;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 30%, #83a18c, #4e7c67);
-  box-shadow:
-    0 6px 0 #ab926538,
-    inset 0 0 0 4px #466950;
-}
-.mini-hole {
-  position: absolute;
-  left: calc(50% - 8px);
-  top: calc(50% - 8px);
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #304a3c;
-  border: 1px solid #baa376;
-  transform: rotate(var(--angle)) translateY(-61px);
-}
-.mini-ball {
-  position: absolute;
-  width: 27px;
-  height: 27px;
-  border-radius: 50%;
-  box-shadow: 1px 3px 2px #294b4333;
-}
-.mini-ball.purple {
-  left: 25%;
-  top: 39%;
-  background: radial-gradient(circle at 30% 25%, #f5e6ff, #c6a4dd 65%, #9671a8);
-}
-.mini-ball.cream {
-  left: 59%;
-  top: 61%;
-  background: radial-gradient(circle at 30% 25%, #fffef3, #ffe7ab 65%, #c5a465);
-}
-.mini-score {
-  position: absolute;
-  right: 17%;
-  top: 20%;
-  color: #f4e9bf;
-  font-size: 16px;
-  font-weight: 800;
-  transform: rotate(9deg);
-}
-.mini-ball.white {
-  left: 30%;
-  top: 69%;
-  width: 21px;
-  height: 21px;
-  background: radial-gradient(circle at 30% 25%, #fff, #f3f6f3 65%, #b5c8bd);
-}
-
-.battle .art {
-  background: #e5ecd9;
-  position: relative;
-  gap: 8px;
-}
-.battle .art::after {
-  content: "";
-  position: absolute;
-  width: 76%;
-  height: 14px;
-  bottom: 20px;
-  border-radius: 9px;
-  background: #b1c39a;
-  border-bottom: 6px solid #d9bb95;
-}
-.battle .art img {
-  position: relative;
-  z-index: 1;
-}
-.battle .battle-star {
-  color: #c2a058;
-  font-size: 35px;
-  transform: translateY(-18px);
-}
-.battle .tag {
-  color: #83936c;
-}
-.battle .play {
-  background: #e4d7ed;
-  color: #80608f;
-}
-@media (max-width: 650px) {
-  .battle .art img {
-    width: 112px;
   }
 }

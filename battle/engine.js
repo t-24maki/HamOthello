@@ -4,7 +4,7 @@ import {
   platformsAt,
   surfaceAt,
   supports,
-} from "./stages.js?v=20261017-battle19";
+} from "./stages.js?v=20261021-battle21";
 import {
   createItems,
   movePotion,
@@ -12,7 +12,7 @@ import {
   consumePotion,
   GIANT_POWER,
   GIANT_DURATION,
-} from "./items.js?v=20261017-battle19";
+} from "./items.js?v=20261021-battle21";
 // Feet-based coordinates; deterministic 120 Hz simulation, independent of rendering.
 export const STEP = 1 / 120;
 export const INPUT_GRACE = 0.12;
@@ -118,7 +118,9 @@ export const CHARACTERS = {
     maxJumps: 4,
     groundedSpecialImmune: true,
     speed: 345,
-    jump: 520,
+    jump: 600,
+    fallGravity: 1000,
+    maxFallSpeed: 600,
     color: "#df9eaa",
     normal: {
       damage: 6,
@@ -147,6 +149,22 @@ export function chooseOpponent(character, random = Math.random) {
   const choices = Object.keys(CHARACTERS).filter((key) => key !== character);
   return choices[Math.min(choices.length - 1, Math.max(0, Math.floor(random() * choices.length)))];
 }
+export function createRoster(character, opponents = ["random"], random = Math.random) {
+  const roster = [isCharacter(character) ? character : "tak"];
+  for (const choice of opponents.length === 3 ? opponents : opponents.slice(0, 1)) {
+    const unused = Object.keys(CHARACTERS).filter((key) => !roster.includes(key));
+    const available = unused.length ? unused : Object.keys(CHARACTERS);
+    roster.push(
+      isCharacter(choice)
+        ? choice
+        : available[
+            Math.min(available.length - 1, Math.max(0, Math.floor(random() * available.length)))
+          ],
+    );
+  }
+  if (roster.length === 1) roster.push(chooseOpponent(roster[0], random));
+  return roster;
+}
 export function hurtbox(f) {
   const character = CHARACTERS[f.character],
     size = fighterSize(f),
@@ -167,16 +185,17 @@ export const EMPTY_INPUT = Object.freeze({
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const approach = (v, goal, amount) =>
   v < goal ? Math.min(goal, v + amount) : Math.max(goal, v - amount);
-export function makeFighter(character, index, stocks = STOCKS, stageId = "hill") {
+export function makeFighter(character, index, stocks = STOCKS, stageId = "hill", count = 2) {
   const stage = getStage(stageId);
+  const spawn = spawnPoint(stage, index, 0, false, count);
   return {
     character,
     giant: false,
     giantTime: 0,
-    ...spawnPoint(stage, index),
+    ...spawn,
     vx: 0,
     vy: 0,
-    facing: index ? -1 : 1,
+    facing: spawn.x < WIDTH / 2 ? 1 : -1,
     grounded: true,
     jumps: 0,
     damage: 0,
@@ -200,17 +219,20 @@ export function createMatch(
   stageId = "hill",
   opponent,
   itemSeed = Math.floor(Math.random() * 2 ** 32),
+  extraCharacters = [],
 ) {
   const stage = getStage(stageId);
   if (!isCharacter(character)) character = "tak";
   if (!isCharacter(opponent)) opponent = character === "tak" ? "meg" : "tak";
   if (!["easy", "normal", "hard"].includes(difficulty)) difficulty = "normal";
+  const roster = [
+    character,
+    opponent,
+    ...(extraCharacters.length === 2 ? extraCharacters : []),
+  ].map((key) => (isCharacter(key) ? key : "tak"));
   return {
     stageId: stage.id,
-    fighters: [
-      makeFighter(character, 0, STOCKS, stage.id),
-      makeFighter(opponent, 1, STOCKS, stage.id),
-    ],
+    fighters: roster.map((key, i) => makeFighter(key, i, STOCKS, stage.id, roster.length)),
     difficulty,
     phase: "countdown",
     countdown: 2.6,
@@ -232,18 +254,20 @@ function emit(g, type, data = {}) {
 function effect(g, type, x, y, color) {
   g.effects.push({ type, x, y, color, life: type === "out" ? 0.8 : 0.4, age: 0 });
 }
+export function matchWinner(fighters) {
+  const ranked = fighters
+    .map((f, i) => ({ ...f, index: i }))
+    .filter((f) => f.stocks > 0)
+    .sort((a, b) => b.stocks - a.stocks || a.damage - b.damage);
+  if (
+    !ranked.length ||
+    (ranked[1] && ranked[0].stocks === ranked[1].stocks && ranked[0].damage === ranked[1].damage)
+  )
+    return null;
+  return ranked[0].index;
+}
 function finish(g, reason) {
-  const [a, b] = g.fighters;
-  g.winner =
-    a.stocks !== b.stocks
-      ? a.stocks > b.stocks
-        ? 0
-        : 1
-      : a.damage !== b.damage
-        ? a.damage < b.damage
-          ? 0
-          : 1
-        : null;
+  g.winner = matchWinner(g.fighters);
   g.phase = "finished";
   g.reason = reason;
   for (const f of g.fighters) {
@@ -257,7 +281,7 @@ export function attackArea(f) {
   if (!f.attack) return null;
   const a = f.attack;
   const move = CHARACTERS[f.character][a.kind];
-  if (a.hit || a.age < move.startup || a.age > move.activeEnd) return null;
+  if ((a.hit && !a.hitTargets) || a.age < move.startup || a.age > move.activeEnd) return null;
   const size = fighterSize(f);
   const reach = attackScale(f);
   return {
@@ -327,7 +351,13 @@ function moveFighter(g, f, raw, dt, previousPlatforms, platforms) {
     if (f.buffered.special > 0 && !f.attack && f.specialCooldown === 0 && !f.airSpecial) {
       f.buffered.special = 0;
       f.buffered.attack = 0;
-      f.attack = { kind: "special", age: 0, duration: character.special.duration, hit: false };
+      f.attack = {
+        kind: "special",
+        age: 0,
+        duration: character.special.duration,
+        hit: false,
+        hitTargets: [],
+      };
       f.specialCooldown = character.special.cooldown;
       f.airSpecial = true;
       f.grounded = false;
@@ -338,7 +368,13 @@ function moveFighter(g, f, raw, dt, previousPlatforms, platforms) {
     } else if (f.buffered.attack > 0 && !f.attack && f.cooldown === 0) {
       f.buffered.attack = 0;
       f.buffered.special = 0;
-      f.attack = { kind: "normal", age: 0, duration: character.normal.duration, hit: false };
+      f.attack = {
+        kind: "normal",
+        age: 0,
+        duration: character.normal.duration,
+        hit: false,
+        hitTargets: [],
+      };
       f.cooldown = character.normal.cooldown;
       f.invincible = 0;
       emit(g, "swing");
@@ -354,7 +390,9 @@ function moveFighter(g, f, raw, dt, previousPlatforms, platforms) {
   const oldX = f.x,
     oldY = f.y;
   const wasGrounded = f.grounded;
-  f.vy = Math.min(1000, f.vy + 1650 * dt);
+  // Tapi floats on descent; upward arcs keep the shared gravity.
+  const gravity = f.vy >= 0 ? (character.fallGravity ?? 1650) : 1650;
+  f.vy = Math.min(character.maxFallSpeed ?? 1000, f.vy + gravity * dt);
   f.x += f.vx * dt;
   f.y += f.vy * dt;
   f.grounded = false;
@@ -396,13 +434,14 @@ function moveFighter(g, f, raw, dt, previousPlatforms, platforms) {
   // Walking off a ledge consumes the ground jump, including Tapi's first of four.
   if (wasGrounded && !f.grounded && f.jumps === 0) f.jumps = 1;
 }
-function hit(g, attacker, defender, area) {
+function hit(g, attacker, defender, area, targetIndex) {
   const special = attacker.attack.kind === "special";
   const move = CHARACTERS[attacker.character][attacker.attack.kind];
   const offense = attacker.giant ? GIANT_POWER : 1;
   const defense = defender.giant ? GIANT_POWER : 1;
   const strength = offense / defense;
   attacker.attack.hit = true;
+  if (attacker.attack.hitTargets) attacker.attack.hitTargets.push(targetIndex);
   const dir = Math.sign(defender.x - attacker.x) || attacker.facing;
   if (defender.guarding) {
     defender.shield = Math.max(0, defender.shield - move.shieldDamage * strength);
@@ -471,35 +510,39 @@ export function tick(g, inputs = [EMPTY_INPUT, EMPTY_INPUT], dt = STEP) {
     f.giantTime = GIANT_DURATION;
     consumePotion(g.items);
   }
-  // Snapshot both attack areas before applying hits, so simultaneous strikes trade fairly.
-  const strikes = g.fighters.map((f, i) => {
-    const d = g.fighters[1 - i],
-      area = attackArea(f),
-      body = hurtbox(d);
-    return area &&
-      !f.respawn &&
-      !d.respawn &&
-      !d.invincible &&
-      d.stocks > 0 &&
-      !(
-        f.attack.kind === "special" &&
-        d.grounded &&
-        CHARACTERS[d.character].groundedSpecialImmune
-      ) &&
-      Math.abs(area.x - body.x) < area.rx + body.rx &&
-      Math.abs(area.y - body.y) < area.ry + body.ry
-      ? { f, d, area, attack: f.attack }
-      : null;
-  });
+  // Snapshot every pair before applying hits. One swing hits each opponent at most once.
+  const strikes = g.fighters.flatMap((f, i) =>
+    g.fighters.map((d, j) => {
+      const area = attackArea(f),
+        body = hurtbox(d);
+      return i !== j &&
+        area &&
+        f.stocks > 0 &&
+        !f.attack.hitTargets?.includes(j) &&
+        !f.respawn &&
+        !d.respawn &&
+        !d.invincible &&
+        d.stocks > 0 &&
+        !(
+          f.attack.kind === "special" &&
+          d.grounded &&
+          CHARACTERS[d.character].groundedSpecialImmune
+        ) &&
+        Math.abs(area.x - body.x) < area.rx + body.rx &&
+        Math.abs(area.y - body.y) < area.ry + body.ry
+        ? { f, d, area, attack: f.attack, targetIndex: j }
+        : null;
+    }),
+  );
   for (const s of strikes)
     if (s) {
       const current = s.f.attack;
       s.f.attack = s.attack;
-      hit(g, s.f, s.d, s.area);
+      hit(g, s.f, s.d, s.area, s.targetIndex);
       // A simultaneous hit still cancels this fighter's attack after its own damage is dealt.
       s.f.attack = current;
     }
-  // Process both outs before deciding the winner (including simultaneous final stocks).
+  // Process all outs before deciding the winner (including simultaneous final stocks).
   g.fighters.forEach((f, i) => {
     if (!f.stocks || f.respawn > 0 || !(f.x < -90 || f.x > WIDTH + 90 || f.y < -190 || f.y > 600))
       return;
@@ -508,8 +551,8 @@ export function tick(g, inputs = [EMPTY_INPUT, EMPTY_INPUT], dt = STEP) {
       stocks = f.stocks - 1;
     effect(g, "out", x, y, CHARACTERS[f.character].color);
     emit(g, "out", { player: i });
-    const spawn = spawnPoint(stage, i, g.elapsed, true);
-    Object.assign(f, makeFighter(f.character, i, stocks, g.stageId), {
+    const spawn = spawnPoint(stage, i, g.elapsed, true, g.fighters.length);
+    Object.assign(f, makeFighter(f.character, i, stocks, g.stageId, g.fighters.length), {
       x: spawn.x,
       y: spawn.y - 265,
       grounded: false,
@@ -518,7 +561,7 @@ export function tick(g, inputs = [EMPTY_INPUT, EMPTY_INPUT], dt = STEP) {
       invincible: stocks ? 2.4 : 0,
     });
   });
-  if (g.fighters.some((f) => f.stocks === 0)) finish(g, "stocks");
+  if (g.fighters.filter((f) => f.stocks > 0).length <= 1) finish(g, "stocks");
   else if (g.remaining <= 0) finish(g, "time");
 }
 // Local online prediction moves only this fighter. Hits, stocks and results remain authoritative.

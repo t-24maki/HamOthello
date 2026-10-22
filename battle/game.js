@@ -1,25 +1,24 @@
 import {
   createMatch,
-  chooseOpponent,
-  isCharacter,
+  createRoster,
   advance,
   pause,
   resume,
   CHARACTERS,
   STEP,
-} from "./engine.js?v=20261017-battle19";
-import { createCPU, cpuInput } from "./cpu.js?v=20261017-battle19";
-import { createInput, KEY_ACTIONS } from "./input.js?v=20261017-battle19";
-import { bindControls, protectGameSurface } from "./controls.js?v=20261017-battle19";
-import { loadArt, render, renderStageMap } from "./renderer.js?v=20261017-battle19";
-import { getStage, STAGES, platformsAt, surfaceAt } from "./stages.js?v=20261017-battle19";
-import { createBattleMusic, wantsMusic } from "./music.js?v=20261017-battle19";
-import { fighterAppearance } from "./appearance.js?v=20261017-battle19";
+} from "./engine.js?v=20261021-battle21";
+import { createCPU, cpuInput } from "./cpu.js?v=20261021-battle21";
+import { createInput, KEY_ACTIONS } from "./input.js?v=20261021-battle21";
+import { bindControls, protectGameSurface } from "./controls.js?v=20261021-battle21";
+import { loadArt, render, renderStageMap } from "./renderer.js?v=20261021-battle21";
+import { getStage, STAGES, platformsAt, surfaceAt } from "./stages.js?v=20261021-battle21";
+import { createBattleMusic, wantsMusic } from "./music.js?v=20261021-battle21";
+import { fighterAppearance, fighterLabel } from "./appearance.js?v=20261021-battle21";
 import {
   createBattleOnline,
   generateRoomCode,
   normalizeRoomCode,
-} from "./online.js?v=20261017-battle19";
+} from "./online.js?v=20261021-battle21";
 const $ = (id) => document.getElementById(id);
 const arena = $("arena"),
   preview = $("preview"),
@@ -27,6 +26,7 @@ const arena = $("arena"),
 const context = arena.getContext("2d"),
   previewContext = preview.getContext("2d");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+let siteMenuOpen = false;
 const input = createInput();
 const controlInput = bindControls(controls, input, {
   isActive: interactive,
@@ -34,7 +34,7 @@ const controlInput = bindControls(controls, input, {
 });
 let art,
   match,
-  brain,
+  brains,
   lastTime = 0,
   lastEvent = 0,
   resultShown = false;
@@ -60,12 +60,31 @@ let networkError = "",
   netRound = 0,
   netEpoch = 0;
 const onlineMode = () => $("settings").elements.mode.value === "online";
+const playerCount = () => Number($("settings").elements.players.value);
+function cpuChoices(data, count) {
+  return [data.get("opponent"), data.get("opponent2"), data.get("opponent3")].slice(0, count);
+}
+function hudSeats() {
+  return [
+    { prefix: "you", seat: localSeat, label: "you-label" },
+    { prefix: "cpu", seat: 1 - localSeat, label: "opponent-label" },
+    ...match.fighters
+      .slice(2)
+      .map((_, i) => ({ prefix: `cpu${i + 2}`, seat: i + 2, label: `cpu${i + 2}-label` })),
+  ];
+}
 function setupOptions() {
   const net = onlineMode(),
     busy = connecting || !!online;
   $("start").hidden = net;
   $("online-setup").hidden = !net;
-  $("cpu-settings").hidden = net;
+  const guest = net && roomRole === "guest",
+    four = playerCount() === 4;
+  $("player-count-settings").hidden = guest;
+  $("cpu-settings").hidden = net && (!four || guest);
+  $("cpu-character-label").textContent = four ? "CPU 1" : "相手のキャラ";
+  $("cpu-choice-2").hidden = !four;
+  $("cpu-choice-3").hidden = !four || net;
   $("stage-settings").hidden = net && roomRole === "guest";
   $("character-note").hidden = !net;
   for (const el of $("settings").querySelectorAll("input, select")) el.disabled = busy;
@@ -79,8 +98,8 @@ function setupOptions() {
   $("connect").textContent = roomRole === "host" ? "へやをつくる →" : "へやに入る →";
   $("room-help").textContent =
     roomRole === "host"
-      ? "あなたのキャラとステージで、へやをつくるよ。"
-      : "好きなキャラを選んで、相手のキーワードを入れてね。ステージは相手が選ぶよ。";
+      ? "人数・CPU・ステージを選んで、へやをつくるよ。"
+      : "好きなキャラを選んで、相手のキーワードを入れてね。人数・CPU・ステージは相手が選ぶよ。";
 }
 function leaveOnline() {
   connectionToken++;
@@ -96,6 +115,7 @@ for (const role of ["host", "join"])
   $(role + "-room").addEventListener("click", () => {
     roomRole = role === "host" ? "host" : "guest";
     setupOptions();
+    updatePreview();
   });
 $("leave-room").addEventListener("click", leaveOnline);
 $("copy-room").addEventListener("click", async () => {
@@ -111,11 +131,17 @@ let previewMatch;
 for (const stage of STAGES) renderStageMap($("map-" + stage.id), stage);
 function updatePreview() {
   const data = new FormData($("settings"));
+  const others = onlineMode()
+    ? ["random", ...(playerCount() === 4 && roomRole === "host" ? cpuChoices(data, 2) : [])]
+    : cpuChoices(data, playerCount() - 1);
+  const roster = createRoster(data.get("character"), others, () => 0);
   previewMatch = createMatch(
-    data.get("character"),
+    roster[0],
     data.get("difficulty"),
     data.get("stage"),
-    onlineMode() ? undefined : data.get("opponent"),
+    roster[1],
+    undefined,
+    roster.slice(2),
   );
   $("jump-rule").textContent = `↑ ${CHARACTERS[data.get("character")].maxJumps}段ジャンプ`;
   previewMatch.online = onlineMode();
@@ -125,7 +151,7 @@ function updatePreview() {
   $("stage-description").textContent = stage.description;
   preview.setAttribute(
     "aria-label",
-    `${stage.name}のプレビュー。${fighterAppearance(previewMatch, 0).name}と${fighterAppearance(previewMatch, 1).name}。${stage.description}`,
+    `${stage.name}のプレビュー。${previewMatch.fighters.map((_, i) => fighterAppearance(previewMatch, i).name).join("・")}。${stage.description}`,
   );
   if (art) render(previewContext, art, previewMatch, 0, true, true);
 }
@@ -214,22 +240,28 @@ function clearInput() {
   controlInput.clear();
 }
 function interactive() {
-  return match?.phase === "playing" && !networkError && !online?.info().waiting;
+  return (
+    match?.phase === "playing" &&
+    match.fighters[localSeat].stocks > 0 &&
+    !networkError &&
+    !online?.info().waiting
+  );
 }
-function startMatch(opponent) {
+function startMatch(savedRoster) {
   leaveOnline();
   localSeat = 0;
   const data = new FormData($("settings"));
+  const roster =
+    savedRoster ?? createRoster(data.get("character"), cpuChoices(data, playerCount() - 1));
   match = createMatch(
-    data.get("character"),
+    roster[0],
     data.get("difficulty"),
     data.get("stage"),
-    opponent ??
-      (isCharacter(data.get("opponent"))
-        ? data.get("opponent")
-        : chooseOpponent(data.get("character"))),
+    roster[1],
+    undefined,
+    roster.slice(2),
   );
-  brain = createCPU();
+  brains = match.fighters.map(() => createCPU());
   beginMatchUI();
   syncMusic();
   unlockAudio();
@@ -245,13 +277,15 @@ function beginMatchUI() {
   $("setup").hidden = true;
   $("match").hidden = false;
   $("match").setAttribute("aria-label", onlineMode() ? "通信対戦" : "CPU対戦");
-  $("match-stage").textContent = getStage(match.stageId).name;
+  $("match").classList.toggle("four-player", match.fighters.length === 4);
+  for (const el of document.querySelectorAll(".extra-hud")) el.hidden = match.fighters.length !== 4;
+  $("match-stage").textContent = `${match.fighters.length}人戦・${getStage(match.stageId).name}`;
   $("opponent-label").textContent = onlineMode() ? "相手" : "CPU";
   $("choose").textContent = onlineMode() ? "へやを出る" : "キャラえらびにもどる";
   $("rematch").disabled = false;
   $("rematch").textContent = "もういちど、バトル！";
-  for (const [i, prefix] of ["you", "cpu"].entries()) {
-    const look = fighterAppearance(match, i ? 1 - localSeat : localSeat);
+  for (const { prefix, seat, label } of hudSeats()) {
+    const look = fighterAppearance(match, seat);
     const char = look.character;
     $(prefix + "-name").textContent = CHARACTERS[char].name;
     $(prefix + "-icon").src = art.portraits[`${look.key}-icon`];
@@ -259,16 +293,18 @@ function beginMatchUI() {
     $(prefix + "-name")
       .closest(".fighter-hud")
       .style.setProperty("--fighter-ink", look.ink);
-    const player = i ? (onlineMode() ? "相手" : "CPU") : "YOU";
-    $(i ? "opponent-label" : "you-label").textContent =
-      player + (look.alternate ? `・${look.label}` : "");
+    const player = fighterLabel(match, seat, localSeat, onlineMode());
+    $(label).textContent = player;
+    $(prefix + "-name")
+      .closest(".fighter-hud")
+      .setAttribute("aria-label", `${player}・${look.name}`);
     $(prefix + "-name").closest(".fighter-hud").dataset.character = char;
   }
   $("match-status").textContent = "もうすぐ、はじまるよ！";
   fit(arena);
   updateHUD();
   arena.focus({ preventScroll: true });
-  $("match").scrollIntoView({ block: "start", behavior: "instant" });
+  window.scrollTo({ top: 0, behavior: "instant" });
 }
 function onlineChanged(state) {
   if (!state.game || networkError) return;
@@ -287,8 +323,12 @@ function onlineChanged(state) {
     $("pause-title").textContent =
       match.beforePause === "countdown" ? "ふたりの準備" : "ひとやすみ中";
     $("match-characters").hidden = false;
-    $("match-characters").textContent =
-      `あなた：${fighterAppearance(match, localSeat).name}\n相手：${fighterAppearance(match, 1 - localSeat).name}`;
+    $("match-characters").textContent = hudSeats()
+      .map(
+        ({ seat }) =>
+          `${fighterLabel(match, seat, localSeat, true)}：${fighterAppearance(match, seat).name}`,
+      )
+      .join("\n");
     $("pause-note").textContent = state.ready[1 - localSeat]
       ? "相手は準備OK！ あなたの準備ができたら始めよう。"
       : "ふたりが「準備OK！」を押すと始まるよ。";
@@ -299,7 +339,7 @@ function onlineChanged(state) {
         ? "相手と確認中…"
         : "準備OK！";
     $("quit").textContent = "へやを出る";
-    if (!$("pause-dialog").open) $("pause-dialog").showModal();
+    if (!siteMenuOpen && !$("pause-dialog").open) $("pause-dialog").showModal();
   } else $("pause-dialog").close();
   if (match.phase === "finished") {
     $("rematch").disabled = state.rematch[localSeat] || state.waiting;
@@ -327,7 +367,7 @@ function onlineFailed(error) {
   $("resume").disabled = true;
   $("resume").textContent = "つなぎ直しが必要です";
   $("quit").textContent = "へやを出る";
-  if (!$("pause-dialog").open) $("pause-dialog").showModal();
+  if (!siteMenuOpen && !$("pause-dialog").open) $("pause-dialog").showModal();
 }
 async function connectRoom() {
   if (connecting || online) return;
@@ -355,6 +395,9 @@ async function connectRoom() {
       roomCode,
       character: data.get("character"),
       stageId: data.get("stage"),
+      playerCount: Number(data.get("players")),
+      cpuCharacters: cpuChoices(data, 2),
+      difficulty: data.get("difficulty"),
       onChange: (state) => {
         if (token === connectionToken) onlineChanged(state);
       },
@@ -398,7 +441,7 @@ function toMenu() {
   fit(preview);
   render(previewContext, art, previewMatch, 0, true, true);
   $(onlineMode() ? "connect" : "start").focus({ preventScroll: true });
-  $("setup").scrollIntoView({ block: "start", behavior: "instant" });
+  window.scrollTo({ top: 0, behavior: "instant" });
 }
 function pauseMatch() {
   clearInput();
@@ -415,7 +458,7 @@ function pauseMatch() {
   $("resume").disabled = false;
   $("resume").textContent = "つづける";
   $("quit").textContent = "キャラえらびにもどる";
-  $("pause-dialog").showModal();
+  if (!siteMenuOpen) $("pause-dialog").showModal();
   if (audio?.state === "running") void audio.suspend().catch(() => {});
 }
 function resumeMatch() {
@@ -436,6 +479,17 @@ function resumeMatch() {
   arena.focus({ preventScroll: true });
 }
 $("pause").addEventListener("click", pauseMatch);
+window.addEventListener("takumegu-menu", (event) => {
+  siteMenuOpen = event.detail.open;
+  if (siteMenuOpen) {
+    clearInput();
+    if (match && ["playing", "countdown"].includes(match.phase)) pauseMatch();
+  } else if (match && (match.phase === "paused" || networkError) && !$("pause-dialog").open) {
+    $("pause-dialog").showModal();
+  } else if (match?.phase === "finished" && !$("result-dialog").open) {
+    $("result-dialog").showModal();
+  }
+});
 $("resume").addEventListener("click", resumeMatch);
 $("quit").addEventListener("click", toMenu);
 $("choose").addEventListener("click", toMenu);
@@ -445,7 +499,7 @@ $("rematch").addEventListener("click", () => {
     return;
   }
   $("result-dialog").close();
-  startMatch(match.fighters[1].character);
+  startMatch(match.fighters.map((f) => f.character));
 });
 $("pause-dialog").addEventListener("cancel", (e) => {
   e.preventDefault();
@@ -465,8 +519,6 @@ function showResult() {
     winner === null ? "NICE BATTLE!" : winner === localSeat ? "YOU WIN!" : "GOOD TRY!";
   $("result-title").textContent = winner === null ? "なかよく、ひきわけ！" : `${look.name}の勝ち！`;
   $("result-art").src = art.portraits[`${look.key}-win`];
-  const you = match.fighters[localSeat],
-    cpu = match.fighters[1 - localSeat];
   $("result-detail").textContent =
     (match.reason === "time"
       ? "時間いっぱい！ 残り回数 → 低い％で判定。"
@@ -475,13 +527,22 @@ function showResult() {
         : winner === localSeat
           ? "やったね！ 最後まで残れたよ。"
           : "おつかれさま。もうひと勝負してみよう！") +
-    `\nあなた ${you.stocks}回・${Math.round(you.damage)}% ／ ${online ? "相手" : "CPU"} ${cpu.stocks}回・${Math.round(cpu.damage)}%`;
+    "\n" +
+    hudSeats()
+      .map(({ seat }) => {
+        const f = match.fighters[seat];
+        return `${fighterLabel(match, seat, localSeat, !!online)} ${f.stocks}回・${Math.round(f.damage)}%`;
+      })
+      .join(match.fighters.length === 4 ? "\n" : " ／ ");
   $("match-status").textContent = winner === null ? "いい勝負だったね！" : `${look.name}の勝ち！`;
-  $("result-dialog").showModal();
+  if (!siteMenuOpen) $("result-dialog").showModal();
 }
 function updateHUD() {
-  for (const [i, prefix] of ["you", "cpu"].entries()) {
-    const f = match.fighters[i ? 1 - localSeat : localSeat];
+  for (const { prefix, seat } of hudSeats()) {
+    const f = match.fighters[seat];
+    $(prefix + "-name")
+      .closest(".fighter-hud")
+      .classList.toggle("eliminated", !f.stocks);
     const damageHTML = `${Math.round(f.damage)}<small>%</small>`;
     if ($(prefix + "-damage").innerHTML !== damageHTML)
       $(prefix + "-damage").innerHTML = damageHTML;
@@ -494,17 +555,28 @@ function updateHUD() {
   const sec = Math.ceil(match.remaining);
   $("timer").textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
   const f = match.fighters[localSeat];
-  const specialStatus = f.airSpecial
-    ? "ひっさつ 着地で回復"
-    : f.specialCooldown > 0
-      ? "ひっさつ じゅんび中"
-      : "ひっさつ OK";
+  const spectating = !f.stocks && match.phase !== "finished";
+  $("spectator").hidden = !spectating;
+  controls.classList.toggle("spectating", spectating);
+  const specialStatus = !f.stocks
+    ? "観戦中"
+    : f.airSpecial
+      ? "ひっさつ 着地で回復"
+      : f.specialCooldown > 0
+        ? "ひっさつ じゅんび中"
+        : "ひっさつ OK";
   if ($("special-status").textContent !== specialStatus)
     $("special-status").textContent = specialStatus;
-  $("special-button").classList.toggle("is-unavailable", f.airSpecial || f.specialCooldown > 0);
+  $("special-button").classList.toggle(
+    "is-unavailable",
+    !f.stocks || f.airSpecial || f.specialCooldown > 0,
+  );
   controls
     .querySelector('[data-action="guard"]')
-    .classList.toggle("is-unavailable", !f.grounded || f.guardLock > 0 || f.shield <= 0);
+    .classList.toggle(
+      "is-unavailable",
+      !f.stocks || !f.grounded || f.guardLock > 0 || f.shield <= 0,
+    );
 }
 window.addEventListener("keydown", (e) => {
   if (!match || e.isComposing || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -555,7 +627,11 @@ function frame(now) {
   if (art && match) {
     if (online) online.update(seconds, () => input.consume());
     else if (!connecting)
-      advance(match, seconds, () => [input.consume(), cpuInput(match, brain, STEP)]);
+      advance(match, seconds, () =>
+        match.fighters.map((_, i) =>
+          i === 0 ? input.consume() : cpuInput(match, brains[i], STEP, i),
+        ),
+      );
     syncMusic();
     for (const event of match.events)
       if (event.id > lastEvent) {

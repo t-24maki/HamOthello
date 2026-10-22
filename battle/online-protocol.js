@@ -4,10 +4,11 @@ import {
   isCharacter,
   MATCH_TIME,
   STOCKS,
-} from "./engine.js?v=20261017-battle19";
-import { STAGES } from "./stages.js?v=20261017-battle19";
-import { GIANT_DURATION } from "./items.js?v=20261017-battle19";
-export const PROTOCOL = "poyon-online-20261017-10";
+  matchWinner,
+} from "./engine.js?v=20261021-battle21";
+import { STAGES } from "./stages.js?v=20261021-battle21";
+import { GIANT_DURATION } from "./items.js?v=20261021-battle21";
+export const PROTOCOL = "poyon-online-20261021-12";
 export const SEND_MS = 100;
 export const ACTIONS = ["jump", "attack", "special"];
 export const emptyEdges = () => ({ jump: 0, attack: 0, special: 0 });
@@ -42,7 +43,7 @@ const fighterNumbers = {
   giantTime: [0, GIANT_DURATION],
 };
 const fighterFlags = ["grounded", "guarding", "airSpecial", "giant"];
-function readFighter(f, base, stage) {
+function readFighter(f, base, stage, index, count) {
   if (
     !f ||
     !isCharacter(f.character) ||
@@ -69,6 +70,17 @@ function readFighter(f, base, stage) {
     )
       return null;
     attack = { kind: a.kind, hit: a.hit, duration: a.duration, age: a.age };
+    if (a.hitTargets !== undefined) {
+      if (
+        !Array.isArray(a.hitTargets) ||
+        a.hitTargets.length > count - 1 ||
+        !a.hitTargets.every((i) => int(i, 0, count - 1) && i !== index) ||
+        new Set(a.hitTargets).size !== a.hitTargets.length ||
+        a.hit !== a.hitTargets.length > 0
+      )
+        return null;
+      attack.hitTargets = [...a.hitTargets];
+    }
   }
   return {
     ...base,
@@ -83,6 +95,7 @@ function readFighter(f, base, stage) {
   };
 }
 export function readGame(raw) {
+  const count = Array.isArray(raw?.fighters) ? raw.fighters.length : 0;
   if (
     !raw ||
     !STAGES.some((s) => s.id === raw.stageId) ||
@@ -91,10 +104,11 @@ export function readGame(raw) {
     !num(raw.elapsed, 0, MATCH_TIME + 0.01) ||
     !num(raw.countdown, 0, 2.6) ||
     !int(raw.eventId) ||
-    ![null, 0, 1].includes(raw.winner) ||
+    !(raw.winner === null || int(raw.winner, 0, count - 1)) ||
+    !["easy", "normal", "hard"].includes(raw.difficulty) ||
     !["", "stocks", "time"].includes(raw.reason) ||
     !Array.isArray(raw.fighters) ||
-    raw.fighters.length !== 2 ||
+    ![2, 4].includes(count) ||
     !Array.isArray(raw.events) ||
     raw.events.length > 32
   )
@@ -121,12 +135,21 @@ export function readGame(raw) {
     potion = { x: p.x, y: p.y, vy: p.vy, platformId: p.platformId };
   }
   if (raw.phase === "paused" && !["playing", "countdown"].includes(raw.beforePause)) return null;
-  const g = createMatch("tak", "normal", raw.stageId, undefined, 0);
+  const g = createMatch(
+    "tak",
+    raw.difficulty,
+    raw.stageId,
+    undefined,
+    0,
+    count === 4 ? ["ham", "tapi"] : [],
+  );
   g.fighters = raw.fighters.map((f, i) =>
     readFighter(
       f,
       g.fighters[i],
       STAGES.find((s) => s.id === raw.stageId),
+      i,
+      count,
     ),
   );
   if (g.fighters.some((f) => !f)) return null;
@@ -135,7 +158,7 @@ export function readGame(raw) {
     raw.phase === "finished" &&
     (raw.reason === "" ||
       (raw.reason === "time" && raw.remaining !== 0) ||
-      (raw.reason === "stocks" && g.fighters.every((f) => f.stocks > 0)))
+      (raw.reason === "stocks" && g.fighters.filter((f) => f.stocks > 0).length > 1))
   )
     return null;
   if (!Array.isArray(raw.effects) || raw.effects.length > 64) return null;
@@ -154,18 +177,7 @@ export function readGame(raw) {
     effects.push({ type: e.type, x: e.x, y: e.y, life: e.life, age: e.age, color: e.color });
   }
   if (raw.phase === "finished") {
-    const [a, b] = g.fighters;
-    const winner =
-      a.stocks !== b.stocks
-        ? a.stocks > b.stocks
-          ? 0
-          : 1
-        : a.damage !== b.damage
-          ? a.damage < b.damage
-            ? 0
-            : 1
-          : null;
-    if (winner !== raw.winner) return null;
+    if (matchWinner(g.fighters) !== raw.winner) return null;
   }
   const types = [
     "start",
@@ -183,7 +195,7 @@ export function readGame(raw) {
   const events = [];
   for (const e of raw.events) {
     if (!e || !int(e.id, 1, raw.eventId) || e.id <= prev || !types.includes(e.type)) return null;
-    if (e.type === "out" && ![0, 1].includes(e.player)) return null;
+    if (e.type === "out" && !int(e.player, 0, count - 1)) return null;
     prev = e.id;
     events.push({ id: e.id, type: e.type, ...(e.type === "out" ? { player: e.player } : {}) });
   }
@@ -206,6 +218,7 @@ export function readGame(raw) {
 export function gameView(g) {
   const {
     stageId,
+    difficulty,
     phase,
     beforePause,
     remaining,
@@ -221,6 +234,7 @@ export function gameView(g) {
   } = g;
   return structuredClone({
     stageId,
+    difficulty,
     phase,
     beforePause,
     remaining,

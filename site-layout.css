@@ -1,0 +1,61 @@
+/* Reserve the header before its module loads; opening navigation never moves the board. */
+takumegu-header {
+  display: block;
+  min-height: 76px;
+  position: relative;
+  z-index: 5;
+}
+html.site-menu-open {
+  overflow: hidden;
+}
+takumegu-header > button {
+  font:
+    600 11px/1.3 "Hiragino Sans",
+    sans-serif;
+  min-height: 40px;
+  padding: 8px;
+  border: 1px solid #e4d8ca;
+  border-radius: 12px;
+  background: #fffdf7;
+  color: #806857;
+  white-space: nowrap;
+  margin: 0;
+}
+body[data-site-page] {
+  margin-top: 0;
+}
+body[data-site-page="mahjong"] .heading {
+  padding-top: 16px;
+}
+body[data-site-page="mahjong"]:has(#match:not([hidden])) .heading {
+  padding-top: 12px;
+}
+body[data-site-page="battle"] #match {
+  max-width: min(1024px, calc((100svh - 376px) * 1.6));
+}
+@media (max-width: 650px) {
+  takumegu-header {
+    min-height: 60px;
+  }
+  body[data-site-page="battle"] #match {
+    max-width: min(1024px, calc((100svh - 360px) * 1.6));
+  }
+}
+@media (max-width: 760px) {
+  body[data-site-page="sanpo"] .play-stage {
+    height: clamp(375px, calc(100svh - 343px), 545px);
+  }
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  takumegu-header {
+    min-height: 44px;
+  }
+  body[data-site-page="battle"] #match {
+    max-width: none;
+    height: calc(100svh - 44px);
+  }
+  body[data-site-page="sanpo"] .play-stage {
+    height: calc(100svh - 161px);
+    min-height: 180px;
+  }
+}

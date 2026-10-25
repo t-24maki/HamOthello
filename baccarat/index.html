@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#fff9ef" />
+    <title>バカラもどき | たくめぐのあそびば</title>
+    <meta
+      name="description"
+      content="表情に、ちょっとだけヒント。たくハムたちと卓を囲む、4匹のカードあそび。合計の1の位で勝負！"
+    />
+    <link rel="preload" as="image" href="./art/paw-coin.png" />
+    <link rel="stylesheet" href="./style.css?v=20261025-baccarat8" />
+    <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
+    <script type="module" src="../site-header.js?v=20261025-site5"></script>
+    <script type="module" src="./game.js?v=20261025-baccarat7"></script>
+  </head>
+  <body data-site-page="baccarat">
+    <takumegu-header data-page="baccarat"
+      ><button id="change-character" slot="actions" hidden>キャラを選ぶ</button></takumegu-header
+    >
+    <main>
+      <header class="heading">
+        <p class="eyebrow">TAK&MEG / A LITTLE POKER FACE</p>
+        <h1>バカラもどき</h1>
+        <p class="lead">そのお顔、いいカード持ってる？</p>
+      </header>
+      <section id="setup" aria-label="あそぶキャラを選ぶ">
+        <div class="invitation" aria-hidden="true">
+          <div class="invitation-friends" id="invitation-friends"></div>
+          <div class="little-table">TAK&MEG</div>
+        </div>
+        <p class="choose-label">自分のキャラクターを選んでね</p>
+        <div class="character-choices" id="characters" role="group" aria-label="自分のキャラ"></div>
+        <button id="start" class="primary" disabled>キャラを選んでね</button>
+        <p class="setup-note">10チップからスタート · 毎局1枚参加 · 目標20枚</p>
+      </section>
+      <section id="match" hidden aria-label="4匹のカード勝負">
+        <div class="round-line">
+          <span id="round-number">第1局</span><span id="pot-total"></span
+          ><span>目標 <b>20</b> 枚</span>
+        </div>
+        <div class="scene" id="scene">
+          <div class="table"><div class="table-stitch"></div></div>
+          <div class="opponents">
+            <section class="seat seat-left" id="seat-2"></section>
+            <section class="seat seat-top" id="seat-1"></section>
+            <section class="seat seat-right" id="seat-3"></section>
+          </div>
+          <section class="self-seat" id="seat-0"></section>
+        </div>
+        <div class="console">
+          <p id="status" role="status" aria-live="polite"></p>
+          <div class="actions" id="actions">
+            <button id="draw" class="primary" aria-label="1チップ払ってもう1枚ひく">
+              <span>もう1枚ひく</span
+              ><small><span class="coin" aria-hidden="true"></span>1チップ</small></button
+            ><button id="stand">このまま勝負</button
+            ><button id="reveal" class="primary" hidden>せーので、オープン！</button
+            ><button id="next" class="primary" hidden>次の局へ</button>
+          </div>
+          <p class="action-note" id="action-note">追加は1チップ。引いたカードはみんなに公開。</p>
+        </div>
+      </section>
+      <dialog id="final-result" aria-labelledby="final-title">
+        <p class="eyebrow">TAK&MEG / FINAL RESULT</p>
+        <h2 id="final-title"></h2>
+        <p id="final-note"></p>
+        <ol id="final-ranking"></ol>
+        <button id="restart" class="primary">もう一度あそぶ</button>
+        <button id="final-characters">キャラを選ぶ</button>
+      </dialog>
+      <details class="howto">
+        <summary>あそびかた・みんなのお顔のヒント</summary>
+        <div class="instructions">
+          <p>
+            金・銀・銅の1〜9、ミニポーカーと同じ<b>27枚</b>。4匹に2枚ずつ配るよ。1枚はみんなに見せて、もう1枚は自分だけのひみつ。
+          </p>
+          <p>
+            合計の<b>1の位がいちばん大きい子の勝ち</b>。例えば8＋9＝17なら「7」。9がいちばん強く、0がいちばん弱いよ。カードの色に強弱はなく、同点トップなら<b>判断順が早い子の勝ち</b>。
+          </p>
+          <p>
+            全員<b>10チップ</b>から開始。毎局1枚ずつ場に出し、親から時計回りに判断します。最初の親はランダム、次の局ではとなりの子が親になるよ。名前の横の「親・2・3・4」が判断順です。
+          </p>
+          <p>
+            <b>このまま勝負</b
+            >か、<b>1チップを場に追加してもう1枚引く</b>か選びます。追加カードはすぐにみんなに公開。持ちチップが0枚のときは追加できません。4匹が決めたら「せーので、オープン！」で答え合わせ。
+          </p>
+          <p>
+            勝った子が場のチップを総取り。<b>清算後に誰かが20枚以上、または0枚になったら終了</b>し、チップが最も多い子が優勝です。同数なら同時優勝。支払いで一時的に0枚になっても、その局に勝てば復活できます。
+          </p>
+          <div id="expression-guide" class="expression-guide"></div>
+          <p class="fine-print">
+            お顔のヒントは<b>最初の2枚の1の位</b>。もう1枚引いたあとも、お顔はそのまま。結果が出たら、勝利・敗北のポーズになるよ。CPUも、自分のカード・公開カード・お顔のヒントから考えます。
+          </p>
+        </div>
+      </details>
+      <footer>まあるい卓で、のんびり読みあい。<span>TAK&MEG</span></footer>
+    </main>
+    <noscript>このゲームを遊ぶにはJavaScriptを有効にしてください。</noscript>
+  </body>
+</html>

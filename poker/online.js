@@ -1,3 +1,4 @@
+import { isCharacter, tableCharacters } from "./characters.js?v=poker-dilemma-20261025";
 import {
   createOnlineSession,
   generateRoomCode,
@@ -10,13 +11,14 @@ import {
   applyOnlineAction,
   playerView,
   validView,
-} from "./online-rules.js?v=poker-scoreboard-20261022";
-import { matchResult } from "./rules.js?v=poker-scoreboard-20261022";
+} from "./online-rules.js?v=poker-dilemma-20261025";
+import { matchResult } from "./rules.js?v=poker-dilemma-20261025";
 export { generateRoomCode, normalizeRoomCode, isOnlineConfigured };
 
 export async function createPokerMatch({
   role,
   roomCode,
+  character = role === "host" ? "tak" : "meg",
   onView = () => {},
   onStatus = () => {},
   onError = () => {},
@@ -24,6 +26,8 @@ export async function createPokerMatch({
   random = Math.random,
   timers = globalThis,
 }) {
+  if (!isCharacter(character)) throw new Error("キャラを選んでね。");
+  let guestCharacter = null;
   let transport = null,
     ready = false,
     stopped = false,
@@ -81,13 +85,26 @@ export async function createPokerMatch({
     if (!ready || !transport || stopped) return;
     onStatus("connected");
     if (role === "host") {
-      if (!state) state = createOnlineRound(transport.clientId, 1, random);
+      if (!state && guestCharacter)
+        state = createOnlineRound(
+          transport.clientId,
+          1,
+          random,
+          null,
+          tableCharacters(character, guestCharacter),
+        );
       publish();
-    } else send({ type: "sync" });
+    } else send({ type: "sync", character });
   }
   function receive(message) {
     if (stopped || message?.protocol !== POKER_PROTOCOL) return;
     if (role === "host") {
+      if (message.type === "sync" && isCharacter(message.character)) {
+        if (!guestCharacter) guestCharacter = message.character;
+        if (!state) announce();
+        else send({ type: "view", view: playerView(state, 1) });
+        return;
+      }
       if (!state) return;
       if (message.type === "action") {
         const next = applyOnlineAction(state, 1, message.action, random);
@@ -146,7 +163,7 @@ export async function createPokerMatch({
         return;
       }
       send({ type: "action", action: pending });
-    } else if (role === "guest") send({ type: "sync" });
+    } else if (role === "guest") send({ type: "sync", character });
   }, 1200);
   return {
     close,

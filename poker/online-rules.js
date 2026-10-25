@@ -1,3 +1,4 @@
+import { validExpression } from "./characters.js?v=poker-dilemma-20261025";
 import {
   MATCH_ROUNDS,
   WINS_TO_WIN,
@@ -8,13 +9,22 @@ import {
   matchResult,
   exchangeCards,
   evaluateHand,
-} from "./rules.js?v=poker-scoreboard-20261022";
+  exchangeCpuPlayers,
+} from "./rules.js?v=poker-dilemma-20261025";
 
-export const POKER_PROTOCOL = "mini-poker-20261022-3";
+export const POKER_PROTOCOL = "mini-poker-20261025-7";
 
-export function createOnlineRound(matchId, roundId = 1, random = Math.random, previous = null) {
+export function createOnlineRound(
+  matchId,
+  roundId = 1,
+  random = Math.random,
+  previous = null,
+  characters = ["tak", "meg", "ham", "tapi"],
+) {
+  const base = previous ? nextRound(previous, random) : createRound("cpu", random, characters);
+  if (!base) return null;
   return {
-    ...(previous ? nextRound(previous, random) : createRound("cpu", random)),
+    ...exchangeCpuPlayers(base, [2, 3]),
     mode: "online",
     matchId,
     roundId,
@@ -72,14 +82,20 @@ export function applyOnlineAction(state, player, action, random = Math.random) {
     const proceed = [...state.proceed];
     proceed[player] = true;
     if (proceed.every(Boolean))
-      return createOnlineRound(state.matchId, state.roundId + 1, random, final ? null : state);
+      return createOnlineRound(
+        state.matchId,
+        state.roundId + 1,
+        random,
+        final ? null : state,
+        state.characters,
+      );
     return { ...state, proceed, revision: state.revision + 1 };
   }
   return null;
 }
 
-// The host keeps the deck and its own cards local. A guest snapshot contains
-// only the guest's hand until both players explicitly reveal their hands.
+// Only each recipient's hand is sent before showdown, including CPU hands.
+// Initial cards stay on the host; later expression hints can be sent as public poses.
 export function playerView(state, player) {
   return {
     protocol: POKER_PROTOCOL,
@@ -88,6 +104,8 @@ export function playerView(state, player) {
     seriesStart: state.seriesStart,
     roundNumber: state.roundNumber,
     wins: [...state.wins],
+    characters: [...state.characters],
+    expressions: [...state.expressions],
     history: [...state.history],
     revision: state.revision,
     phase: state.phase,
@@ -120,17 +138,24 @@ export function validView(view, player = 1) {
     view.roundId !== view.seriesStart + view.roundNumber - 1 ||
     !Array.isArray(view.history) ||
     view.history.length !== view.roundNumber - (view.phase === "result" ? 0 : 1) ||
-    view.history.some((winner) => ![0, 1, null].includes(winner)) ||
+    view.history.some((winner) => ![0, 1, 2, 3].includes(winner)) ||
     !Array.isArray(view.wins) ||
-    view.wins.length !== 2 ||
+    view.wins.length !== 4 ||
     view.wins.some((wins, p) => wins !== view.history.filter((winner) => winner === p).length) ||
     !Number.isInteger(view.revision) ||
     view.revision < 0 ||
     !["choose", "result"].includes(view.phase) ||
+    ["deck", "discards", "initialHands"].some((key) => Object.hasOwn(view, key)) ||
+    !Array.isArray(view.characters) ||
+    view.characters.length !== 4 ||
+    view.characters.some((c) => !["tak", "meg", "ham", "tapi"].includes(c)) ||
+    !Array.isArray(view.expressions) ||
+    view.expressions.length !== 4 ||
+    view.expressions.some((pose, p) => !validExpression(view.characters[p], pose)) ||
     !Array.isArray(view.hands) ||
-    view.hands.length !== 2 ||
+    view.hands.length !== 4 ||
     !Array.isArray(view.exchanges) ||
-    view.exchanges.length !== 2 ||
+    view.exchanges.length !== 4 ||
     view.exchanges.some((n) => n !== null && (!Number.isInteger(n) || n < 0 || n > 3)) ||
     ![view.ready, view.proceed].every(
       (values) =>
@@ -138,10 +163,11 @@ export function validView(view, player = 1) {
     ) ||
     !Number.isInteger(view.deckCount) ||
     !Number.isInteger(view.discardCount) ||
-    view.deckCount < 15 ||
-    view.deckCount > 21 ||
+    view.deckCount < 3 ||
+    view.deckCount > 15 ||
     view.discardCount !== view.exchanges.reduce((sum, count) => sum + (count ?? 0), 0) ||
-    view.deckCount + view.discardCount !== 21 ||
+    view.deckCount + view.discardCount !== 15 ||
+    view.exchanges.slice(2).some((n) => n === null) ||
     view.ready.some((ready, i) => ready && view.exchanges[i] === null) ||
     (view.phase === "result") !== view.ready.every(Boolean) ||
     (view.phase !== "result" && view.proceed.some(Boolean))
@@ -149,15 +175,17 @@ export function validView(view, player = 1) {
     return false;
   // A series cannot continue after either player has already earned three wins.
   const previousResults = view.phase === "result" ? view.history.slice(0, -1) : view.history;
-  if ([0, 1].some((p) => previousResults.filter((winner) => winner === p).length >= WINS_TO_WIN))
+  if (
+    [0, 1, 2, 3].some((p) => previousResults.filter((winner) => winner === p).length >= WINS_TO_WIN)
+  )
     return false;
   try {
     evaluateHand(view.hands[player]);
     if (view.phase === "result") {
-      evaluateHand(view.hands[1 - player]);
-      if (new Set(view.hands.flat().map((card) => card.id)).size !== 6) return false;
+      view.hands.forEach(evaluateHand);
+      if (new Set(view.hands.flat().map((card) => card.id)).size !== 12) return false;
       if (view.history.at(-1) !== roundResult(view).winner) return false;
-    } else if (view.hands[1 - player] !== null) return false;
+    } else if (view.hands.some((hand, i) => i !== player && hand !== null)) return false;
   } catch {
     return false;
   }

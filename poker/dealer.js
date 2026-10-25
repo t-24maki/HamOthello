@@ -23,6 +23,7 @@ export function createDealer({ window, layer, deck, discard }) {
   async function fly(cards, direction) {
     if (
       !cards.length ||
+      window.document?.hidden ||
       window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
       !deck.animate
     )

@@ -43,6 +43,11 @@ let connecting = false,
   connectionStatus = "",
   networkEpoch = 0;
 let lastAction = -Infinity;
+let keyboardNavigation = false;
+document.addEventListener("keydown", (event) => {
+  if (["Tab", "Enter", " "].includes(event.key)) keyboardNavigation = true;
+});
+document.addEventListener("pointerdown", () => (keyboardNavigation = false), { passive: true });
 const self = () => (mode === "online" ? seat : 0);
 const canChoose = () => round?.phase === "choose" && !visualBusy && !pendingAction && !networkError;
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -159,7 +164,10 @@ function animateFriends() {
   });
 }
 function focusTurn() {
-  $("turn-title").focus({ preventScroll: true });
+  // Touch play needs no focus transfer; VoiceOver receives the live status.
+  // Keep keyboard navigation useful without triggering Safari's focus scrolling.
+  if (keyboardNavigation && !document.querySelector("dialog[open]"))
+    $("main-action").focus({ preventScroll: true });
 }
 async function startCpu(next = createRound("cpu", Math.random, tableCharacters(character))) {
   cancelPresentation();
@@ -222,7 +230,9 @@ async function drainOnlineViews() {
     };
     const opening = !round || round.matchId !== next.matchId || round.roundId !== next.roundId;
     const reveal = next.phase === "result" && round?.phase !== "result";
-    const focusIndex = document.activeElement?.dataset.index ?? null;
+    const focusIndex = document.activeElement?.matches(":focus-visible")
+      ? (document.activeElement.dataset.index ?? null)
+      : null;
     const before = round;
     const exchanged = opening
       ? [2, 3]
@@ -363,8 +373,14 @@ function drawHand(container, hand, own, result) {
         if (!canChoose()) return;
         if (selected.has(i)) selected.delete(i);
         else selected.add(i);
-        render();
-        $("seat-self").querySelector(`[data-index="${i}"]`).focus({ preventScroll: true });
+        node.classList.toggle("is-selected", selected.has(i));
+        node.setAttribute("aria-pressed", String(selected.has(i)));
+        node.setAttribute(
+          "aria-label",
+          `${METALS[card.metal].name}の${card.value}、${selected.has(i) ? "チェンジする" : "キープする"}`,
+        );
+        label.textContent = selected.has(i) ? "✓ チェンジ" : "キープ";
+        renderControls();
       });
     }
     if (own && round.phase === "review" && changed.has(i)) node.classList.add("fresh-card");
@@ -482,10 +498,13 @@ function updateFinal() {
       : "もう一度対戦する";
 }
 function render() {
+  const entering = round !== null && !document.body.classList.contains("playing");
   $("setup").hidden = round !== null;
   $("game").hidden = round === null;
   $("settings").hidden = round === null;
+  $("match-info").hidden = round === null;
   document.body.classList.toggle("playing", round !== null);
+  if (entering) window.scrollTo({ top: 0, behavior: "instant" });
   if (!round) {
     renderSetup();
     return;
@@ -503,6 +522,12 @@ function render() {
   opponents().forEach((p, i) => renderSeat(["seat-left", "seat-top", "seat-right"][i], p, result));
   renderSeat("seat-self", self(), result);
   $("match-round").textContent = `第${round.roundNumber}回戦`;
+  renderControls();
+  if (final) updateFinal();
+}
+function renderControls() {
+  const result = roundResult(round),
+    final = matchResult(round);
   let title = "",
     hint = "",
     label = "",
@@ -565,7 +590,6 @@ function render() {
   $("turn-hint").textContent = hint;
   button.textContent = label;
   $("selection-note").textContent = note;
-  if (final) updateFinal();
 }
 function doMainAction() {
   if (!round || visualBusy || pendingAction || networkError) return;
@@ -652,9 +676,10 @@ onAction("deal", () => {
   if (!character) return;
   if (mode === "cpu") {
     startCpu();
-    window.scrollTo({ top: 0, behavior: "instant" });
   } else void connectOnline();
 });
+onAction("show-rules", () => $("rules").showModal());
+onAction("close-rules", () => $("rules").close());
 onAction("settings", backToSetup);
 onAction("main-action", doMainAction);
 onAction("rematch", () => {

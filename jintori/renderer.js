@@ -4,11 +4,20 @@ import {
   PLAYERS,
   bodyScale,
   GIANT_FRAMES,
-} from "./engine.js?v=20261022-jintori4";
-const wallColor = (game) => (game.fieldId === "garden" ? "#bed3a8" : "#bedbe0");
+  DASH_FRAMES,
+  OPEN_FRAME,
+  playerInfo,
+  fieldById,
+  makeFloor,
+} from "./engine.js?v=20261026-jintori6";
+const wallColor = (game) =>
+  ["garden", "opening", "corridors", "warp", "item-park"].includes(game.fieldId)
+    ? "#bed3a8"
+    : "#bedbe0";
 
 // Show the final ownership of every small cell without characters covering it.
 export function renderPaintMap(canvas, game) {
+  const players = game.players.map((_, i) => playerInfo(game, i));
   const ctx = canvas.getContext("2d"),
     tile = canvas.width / PAINT_SIZE;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -16,7 +25,7 @@ export function renderPaintMap(canvas, game) {
     ctx.fillStyle = !game.paintFloor[i]
       ? wallColor(game)
       : game.paint[i] > 0
-        ? PLAYERS[game.paint[i] - 1].color
+        ? players[game.paint[i] - 1].color
         : "#faf3e4";
     ctx.fillRect((i % PAINT_SIZE) * tile, Math.floor(i / PAINT_SIZE) * tile, tile, tile);
   }
@@ -53,6 +62,7 @@ export function portrait(ctx, image, index, x, y, size) {
   else ctx.drawImage(image, x, y, size, size);
 }
 export function render(canvas, game, art = [], seat = 0, time = 0, preview = false) {
+  const players = game.players.map((_, i) => playerInfo(game, i));
   const ctx = canvas.getContext("2d"),
     unit = canvas.width / SIZE,
     tile = canvas.width / PAINT_SIZE;
@@ -76,7 +86,7 @@ export function render(canvas, game, art = [], seat = 0, time = 0, preview = fal
     const color = game.paint[i];
     ctx.fillStyle =
       color > 0
-        ? PLAYERS[color - 1].color
+        ? players[color - 1].color
         : ((i % PAINT_SIZE) + Math.floor(i / PAINT_SIZE)) % 2
           ? "#fff8e9"
           : "#f7efdf";
@@ -106,16 +116,112 @@ export function render(canvas, game, art = [], seat = 0, time = 0, preview = fal
     }
     ctx.stroke();
   }
+  if (game.fieldId === "opening") {
+    const closed = makeFloor("opening"),
+      opened = makeFloor("opening", OPEN_FRAME);
+    opened.forEach((floor, i) => {
+      if (!floor || closed[i]) return;
+      const x = (i % SIZE) * unit,
+        y = Math.floor(i / SIZE) * unit;
+      ctx.fillStyle = game.terrainVersion ? "#fff4b744" : "#cab289";
+      ctx.fillRect(x, y, unit, unit);
+      if (!game.terrainVersion) {
+        ctx.strokeStyle = "#8d7657";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x + 3, y + 3, unit - 6, unit - 6);
+      }
+    });
+    if (game.frame >= OPEN_FRAME && game.frame < OPEN_FRAME + 100) {
+      ctx.fillStyle = "#fff9eedf";
+      ctx.fillRect(unit * 7, unit * 9, unit * 11, unit * 1.8);
+      ctx.fillStyle = "#6c584b";
+      ctx.font = `bold ${unit * 0.8}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("門がひらいた！", unit * 12.5, unit * 9.9);
+    }
+  }
+  for (const [px, py] of fieldById(game.fieldId).portals || []) {
+    ctx.save();
+    ctx.translate(px * unit, py * unit);
+    ctx.fillStyle = "#f5e8ffc9";
+    ctx.strokeStyle = "#7455ad";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, unit * 0.92, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = "#b693df";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, unit * 0.64, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let n = 0; n < 4; n++) {
+      const angle = (n * Math.PI) / 2 + (game.phase === "playing" ? time * 0.7 : 0);
+      ctx.fillStyle = "#fffdf5";
+      ctx.beginPath();
+      ctx.arc(
+        Math.cos(angle) * unit * 0.78,
+        Math.sin(angle) * unit * 0.78,
+        unit * 0.09,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+    ctx.font = `bold ${unit * 0.75}px sans-serif`;
+    ctx.fillStyle = "#7455ad";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("?", 0, unit * 0.02);
+    ctx.restore();
+  }
   for (const item of game.items.potions) {
     const x = item.x * unit,
       y = item.y * unit;
     const bob = game.phase === "playing" ? Math.sin(time * 4 + item.id) * unit * 0.07 : 0;
     ctx.save();
-    ctx.translate(x, y + bob);
+    const falling =
+      time && game.phase === "playing" && game.items.schedule[item.id] > 0
+        ? Math.max(0, 1 - (game.frame - game.items.schedule[item.id]) / 24)
+        : 0;
+    ctx.translate(x, y + bob - falling * falling * unit * 2.5);
     ctx.fillStyle = "#fff0bb99";
     ctx.beginPath();
     ctx.arc(0, 0, unit * 0.82, 0, Math.PI * 2);
     ctx.fill();
+    if (item.type === "dash") {
+      ctx.fillStyle = "#73cddd";
+      ctx.strokeStyle = "#3c7589";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(-unit * 0.48, -unit * 0.46);
+      ctx.lineTo(unit * 0.05, -unit * 0.46);
+      ctx.lineTo(unit * 0.12, -unit * 0.05);
+      ctx.quadraticCurveTo(unit * 0.68, -unit * 0.07, unit * 0.62, unit * 0.43);
+      ctx.lineTo(-unit * 0.48, unit * 0.43);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = "#fffdf3";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(-unit * 0.42, unit * 0.3);
+      ctx.lineTo(unit * 0.52, unit * 0.3);
+      ctx.stroke();
+      ctx.fillStyle = "#fff4a6";
+      ctx.beginPath();
+      ctx.moveTo(-unit * 0.12, -unit * 0.38);
+      ctx.lineTo(-unit * 0.3, -unit * 0.02);
+      ctx.lineTo(-unit * 0.08, -unit * 0.02);
+      ctx.lineTo(-unit * 0.18, unit * 0.23);
+      ctx.lineTo(unit * 0.16, -unit * 0.13);
+      ctx.lineTo(-unit * 0.03, -unit * 0.13);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      continue;
+    }
     ctx.fillStyle = "#c49ce6";
     ctx.strokeStyle = "#735784";
     ctx.lineWidth = 2;
@@ -156,9 +262,9 @@ export function render(canvas, game, art = [], seat = 0, time = 0, preview = fal
     ctx.beginPath();
     ctx.ellipse(x, y + body * 0.25, body * 0.58, body * 0.25, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = p.i === seat && !preview ? "#ffffff" : PLAYERS[p.i].ink;
+    ctx.strokeStyle = p.i === seat && !preview ? "#ffffff" : players[p.i].ink;
     ctx.lineWidth = p.i === seat && !preview ? 4 : 2;
-    ctx.fillStyle = PLAYERS[p.i].color;
+    ctx.fillStyle = players[p.i].color;
     ctx.beginPath();
     ctx.arc(x, y, body * 0.64, 0, Math.PI * 2);
     ctx.fill();
@@ -176,8 +282,50 @@ export function render(canvas, game, art = [], seat = 0, time = 0, preview = fal
       );
       ctx.stroke();
     }
-    portrait(ctx, art[p.i], p.i, x - body * 0.62, y - body * 0.79 + bounce, body * 1.24);
-    ctx.fillStyle = PLAYERS[p.i].ink;
+    if (p.dashFrames > 0) {
+      ctx.strokeStyle = "#dbfbff";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(
+        x,
+        y,
+        body * 0.84,
+        -Math.PI / 2,
+        -Math.PI / 2 + (Math.PI * 2 * p.dashFrames) / DASH_FRAMES,
+      );
+      ctx.stroke();
+      if (Math.hypot(p.dx, p.dy) > 0.1) {
+        const angle = Math.atan2(p.dy, p.dx);
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.strokeStyle = "#ddfbff";
+        ctx.lineWidth = 3;
+        for (const offset of [-0.3, 0, 0.3]) {
+          ctx.beginPath();
+          ctx.moveTo(-body * 0.8, body * offset);
+          ctx.lineTo(-body * (1.2 + (offset === 0 ? 0.2 : 0)), body * offset);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+    if (p.warpCooldown > 27) {
+      ctx.strokeStyle = "#fff6ffb0";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(x, y, unit * (1 + (45 - p.warpCooldown) / 18), 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    portrait(
+      ctx,
+      art[players[p.i].character],
+      players[p.i].character,
+      x - body * 0.62,
+      y - body * 0.79 + bounce,
+      body * 1.24,
+    );
+    ctx.fillStyle = players[p.i].ink;
     ctx.beginPath();
     ctx.arc(x + body * 0.54, y + body * 0.4, body * 0.24, 0, Math.PI * 2);
     ctx.fill();

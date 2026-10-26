@@ -8,13 +8,13 @@ import {
   timeOut,
   TURN_LIMIT_MS,
   resultCopy,
-} from "./rules.js?v=20260926-1200words";
+} from "./rules.js?v=20261026-1300words";
 import {
   createShiritoriMatch,
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js?v=20260926-1200words";
+} from "./online.js?v=20261026-1300words";
 const $ = (id) => document.getElementById(id);
 const CHARACTER_ART = [
   {

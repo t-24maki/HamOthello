@@ -3,12 +3,13 @@ import {
   generateRoomCode,
   normalizeRoomCode,
 } from "../src/online-game.js?v=poker-rooms-20260908";
-import { createPeer } from "./online-peer.js?v=20261022-jintori4";
-import { PROTOCOL, SEND_MS } from "./protocol.js?v=20261022-jintori4";
+import { createPeer } from "./online-peer.js?v=20261026-jintori6";
+import { PROTOCOL, SEND_MS } from "./protocol.js?v=20261026-jintori6";
 export { generateRoomCode, normalizeRoomCode };
 export async function createOnline({
   role,
   roomCode,
+  character,
   onChange,
   onError,
   sessionFactory = createOnlineSession,
@@ -69,6 +70,7 @@ export async function createOnline({
     }
     peer = createPeer({
       role,
+      character,
       matchId: role === "host" ? transport.clientId : null,
       now,
       send(m) {

@@ -607,3 +607,60 @@ dialog h2 {
     text-align: center;
   }
 }
+
+.character-picker {
+  border: 0;
+  padding: 0;
+  margin: 24px 0 0;
+  min-width: 0;
+}
+.character-picker legend {
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.character-choices {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.character-choices button {
+  position: relative;
+  min-width: 0;
+  padding: 8px 3px 10px;
+  background: #fffdf8;
+  border: 2px solid #e4d8c7;
+}
+.character-choices button[aria-pressed="true"] {
+  border-color: #9873bb;
+  background: #f1e7f9;
+  box-shadow: 0 2px 0 #cbb8d8;
+}
+.character-choices button[aria-pressed="true"]::after {
+  content: "✓";
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  font-size: 13px;
+  color: #765294;
+}
+.character-choices canvas {
+  display: block;
+  width: min(100%, 88px);
+  height: auto;
+  margin: auto;
+}
+.character-choices span {
+  display: block;
+  white-space: nowrap;
+  font-size: clamp(9px, 2.7vw, 12px);
+  font-weight: 700;
+}
+
+.music-note {
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin: 0 0 20px;
+}

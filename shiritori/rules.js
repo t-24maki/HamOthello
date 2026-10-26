@@ -1,4 +1,4 @@
-import { FOODS, DICTIONARY_VERSION } from "./dictionary.js?v=20260926-1200words";
+import { FOODS, DICTIONARY_VERSION } from "./dictionary.js?v=20261026-1300words";
 export { FOODS, DICTIONARY_VERSION };
 export const PLAYERS = ["たくハム", "めぐハム"];
 export const TURN_LIMIT_MS = 30_000;

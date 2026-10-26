@@ -7,24 +7,58 @@
     <title>じんとりがっせん | たくめぐのあそびば</title>
     <meta
       name="description"
-      content="歩いてぬって、30秒のじんとりがっせん！ 4匹で遊ぶ、CPU・通信対戦ゲーム。"
+      content="歩いてぬって、45秒のじんとりがっせん！ 4匹で遊ぶ、CPU・通信対戦ゲーム。"
     />
-    <link rel="stylesheet" href="./style.css?v=20261022-jintori4" />
+    <link rel="stylesheet" href="./style.css?v=20261026-jintori6" />
     <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
     <script type="module" src="../site-header.js?v=20261025-site5"></script>
-    <script type="module" src="./game.js?v=20261022-jintori4"></script>
+    <script type="module" src="./game.js?v=20261026-jintori6"></script>
   </head>
   <body data-site-page="jintori">
-    <takumegu-header data-page="jintori"></takumegu-header>
+    <takumegu-header data-page="jintori">
+      <button
+        slot="actions"
+        id="sound"
+        type="button"
+        aria-pressed="false"
+        aria-label="BGMをONにする"
+      >
+        ♪ 音 OFF
+      </button>
+    </takumegu-header>
+    <audio
+      id="bgm"
+      src="./audio/ham-ham-samba.mp3"
+      preload="auto"
+      hidden
+      aria-hidden="true"
+    ></audio>
     <main>
       <section id="setup" class="setup" aria-labelledby="title">
-        <p class="eyebrow">TAK&MEG / 30 SECOND PAINT PARTY</p>
+        <p class="eyebrow">TAK&MEG / 45 SECOND PAINT PARTY</p>
         <h1 id="title">じんとりがっせん</h1>
-        <p class="lead">てくてく、ぬりぬり。<br class="mobile-break" />30秒で、いちばん広く！</p>
+        <p class="lead">てくてく、ぬりぬり。<br class="mobile-break" />45秒で、いちばん広く！</p>
         <div class="hero">
           <canvas id="preview" width="750" height="750" aria-hidden="true"></canvas
           ><span class="hero-label">4匹で、ぬりあいっこ。</span>
         </div>
+        <fieldset class="character-picker">
+          <legend>どの子であそぶ？</legend>
+          <div class="character-choices">
+            <button type="button" data-character="0" aria-pressed="true">
+              <canvas width="160" height="160" aria-hidden="true"></canvas><span>たくハム</span>
+            </button>
+            <button type="button" data-character="1" aria-pressed="false">
+              <canvas width="160" height="160" aria-hidden="true"></canvas><span>めぐハム</span>
+            </button>
+            <button type="button" data-character="2" aria-pressed="false">
+              <canvas width="160" height="160" aria-hidden="true"></canvas><span>ノーマルハム</span>
+            </button>
+            <button type="button" data-character="3" aria-pressed="false">
+              <canvas width="160" height="160" aria-hidden="true"></canvas><span>たぴ</span>
+            </button>
+          </div>
+        </fieldset>
         <div class="mode-buttons">
           <button id="cpu-start" class="primary">
             ひとりであそぶ<small>自分 ＋ CPU 3匹</small>
@@ -55,28 +89,43 @@
           <p id="connection-status" role="status"></p>
           <button id="cancel-room" class="text-button" hidden>接続をやめる</button>
         </section>
+        <p id="music-note" class="music-note" role="status">
+          ♪ ハムハムサンバ — 音をONにすると、試合に合わせて流れるよ。
+        </p>
         <details class="howto">
           <summary>あそびかた</summary>
           <div class="instructions">
             <p>
               <b>歩いたところが、自分の色に。</b
-              >相手の色も上ぬりできるよ。30秒後、色がいちばん広い子の勝ち。同じ広さなら引き分け。
+              >相手の色も上ぬりできるよ。45秒後、色がいちばん広い子の勝ち。同じ広さなら引き分け。
             </p>
             <p>
               丸いスティックを倒すと、<b>好きな方向へ</b>進めるよ。少し倒すとゆっくり、指を離すとストップ。PCはマウスでスティック、またはWASD・矢印キーでも操作できます。
             </p>
             <p>
-              広場・池・十字路・島から、毎回ランダムにフィールドが決まるよ。水や花壇には入れません。4匹の基本の速さとぬれる広さは同じ。通常は2マス幅でぬれます。
+              8つのフィールドから、毎回ランダムに決まるよ。「ぐるぐる回廊」は内と外を回る道。「ひらける広場」は中央が壁に囲まれ、20秒で4方向の門が開くよ。中央には初めからアイテムが1個。「ワープの庭」の4つの輪は、ほかのどこかの輪へ飛べるよ。水や花壇には入れません。4匹の基本の速さとぬれる広さは同じ。通常は2マス幅でぬれます。
             </p>
             <p>
-              <b>巨大化アイテムは1試合に2個。</b
-              >開始5〜10秒と15〜20秒の間に、1個ずつランダムな場所に出るよ。取ると5秒間、体が2倍になって4マス幅でぬれます。もう一度取ると、そこから5秒。
+              <b>アイテムは通常、1試合に3個。</b
+              >開始11〜19秒・21〜29秒・31〜39秒の間に、巨大化かダッシュが1個ずつ、ランダムな場所に出るよ。
+            </p>
+            <p>
+              <b>「アイテムだらけ公園」は、障害物なし。</b
+              >開始1秒から5秒おきに、41秒まで計9個のアイテムが出るよ。巨大化かダッシュかは、出てからのお楽しみ。
+            </p>
+            <p>
+              <b>紫のびんは巨大化。</b
+              >5秒間、体が2倍になって4マス幅でぬれます。<b>水色のくつはダッシュ。</b>5秒間、速さが2倍に。同じものを取るとそこから5秒、両方取れば同時に使えるよ。
             </p>
             <p>
               ほかの子にぶつかると、<b>ふたりとも1秒ストップ。</b>頭の星が消えたらまた動けるよ。終了後は3秒間盤面を眺めてから、結果が出ます。
             </p>
             <p>
-              ひとりではたくハム、通信ではへやを作った人がたくハム、入った人がめぐハム。残りの2匹はCPU。色と番号で自分を見つけよう。
+              好きなキャラを選んでスタート。通信でもそれぞれ選べて、同じキャラでもOK。自分には白い輪と矢印がつくよ。色と番号でも見分けよう。
+            </p>
+            <p>
+              <b>CPUにも、それぞれの歩き方。</b
+              >たくハムは相手の色を上ぬり。めぐハムはいちばん近い相手を追いかけます。ノーマルハムはアイテムに一直線。たぴは近くのアイテムだけ拾って、こつこつぬります。
             </p>
             <p>
               通信中に画面を離れると、ふたりとも一時停止。再開と再戦は、ふたりがボタンを押してから始まります。
@@ -89,7 +138,7 @@
           <div class="match-heading">
             <span id="field-name"></span
             ><strong class="clock" aria-label="残り時間"
-              ><span id="seconds">30</span><small>秒</small></strong
+              ><span id="seconds">45</span><small>秒</small></strong
             ><button id="pause" aria-label="一時停止">Ⅱ</button>
           </div>
           <div id="scoreboard" class="scoreboard" aria-label="4匹のぬった割合"></div>
@@ -134,6 +183,16 @@
           <figcaption>最終のぬり分け</figcaption>
         </figure>
         <div id="ranking"></div>
+        <button
+          id="pause-sound"
+          class="text-button"
+          type="button"
+          aria-pressed="false"
+          aria-label="BGMをONにする"
+          hidden
+        >
+          ♪ 音 OFF
+        </button>
         <button id="continue" class="primary"></button
         ><button id="home" class="text-button">トップにもどる</button>
       </dialog>

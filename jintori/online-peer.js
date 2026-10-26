@@ -6,8 +6,10 @@ import {
   resume,
   STEP,
   EMPTY,
-} from "./engine.js?v=20261022-jintori4";
-import { createCPU, cpuInput } from "./cpu.js?v=20261022-jintori4";
+  chooseCharacters,
+  validCharacter,
+} from "./engine.js?v=20261026-jintori6";
+import { createCPU, cpuInput } from "./cpu.js?v=20261026-jintori6";
 import {
   PROTOCOL,
   validId,
@@ -16,17 +18,20 @@ import {
   validState,
   readGame,
   gameView,
-} from "./protocol.js?v=20261022-jintori4";
+} from "./protocol.js?v=20261026-jintori6";
 const copy = (value) => structuredClone(value);
 export function createPeer({
   role,
   matchId,
+  character = role === "host" ? 0 : 1,
   send,
   now = () => performance.now(),
   random = Math.random,
   onChange = () => {},
   onError = () => {},
 }) {
+  if (!validCharacter(character)) throw new Error("Invalid character");
+  let guestCharacter = 1;
   const seat = role === "host" ? 0 : 1;
   let game = null,
     prediction = null,
@@ -100,7 +105,11 @@ export function createPeer({
   function newRound() {
     round++;
     epoch++;
-    game = createGame(Math.floor(random() * 2 ** 32));
+    game = createGame(
+      Math.floor(random() * 2 ** 32),
+      undefined,
+      chooseCharacters([character, guestCharacter]),
+    );
     brains = game.players.map((_, i) => createCPU(game.seed + i * 1009));
     pause(game);
     ready = [false, false];
@@ -179,8 +188,15 @@ export function createPeer({
     if (stopped || !m || m.protocol !== PROTOCOL) return;
     if (m.type === "leave" && validId(matchId) && m.matchId === matchId)
       return fail("相手がへやを出たよ。もう一度へやをつくってね。");
-    if (role === "host" && m.type === "hello" && connected && !game) {
+    if (
+      role === "host" &&
+      m.type === "hello" &&
+      connected &&
+      !game &&
+      validCharacter(m.character)
+    ) {
       lastReceive = now();
+      guestCharacter = m.character;
       newRound();
       publish();
       return;
@@ -199,6 +215,8 @@ export function createPeer({
       const next = readGame(m.game);
       if (
         !next ||
+        next.characters[seat] !== character ||
+        (game && next.characters.some((id, i) => id !== game.characters[i])) ||
         (game &&
           m.round === round &&
           (next.fieldId !== game.fieldId || next.seed !== game.seed || next.frame < game.frame))
@@ -227,7 +245,7 @@ export function createPeer({
         const p = prediction.players[seat],
           old = oldView?.players[seat];
         smoothing =
-          old && Math.hypot(old.x - p.x, old.y - p.y) < 1.5
+          old && old.warpCount === p.warpCount && Math.hypot(old.x - p.x, old.y - p.y) < 1.5
             ? { x: old.x - p.x, y: old.y - p.y }
             : { x: 0, y: 0 };
       }
@@ -273,7 +291,7 @@ export function createPeer({
       else if (!hold) request("pause");
     }
     if (role === "host") publish();
-    else if (!game) transmit({ type: "hello" });
+    else if (!game) transmit({ type: "hello", character });
     else
       transmit({
         type: "input",
@@ -342,7 +360,13 @@ export function createPeer({
       view.players[seat].y += smoothing.y;
       const blend = Math.min(1, (now() - snapshotAt) / 100);
       game.players.forEach((p, i) => {
-        if (i === seat || !previous) return;
+        if (
+          i === seat ||
+          !previous ||
+          previous[i].warpCount !== p.warpCount ||
+          Math.hypot(previous[i].x - p.x, previous[i].y - p.y) > 2
+        )
+          return;
         view.players[i].x = previous[i].x + (p.x - previous[i].x) * blend;
         view.players[i].y = previous[i].y + (p.y - previous[i].y) * blend;
       });

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#faf4e8" />
+    <meta
+      name="description"
+      content="お皿にぎょうざを、そーっとひとつ。6種類のぎょうざを交互に積み上げ、こぼした方が負け。CPU・1台でふたり・通信で遊べます。"
+    />
+    <title>たくめぐぎょうざ — たくめぐのあそびば</title>
+    <link rel="stylesheet" href="./style.css?v=20261028-gyoza7" />
+    <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
+    <script type="module" src="../site-header.js?v=20261027-site6"></script>
+    <script type="module" src="./game.js?v=20261027-gyoza6"></script>
+  </head>
+  <body data-site-page="gyoza">
+    <takumegu-header data-page="gyoza"
+      ><button slot="actions" id="sound" type="button" aria-pressed="false">
+        ♪ 音 OFF
+      </button></takumegu-header
+    >
+    <main>
+      <header class="heading">
+        <div>
+          <p class="eyebrow">TAK&MEG · GYOZA TIME</p>
+          <h1>たくめぐ<span>ぎょうざ</span></h1>
+        </div>
+        <div class="heading-tools">
+          <button id="help" type="button" aria-label="あそびかた">？</button
+          ><button id="pause" type="button" hidden>ひとやすみ</button>
+        </div>
+      </header>
+      <section id="setup" aria-label="対戦の設定">
+        <div class="welcome-art">
+          <canvas id="hero" aria-label="お皿の上に積まれた、焼き色のついたぎょうざ"></canvas
+          ><img class="host tak" src="../assets/pink-piece.png" alt="たくハム" /><img
+            class="host meg"
+            src="../assets/cream-piece.png"
+            alt="めぐハム"
+          />
+          <div class="steam" aria-hidden="true">〜　〜　〜</div>
+        </div>
+        <div class="welcome-copy">
+          <h2>そーっと、もうひとつ。</h2>
+          <p>お皿にぎょうざを積み上げよう。<br />こぼしちゃったら、あなたの負け！</p>
+        </div>
+        <div class="mode-choices" role="group" aria-label="対戦モード">
+          <button data-mode="cpu" aria-pressed="true" type="button">CPUと</button
+          ><button data-mode="local" aria-pressed="false" type="button">1台でふたり</button
+          ><button data-mode="online" aria-pressed="false" type="button">通信でふたり</button>
+        </div>
+        <div id="local-options">
+          <p id="start-note" class="note">あなたはたくハム、CPUはめぐハム。</p>
+          <button class="primary start" id="start" type="button">いただきます →</button>
+        </div>
+        <div id="online-options" hidden>
+          <div class="room-choices">
+            <button id="create-room" type="button" class="primary">へやをつくる</button
+            ><button id="join-room" type="button">へやに入る</button>
+          </div>
+          <label class="room-label" for="room-input">合言葉で参加する</label
+          ><input
+            id="room-input"
+            placeholder="HAMU-ABC234"
+            autocomplete="off"
+            autocapitalize="characters"
+            maxlength="16"
+            spellcheck="false"
+          />
+          <div id="waiting" hidden>
+            <span>ふたりの合言葉</span><strong id="room-code"></strong
+            ><button id="copy-room" type="button">コピー</button
+            ><button id="cancel-room" type="button">やめる</button>
+          </div>
+          <p id="connection-note" class="note" role="status"></p>
+        </div>
+        <p class="setup-footer">かたちいろいろ、6種類。どれが出るかな？</p>
+      </section>
+      <section id="match" hidden aria-label="ぎょうざ積み対戦">
+        <div class="players">
+          <div id="player-0" class="player">
+            <img id="face-0" src="../assets/pink-piece.png" alt="" />
+            <div><strong>たくハム</strong><small id="label-0">あなた</small></div>
+          </div>
+          <div class="stack-count"><strong id="count">0</strong><span>こ のったよ</span></div>
+          <div id="player-1" class="player meg-player">
+            <div><strong>めぐハム</strong><small id="label-1">CPU</small></div>
+            <img id="face-1" src="../assets/cream-piece.png" alt="" />
+          </div>
+        </div>
+        <div id="turn" class="turn" role="status" aria-live="polite"></div>
+        <div class="stage">
+          <canvas
+            id="board"
+            tabindex="0"
+            aria-label="上の餃子を左右にドラッグ。盤面のタップでも位置を決められます。餃子の下に左回転・おとす・右回転のボタンがあります。離すだけでは落ちません。"
+          ></canvas>
+          <div
+            id="piece-tools"
+            class="piece-tools"
+            role="group"
+            aria-label="餃子を回して落とす"
+            hidden
+          >
+            <button id="rotate-left" type="button" aria-label="左に15度回す">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <g transform="translate(24 0) scale(-1 1)">
+                  <path d="M19 8a8 8 0 1 0 1 7" />
+                  <path d="M14 8h6V2" />
+                </g>
+              </svg>
+            </button>
+            <button id="drop" class="primary" type="button">
+              おとす <span aria-hidden="true">↓</span>
+            </button>
+            <button id="rotate-right" type="button" aria-label="右に15度回す">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <g>
+                  <path d="M19 8a8 8 0 1 0 1 7" />
+                  <path d="M14 8h6V2" />
+                </g>
+              </svg>
+            </button>
+          </div>
+          <div class="height"><span id="height">0</span> cm</div>
+          <div id="overlay" class="overlay" hidden>
+            <div class="result-card">
+              <p class="eyebrow" id="overlay-kicker">TEA BREAK</p>
+              <h2 id="overlay-title">ひとやすみ</h2>
+              <p id="overlay-note"></p>
+              <button id="continue" class="primary" type="button">つづける</button
+              ><button id="home" type="button">メニューへ</button>
+            </div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="piece-label">
+            <span>いまのぎょうざ</span><strong id="piece-name"></strong>
+          </div>
+          <p class="controls-note" id="controls-note">ぎょうざの下で、回転・おとす。</p>
+        </div>
+      </section>
+    </main>
+    <dialog id="guide" aria-labelledby="guide-title">
+      <button id="close-guide" class="close-guide" type="button" aria-label="あそびかたを閉じる">
+        ×
+      </button>
+      <p class="eyebrow">HOW TO PLAY</p>
+      <h2 id="guide-title">ぎょうざは、そーっと。</h2>
+      <ol>
+        <li>
+          上のぎょうざを<strong>左右にドラッグ</strong>して、落とす場所を決めよう。盤面のタップでも落とす場所を選べるよ。
+        </li>
+        <li>ぎょうざのすぐ下、左右の「↶」「↷」で向きを変えられるよ。</li>
+        <li>真ん中の「おとす」を押したら、あとは見守ろう。</li>
+      </ol>
+      <p>
+        ぎょうざが落ち着いたら相手の番。<strong>1つでもお皿からこぼした人が負け</strong>。前に積んだぎょうざを落としても負けになるよ。
+      </p>
+      <p>6種類がランダムに出るよ。勝負はたくハムから始まり、もう一度遊ぶと先手を交代するよ。</p>
+      <div class="key-guide">
+        PC：← → / A D で移動<br />Q E / ↑ で回転、スペース / Enter で落とす<br />Esc でひとやすみ
+      </div>
+    </dialog>
+  </body>
+</html>

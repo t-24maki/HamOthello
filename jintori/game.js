@@ -13,11 +13,11 @@ import {
   DURATION,
   PAINT_SIZE,
 } from "./engine.js?v=20261026-jintori6";
-import { createCPU, cpuInput } from "./cpu.js?v=20261026-jintori6";
+import { createCPU, cpuInput } from "./cpu.js?v=20261027-jintori7";
 import { bindStick } from "./stick.js?v=20261026-jintori6";
 import { createInput, KEYS } from "./input.js?v=20261026-jintori6";
 import { protectGameSurface } from "../battle/controls.js?v=20261021-battle21";
-import { createOnline, generateRoomCode, normalizeRoomCode } from "./online.js?v=20261026-jintori6";
+import { createOnline, generateRoomCode, normalizeRoomCode } from "./online.js?v=20261027-jintori7";
 import { loadArt, render, renderPaintMap, portrait } from "./renderer.js?v=20261026-jintori6";
 import { createResultGate } from "./presentation.js?v=20261026-jintori6";
 import { createMatchMusic, prepareMusicSource } from "./music.js?v=20261026-jintori6";

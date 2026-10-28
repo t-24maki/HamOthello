@@ -9,7 +9,7 @@ import {
   chooseCharacters,
   validCharacter,
 } from "./engine.js?v=20261026-jintori6";
-import { createCPU, cpuInput } from "./cpu.js?v=20261026-jintori6";
+import { createCPU, cpuInput } from "./cpu.js?v=20261027-jintori7";
 import {
   PROTOCOL,
   validId,

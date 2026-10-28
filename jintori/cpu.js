@@ -19,12 +19,10 @@ export function cpuInput(game, brain, player) {
     start = cellAt(p.x, p.y);
   if (p.stunFrames > 0) return EMPTY;
   const character = game.characters[player];
-  const items = game.items.potions.filter(
-    (item) =>
-      character === 2 ||
-      (character === 3 && Math.hypot(item.x - p.x, item.y - p.y) <= 10 / PAINT_SCALE),
-  );
-  const itemKey = items.map((item) => item.id).join(",");
+  // Replan when items appear/disappear, not whenever Tapi crosses the awareness
+  // radius. That used to restart its route toward the same cell centre each frame.
+  const itemKey =
+    character === 2 || character === 3 ? game.items.potions.map((item) => item.id).join(",") : "";
   brain.wait -= STEP;
   if (
     !brain.route.length ||
@@ -33,6 +31,21 @@ export function cpuInput(game, brain, player) {
     brain.warp !== p.warpCount ||
     brain.terrain !== game.terrainVersion
   ) {
+    // The radius decides which item Tapi notices. Once chosen, follow it through
+    // a wall detour even if the straight-line distance briefly grows. A pickup
+    // or warp releases this intention and evaluates nearby items again.
+    const pursuedItem =
+      character === 3 && brain.warp === p.warpCount && brain.goal?.kind === "item"
+        ? game.items.potions.find((item) => item.id === brain.goal.id)
+        : null;
+    const items = game.items.potions.filter(
+      (item) =>
+        character === 2 ||
+        (character === 3 &&
+          (pursuedItem
+            ? item.id === pursuedItem.id
+            : Math.hypot(item.x - p.x, item.y - p.y) <= 10 / PAINT_SCALE)),
+    );
     const distance = new Int16Array(SIZE * SIZE).fill(-1);
     const previous = new Int16Array(SIZE * SIZE).fill(-1);
     const queue = [start];

@@ -6,6 +6,7 @@ export const GAME_GROUPS = [
       { id: "sanpo", name: "たくめぐのおさんぽ", path: "sanpo/" },
       { id: "battle", name: "ぽよんバトル", path: "battle/" },
       { id: "jintori", name: "じんとりがっせん", path: "jintori/" },
+      { id: "gyoza", name: "たくめぐぎょうざ", path: "gyoza/" },
     ],
   },
   {

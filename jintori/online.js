@@ -3,7 +3,7 @@ import {
   generateRoomCode,
   normalizeRoomCode,
 } from "../src/online-game.js?v=poker-rooms-20260908";
-import { createPeer } from "./online-peer.js?v=20261026-jintori6";
+import { createPeer } from "./online-peer.js?v=20261027-jintori7";
 import { PROTOCOL, SEND_MS } from "./protocol.js?v=20261026-jintori6";
 export { generateRoomCode, normalizeRoomCode };
 export async function createOnline({

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#fff9ef" />
+  <meta name="description" content="司会はめぐハム、挑戦者はたくハム。観客も電話の先もにぎやかな、全5問のクイズショー。" />
+  <link rel="preload" as="image" href="./art/show-cast-v1.png" />
+  <link rel="preload" as="image" href="./art/phone-megs-v1.png" />
+  <link rel="preload" as="image" href="./art/tak-deadpan-v1.png" />
+  <title>クイズ・めぐハムア | たくめぐのあそびば</title>
+  <link rel="stylesheet" href="./style.css?v=20261030-quiz9" />
+  <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
+  <script type="module" src="../site-header.js?v=20261030-site10"></script>
+  <script type="module" src="./game.js?v=20261030-quiz10"></script>
+</head>
+<body data-site-page="quiz">
+  <takumegu-header data-page="quiz"><button slot="actions" id="sound" aria-pressed="false">音 OFF</button></takumegu-header>
+  <main id="show" data-phase="intro">
+    <header class="show-heading"><div><p>TAK&amp;MEG PRESENTS</p><h1>クイズ・めぐハムア</h1></div><button id="rules-open" aria-haspopup="dialog">あそびかた</button></header>
+    <section id="stage" class="stage" aria-label="めぐハムとたくハムのクイズスタジオ">
+      <div class="beam beam-left"></div><div class="beam beam-right"></div>
+      <div class="on-air">ON AIR <i></i></div>
+      <div class="stage-logo" aria-hidden="true"><span>✺</span><small>MEGUHAMUA</small></div>
+      <div class="audience-row" id="audience" aria-label="観客席"></div>
+      <div class="stage-floor"></div>
+      <div class="seat seat-tak"><div class="stool"></div><div id="tak" class="performer"></div><span class="nameplate"><small>挑戦者</small>たくハム</span></div>
+      <div class="seat seat-meg"><div class="stool"></div><div id="meg" class="performer"></div><span class="nameplate"><small>司会</small>めぐハム</span></div>
+      <div class="quiz-table" aria-hidden="true"><div class="table-top"><span>✺</span></div><div class="table-leg"></div></div>
+      <div id="speech" class="speech" role="status" aria-live="polite"></div>
+      <div id="call-scene" class="call-scene" hidden><div class="call-heading"><span class="call-dot"></span><b>めぐハムのおうち</b><small id="call-status">呼び出し中…</small></div><div class="phone-friends" id="phone-friends"></div><p id="call-line" aria-live="polite"></p></div>
+      <div id="confetti" class="confetti" aria-hidden="true"></div>
+      <button id="skip" class="skip" hidden>演出を進める ›</button>
+    </section>
+    <section class="console" aria-label="クイズと回答">
+      <div class="score-strip"><div id="progress" class="progress" aria-label="全5問の進み具合"></div><span class="seed-total"><span aria-hidden="true">✺</span> <b id="seed-count">0</b> 粒</span></div>
+      <div id="intro" class="intro"><p class="intro-title">目指せ、ひまわりの種 <b>200粒！</b></p><p>全5問。答えを決めたら、めぐハムの発表を待とう。</p><button id="start" class="primary">挑戦する <span>→</span></button></div>
+      <div id="play" hidden>
+        <div class="question-line"><span id="question-number"></span><div class="question-copy"><h2 id="question"></h2><small id="question-note" hidden></small></div><button id="count-open" hidden>箱をもう一度見る</button></div>
+        <div id="choices" class="choices" role="group" aria-label="4つの選択肢"></div>
+        <div class="decision" id="decision"><p id="guide" role="status"></p><button id="explanation-open" hidden>答えの解説</button><button id="back" hidden>選びなおす</button><button id="advance" class="primary" hidden></button></div>
+        <div id="lifelines" class="lifelines" role="group" aria-label="ライフライン。それぞれ1回使えます"><button data-help="fifty"><b>50:50</b><span>2択にする</span></button><button data-help="audience"><svg class="audience-icon" viewBox="0 0 26 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="13" cy="7" r="3"/><circle cx="5" cy="9" r="2.5"/><circle cx="21" cy="9" r="2.5"/><path d="M8 21v-4a5 5 0 0 1 10 0v4M2 20v-4a3 3 0 0 1 4-3M24 20v-4a3 3 0 0 0-4-3"/></g></svg><span>オーディエンス</span></button><button data-help="phone"><b>☎</b><span>テレフォン</span></button></div>
+      </div>
+      <div id="finish" class="finish" hidden><p>本日の挑戦、終了！</p><h2><span id="final-score"></span>問正解</h2><div class="seed-bowl" id="seed-bowl" aria-hidden="true"></div><p class="reward"><strong id="final-seeds"></strong> 粒のひまわりの種</p><p id="final-message"></p><button id="restart" class="primary">もう一度、挑戦する</button></div>
+    </section>
+  </main>
+  <dialog id="rules" aria-labelledby="rules-title"><header><h2 id="rules-title">あそびかた</h2><button id="rules-close" aria-label="あそびかたを閉じる">×</button></header><p>たくハムになって、4択クイズに挑戦。全5問。まちがえたら、答えを確認して1問目からやりなおそう。問題や4択の並びも毎回変わるよ（2問目の数字は順番どおり）。</p><p>答えを選んで「ファイナルハムスター！」。司会のめぐハムが、たっぷりためて発表します。</p><p>やりなおすと、種の数とライフラインも最初に戻ります。</p><h3>ライフラインは1回の挑戦につき各1回</h3><dl><dt>50:50</dt><dd>選択肢を2つに絞ります。</dd><dt>オーディエンス</dt><dd>観客が思う答えの札を上げます。みんなの意見を参考に！</dd><dt>テレフォン</dt><dd>電話の先のめぐハム4匹に相談。意見が分かれたり、「分からない」と言われたりすることも。</dd></dl><p>先の問題ほど、みんなも迷います。相談の意見は、必ず正解とは限りません。同じ問題でライフラインを重ねて使ってもOK。</p><p>2問目の箱は何度でも開けます。めぐハムを数えて、餃子にはご注意！</p><h3>もらえるひまわりの種</h3><div class="prizes" id="prizes"></div><p class="muted">音は右上で切り替えられます。メニューや説明を開くと、演出は止まります。</p></dialog>
+  <dialog id="count-dialog" aria-labelledby="count-title"><header><h2 id="count-title">この箱の中に、めぐハムは何匹？</h2><button id="count-close" aria-label="箱を閉じて回答する">×</button></header><div id="count-box" class="count-box" role="group" aria-label="めぐハムと餃子が動く箱"></div><footer><p>餃子にまぎれた、めぐハムを数えよう。</p><button id="count-answer" class="primary">数えた！ 答える</button></footer></dialog>
+  <dialog id="explanation-dialog" aria-labelledby="explanation-title"><header><h2 id="explanation-title">答えの解説</h2><button id="explanation-close" aria-label="解説を閉じる">×</button></header><p id="explanation-text"></p><a id="explanation-source" target="_blank" rel="noopener noreferrer" hidden>出典を見る ↗</a></dialog>
+  <noscript>このゲームを遊ぶには、JavaScriptを有効にしてください。</noscript>
+</body>
+</html>

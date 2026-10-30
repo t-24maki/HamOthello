@@ -16,6 +16,7 @@ export const GAME_GROUPS = [
       { id: "othello", name: "ぷにっとオセロ", path: "othello.html" },
       { id: "shogi", name: "たくめぐしょうぎ", path: "shogi/" },
       { id: "poker", name: "ミニポーカー", path: "poker/" },
+      { id: "roulette", name: "ミニルーレット", path: "roulette/" },
       { id: "mahjong", name: "ミニまーじゃん", path: "mahjong/" },
       { id: "blocks", name: "ブロックつめこみ", path: "blocks/" },
     ],
@@ -26,6 +27,7 @@ export const GAME_GROUPS = [
     games: [
       { id: "billiards", name: "まんまるビリヤード", path: "billiards/" },
       { id: "shiritori", name: "たべものしりとり", path: "shiritori/" },
+      { id: "quiz", name: "クイズ・めぐハムア", path: "quiz/" },
     ],
   },
 ];

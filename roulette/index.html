@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#fff9ef" />
+    <meta
+      name="description"
+      content="4匹で囲むミニルーレット。好きな数字にコインを置いて、くるくる運だめし。ひとりでも通信でも。"
+    />
+    <title>ミニルーレット | たくめぐのあそびば</title>
+    <link rel="stylesheet" href="./style.css?v=20261030-roulette5" />
+    <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
+    <script type="module" src="../site-header.js?v=20261030-site10"></script>
+    <script type="module" src="./game.js?v=20261030-roulette7"></script>
+  </head>
+  <body data-site-page="roulette">
+    <takumegu-header data-page="roulette"
+      ><button id="settings" slot="actions" hidden>キャラを選ぶ</button></takumegu-header
+    >
+    <main>
+      <header class="heading">
+        <div>
+          <p class="eyebrow">TAK&amp;MEG / MINI ROULETTE</p>
+          <h1>ミニルーレット</h1>
+        </div>
+        <button id="show-rules" aria-haspopup="dialog">あそびかた</button>
+        <p id="round-label">くるくる、どこに止まるかな。</p>
+      </header>
+      <section id="setup" aria-label="キャラと遊び方を選ぶ">
+        <div class="invitation" id="invitation" aria-hidden="true"></div>
+        <p>自分のキャラクターを選んでね</p>
+        <div id="characters" class="character-choices" role="group" aria-label="自分のキャラ"></div>
+        <div class="mode-choices" role="group" aria-label="遊び方">
+          <button data-mode="cpu" aria-pressed="true">
+            <b>ひとりであそぶ</b><small>あなた ＋ CPU3匹</small></button
+          ><button data-mode="online" aria-pressed="false">
+            <b>通信であそぶ</b><small>ふたり ＋ CPU2匹</small>
+          </button>
+        </div>
+        <div id="online-setup" hidden>
+          <div class="room-choices">
+            <button data-room="create" aria-pressed="true">へやをつくる</button
+            ><button data-room="join" aria-pressed="false">へやに入る</button>
+          </div>
+          <label id="join-fields" hidden
+            >へやのキーワード<input
+              id="room-input"
+              maxlength="11"
+              placeholder="HAMU-ABC234"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+          /></label>
+          <div id="room-waiting" hidden>
+            <p>このキーワードを相手に教えてね</p>
+            <output id="room-display"></output><button id="copy-room">コピー</button>
+          </div>
+          <p id="online-status" role="status"></p>
+        </div>
+        <button id="start" class="primary" disabled>キャラを選んでね</button
+        ><button id="cancel" hidden>待つのをやめる</button>
+        <p class="setup-note">20枚からスタート。好きな場所にコインを置こう。</p>
+      </section>
+      <section id="game" hidden aria-label="4匹のミニルーレット">
+        <div class="scene">
+          <svg id="chip-flight" viewBox="-14 -14 28 28" aria-hidden="true" hidden></svg>
+          <div class="opponents" id="opponents"></div>
+          <div class="felt">
+            <div class="table-space">
+              <div class="tabletop">
+                <div id="board"></div>
+                <div id="spin-panel" aria-label="ルーレット">
+                  <div class="wheel-box">
+                    <div id="wheel"></div>
+                    <span class="wheel-ball" aria-hidden="true"></span>
+                  </div>
+                  <p id="spin-caption"></p>
+                  <output id="outcome" hidden></output>
+                </div>
+              </div>
+            </div>
+            <p class="table-brand" aria-hidden="true">TAK&amp;MEG · BONNE CHANCE</p>
+          </div>
+        </div>
+        <div class="game-info">
+          <p class="end-rule">清算後、誰かが<b>50枚超</b>か<b>0枚</b>でおわり</p>
+          <div class="history-strip">
+            <span>出目 <small>新→古</small></span>
+            <ol id="result-history" aria-label="過去の出目、新しい順" tabindex="0">
+              <li class="history-empty">まだ回していないよ</li>
+            </ol>
+          </div>
+        </div>
+        <div class="console">
+          <section id="self" class="self-panel" aria-label="あなた"></section>
+          <div class="bet-controls">
+            <p id="bet-note">数字・境目・交点をタップして1枚</p>
+            <div class="edit-row">
+              <span>賭ける <b id="stake">0</b> 枚</span
+              ><button id="undo" aria-label="最後の1枚を取り消す">1枚戻す</button
+              ><button id="pick-spot" aria-haspopup="dialog">賭け一覧</button
+              ><button id="clear">全て戻す</button>
+            </div>
+            <button id="main-action" class="primary" disabled>コインを置いてね</button>
+            <p id="status" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+      </section>
+      <dialog id="spot-dialog" aria-labelledby="spot-title">
+        <div class="dialog-heading">
+          <h2 id="spot-title">みんなの賭け先</h2>
+          <button id="close-spots">閉じる</button>
+        </div>
+        <div id="spot-list"></div>
+      </dialog>
+      <dialog id="final" aria-labelledby="final-title">
+        <p class="eyebrow">TAK&amp;MEG / FINAL RESULT</p>
+        <h2 id="final-title">最終結果</h2>
+        <ol id="ranking"></ol>
+        <button id="rematch" class="primary">もう一度あそぶ</button
+        ><button id="close-final">卓を見る</button>
+      </dialog>
+      <dialog id="rules" aria-labelledby="rules-title">
+        <div class="dialog-heading">
+          <h2 id="rules-title">あそびかた</h2>
+          <button id="close-rules" autofocus>閉じる</button>
+        </div>
+        <p>
+          4匹とも<b>20枚</b>から。盤の数字や赤・黒をタップすると1枚ずつコインを置けるよ。何か所に賭けてもOK。所持金の範囲で、毎回1枚以上を賭けよう。
+        </p>
+        <p>
+          数字の中を押すと1数字、<b>2数字の境目</b>で2数字、<b>0と外側2数字の交点</b>で3数字に賭けられるよ。押した場所が短く光ります。切り替えは不要。6と1も隣どうしです。
+        </p>
+        <p>
+          コインの色と名前横の印が対応しています。盤上のコイン内の数字は賭けた枚数です。同じ場所に賭けても4人分を並べて表示。CPUは順番にコインを置き、通信相手の賭け先は決定後に見えるよ。「賭け一覧」で場所と枚数を詳しく確認できます。間違えたら「1枚戻す」、まとめて取り消すなら「全て戻す」。
+        </p>
+        <p>
+          ルーレットは<b>0・1・2・3・4・5・6</b>の7マス。どの数字も1マスずつ。赤は奇数、黒は偶数で、0はどちらにも入りません。
+        </p>
+        <div class="payouts">
+          <p><b>数字1つ</b><span>0〜6：6倍</span></p>
+          <p><b>数字2つ</b><span>0を含めて3倍</span></p>
+          <p><b>数字3つ・赤・黒</b><span>2倍</span></p>
+        </div>
+        <p>
+          倍率は<b>賭けたコイン込みの返却額</b>。たとえば数字1つに1枚で当たると6枚、赤に2枚なら4枚が返るよ。
+        </p>
+        <p>
+          全員の清算後、誰かが<b>0枚以下</b>か<b>50枚超</b>になったら終了。その時の枚数で順位を決めます。同じ枚数なら同じ順位です。親番はありません。
+        </p>
+        <p>
+          通信は人間2人＋CPU2匹。ふたりの賭けが決まり、全員のコインを置き終えたら回転します。次の回・再戦もふたりの同意で始まります。
+        </p>
+        <p>
+          出目は新しい順に表示。横に動かすと前の結果も見られます。再戦では履歴をリセットします。
+        </p>
+        <details>
+          <summary>CPUの賭け方</summary>
+          <ul class="cpu-guide">
+            <li>
+              <b>たくハム</b
+              >20枚以下なら1〜2枚ずつ1〜3か所。20枚を超えたら、一撃で50枚超を狙う1点勝負です。
+            </li>
+            <li><b>めぐハム</b>まだ出ていない数字を優先し、1〜2枚ずつ2〜3か所。</li>
+            <li><b>ノーマルハム</b>3〜5枚ずつ、1〜2か所にどんと賭けます。</li>
+            <li><b>たぴ</b>1枚ずつ、1〜4か所に分散します。</li>
+          </ul>
+          <p>
+            所持金が足りない時は枚数・場所を減らします。出目によって次の抽選確率は変わりません。
+          </p>
+        </details>
+        <details>
+          <summary>みんなの様子</summary>
+          <p>
+            たくハムはコインが少なくなるとあせり、めぐハムは増えると嬉しそう。ノーマルハムは大きく賭けると悩み顔。たぴはたくさん増えると仲間が集まるよ。清算で増えたら喜び、減ったらしょんぼりします。
+          </p>
+        </details>
+      </dialog>
+    </main>
+    <noscript>このゲームにはJavaScriptを有効にしてください。</noscript>
+  </body>
+</html>

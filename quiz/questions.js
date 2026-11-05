@@ -1,5 +1,5 @@
 import { FOODS } from "../shiritori/dictionary.js?v=20261026-1300words";
-import { PUMPKINS, PUMPKIN_FAKES, PRODUCE, HAMSTER_QUESTIONS, PREFECTURES } from "./question-bank.js?v=20261030-quiz7";
+import { PUMPKINS, PUMPKIN_FAKES, PRODUCE, HAMSTER_QUESTIONS, PREFECTURES } from "./question-bank.js?v=20261105-pumpkin1";
 import { sample, shuffle, randomIndex } from "./random.js?v=20261030-quiz7";
 
 export const QUESTION_COUNT = 5;

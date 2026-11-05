@@ -1,4 +1,5 @@
 // 出典確認: 2026-10-30。出題時の並び替え・抽選は questions.js が担当する。
+// かぼちゃの追加5品種は2026-11-05に種苗会社の公式資料で確認。
 // 産地問題は「2024年（令和6年）の収穫量」で統一。産出額・出荷量ではない。
 export const PUMPKINS = [
   { name: "プッチィーニ", source: "https://www.sakataseed.co.jp/product/item/?code=100000340" },
@@ -6,6 +7,11 @@ export const PUMPKINS = [
   { name: "ロロン", source: "https://www.takii.co.jp/CGI/tsk/shohin/shohin.cgi?area_cd=5&breed_seq=00000729&daigi_flg=0&hinmoku_cd=ANK" },
   { name: "ブラックのジョー", source: "https://www.sakataseed.co.jp/special/blacknojoe/" },
   { name: "黒船ハマー", source: "https://www.sakataseed.co.jp/special/blacknojoe/" },
+  { name: "雪化粧", source: "https://www.sakataseed.co.jp/product/item/?code=921002" },
+  { name: "栗っプチ", source: "https://sakata-netshop.com/shop/g/g11800030/" },
+  { name: "ほっこり133", source: "https://www.takii.co.jp/tsk/saizensen_web/playback_ebisu/chapter2.html" },
+  { name: "ほっこり姫", source: "https://www.takii.co.jp/tsk/saizensen_web/playback_ebisu/chapter2.html" },
+  { name: "夢味", source: "https://www.takii.co.jp/tsk/saizensen_web/playback_ebisu/chapter2.html" },
 ];
 
 // このゲーム用に作った架空の品種名。実在の品種名として紹介しない。
@@ -15,6 +21,8 @@ export const PUMPKIN_FAKES = [
   "ほく甘の里", "初秋こはく", "蜜栗つむぎ", "ふっくら千歳",
   "ポッコリーノ", "マロッティ", "コロリーニ", "オレンジのモネ",
   "森のピカッソ", "まろみスター", "ベニーマロン", "サンセットホクホク",
+  "栗ふわりん", "月あかりマロン", "ほくほくパレット", "こはくポルカ", "金色のララ",
+  "モチクリーノ", "クリスターノ", "秋風ぽてまる", "まろみルーチェ", "パンプキンノエル",
 ];
 
 export const PREFECTURES = [

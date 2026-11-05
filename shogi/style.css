@@ -361,8 +361,8 @@ h1 span {
   height: 50%;
 }
 .piece.type-tapi.promoted .piece-art {
-  width: 94%;
-  height: 94%;
+  width: 72%;
+  height: 72%;
 }
 .piece.promoted {
   --marker: #ac5247;
@@ -778,10 +778,6 @@ dialog p {
   }
   .guide-note br {
     display: none;
-  }
-  .move-diagram {
-    grid-template-columns: repeat(3, 28px);
-    grid-template-rows: repeat(3, 28px);
   }
 }
 @media (max-width: 360px) {

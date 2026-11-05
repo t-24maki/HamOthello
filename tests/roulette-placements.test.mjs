@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ChipPlacements } from "../roulette/placements.js";
-import { placedChipPoint, chipsMarkup } from "../roulette/board.js";
-import { createRound, applyAction, stake } from "../roulette/rules.js";
+import { placedChipPoint, chipsMarkup, boardMarkup } from "../roulette/board.js";
+import { SPOTS, createRound, applyAction, stake } from "../roulette/rules.js";
 
 const bet = (id, amount = 1) => ({ id, amount });
 test("opponents place their stacks in screen order; only landed coins reduce their displayed bank", () => {
@@ -113,6 +113,19 @@ test("flight destination equals the rendered chip position for all overlapping s
           ),
         );
       }
+    }
+  }
+});
+
+test("all four chip stacks stay inside the compact board, including both corner color bets", () => {
+  const [, , width, height] = boardMarkup().match(/viewBox="([^"]+)"/)[1].split(" ").map(Number);
+  for (const spot of SPOTS) {
+    const bets = Array.from({ length: 4 }, () => [bet(spot.id)]);
+    for (let player = 0; player < 4; player++) {
+      const [x, y] = placedChipPoint(bets, player, spot.id);
+      // Include the chip's radius, outline and lower shadow.
+      assert.ok(x - 10 >= 0 && x + 10 <= width, `${spot.id}: player ${player} clipped horizontally`);
+      assert.ok(y - 10 >= 0 && y + 12 <= height, `${spot.id}: player ${player} clipped vertically`);
     }
   }
 });

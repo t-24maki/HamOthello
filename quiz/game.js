@@ -1,4 +1,4 @@
-import { createGame, transition, QUESTION_COUNT, currentQuestion, LETTERS, REWARDS, score, reward } from "./rules.js?v=20261030-quiz10";
+import { createGame, transition, QUESTION_COUNT, currentQuestion, LETTERS, REWARDS, score, reward } from "./rules.js?v=20261105-pumpkin1";
 import { performer, phoneMeg, seedIcon, dumpling } from "./art.js?v=20261030-quiz7";
 import { portrait } from "../baccarat/art.js?v=20261024-baccarat4";
 import { CueClock } from "./timeline.js?v=20261030-quiz2";

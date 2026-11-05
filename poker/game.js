@@ -18,7 +18,7 @@ import {
 } from "./characters.js?v=poker-dilemma-20261025";
 import { pokerPortrait as portrait } from "./portraits.js?v=poker-uneasy-20261025";
 import { createDealer } from "./dealer.js?v=poker-tells-20261025";
-import { appendCardArtwork } from "./cards.js?v=poker-cards-20261010";
+import { appendCardArtwork } from "./cards.js?v=poker-back-20261105";
 import {
   createPokerMatch,
   generateRoomCode,

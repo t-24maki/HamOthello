@@ -1,5 +1,16 @@
 # たくめぐしょうぎ：駒のイラスト
 
+## 現在のたぴ・ハム王（2026-11-05・たぴ再調整）
+
+- たぴはミニポーカーと同じ、正面・無表情・小さな手付きの通常ポーズを使用。`../../baccarat/art/table-friends-v3.png` を、`viewBox="934 40 320 285"`・画像全体1254×1254でSVG表示する。`baccarat/art.js` の `portrait("tapi", "neutral")` と同じ範囲。
+- 通常50%・成り72%の表示枠。成りは従来94%から縮め、8方向の矢印と重ならないようにした。盤上・持ち駒・説明・駒ずかん・トップ紹介を統一。
+- `king-mawashi-v1.png`：従来のオレンジのハム王に青いまわしを追加した512px透過PNG。今回のたぴ再調整では変更していない。
+- 同日に「バトルのポーズ切り出し」→「専用の正面・手なしPNG」と変更した後、手付きのポーカー既存素材を使う追加指示に従い現在の参照へ切り替えた。共有PNG、旧 `king.png`・`tapi.png`・`tapi-front-v1.png` は保持。
+- 先の画像生成記録は [画像編集記録](2026-11-05-art-edits.md)。今回の再調整では画像生成・画像加工は行わず、SVG表示とCSSサイズを変更。
+- 検証・変更前控え：`Codex.nosync/たくめぐ/work/2026-11-05/shogi-tapi-poker/`。
+
+## 2026-09-26の制作記録
+
 2026-09-26。内蔵 image_gen を使用。ユーザー提供画像をキャラクターと画風の参照にして作成。
 めぐハムはユーザーの回答に従いクリーム色。背景を透過したPNGを、背景色のある正方形の駒に配置。
 駒の縁・移動方向の点と矢印はゲーム内で描画し、実際のルールと一致させる。成駒の「成」の印は削除し、赤い縁で区別する。
@@ -54,7 +65,7 @@ Use case: identity-preserve. Edit the supplied Taku-ham illustration into its pr
 
 Use case: identity-preserve. Edit the supplied cream Megu-ham illustration into its promoted happy expression. Keep the same square canvas, exact pale cream color, round ears and proportions, all FOUR curved brown forehead lines, warm chocolate outlines, pink cheeks, feet, opaque watercolor fill, and identity. CHANGE ONLY the facial expression and tiny arms: a very happy wide open smiling mouth with small pink tongue, smiling closed crescent eyes, tiny paws slightly raised with delight while remaining close to body. ONE character, front view, no glasses. Truly transparent background, preserve alpha, no background or shadow, no text, no arrows, no tile, no decorative symbols. Keep subject framing and size matching original; this must fit the same shogi tile as the calm version.
 
-## tapi.png：ピンク色への変更（最新版）
+## tapi.png：ピンク色への変更（旧版）
 
 内蔵 image_gen の編集機能を使用。参照は先に生成したベージュ色の tapi.png。
 

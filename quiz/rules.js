@@ -1,4 +1,4 @@
-import { createQuestions, QUESTION_COUNT } from "./questions.js?v=20261030-quiz8";
+import { createQuestions, QUESTION_COUNT } from "./questions.js?v=20261105-pumpkin1";
 import { shuffle, sample } from "./random.js?v=20261030-quiz7";
 export { QUESTION_COUNT, shuffle };
 export const LETTERS = ["A", "B", "C", "D"];

@@ -323,7 +323,7 @@ svg {
   --metal-ink: #a33f2b;
 }
 .card-back {
-  --card-art: url("./art/classic-back.webp");
+  --card-art: url("./art/classic-back-v2.webp");
 }
 .playing-card .card-number {
   position: absolute;
@@ -371,19 +371,6 @@ svg {
     700 9cqi/1.2 Georgia,
     serif;
   letter-spacing: 0.08em;
-}
-.card-brand {
-  position: absolute;
-  top: 49%;
-  left: 22%;
-  width: 56%;
-  transform: translateY(-50%);
-  color: #74513c;
-  text-align: center;
-  font:
-    700 9cqi/1.2 Georgia,
-    serif;
-  letter-spacing: 0.025em;
 }
 button:disabled {
   cursor: default;

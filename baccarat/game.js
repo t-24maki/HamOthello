@@ -8,7 +8,7 @@ import {
   chooseCpu,
 } from "./rules.js?v=20261024-baccarat5";
 import { portrait } from "./art.js?v=20261024-baccarat4";
-import { appendCardArtwork } from "../poker/cards.js?v=poker-cards-20261010";
+import { appendCardArtwork } from "../poker/cards.js?v=poker-back-20261105";
 
 const $ = (id) => document.getElementById(id);
 let character = null,

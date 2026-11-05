@@ -34,16 +34,16 @@ export function boardMarkup() {
     body += `<g class="boundary" data-kind="${s.kind}" data-spot="${s.id}" role="button" tabindex="0" aria-label="${s.label}に1枚"><title>${s.label}に1枚</title>${line}<circle class="hit" cx="${x}" cy="${y}" r="14"/>${mark}</g>`;
   }
   for (const [id, y, label] of [
-    ["red", 110, "赤"],
-    ["black", 252, "黒"],
+    ["red", 32, "赤"],
+    ["black", 288, "黒"],
   ]) {
-    body += `<g class="color-bet ${id}" data-spot="${id}" role="button" tabindex="0" aria-label="${label}に1枚"><path d="M 343 ${y - 32} L 376 ${y} L 343 ${y + 32} L 310 ${y} Z"/><text x="343" y="${y + 7}">${label}</text></g>`;
+    body += `<g class="color-bet ${id}" data-spot="${id}" role="button" tabindex="0" aria-label="${label}に1枚"><path d="M 288 ${y - 30} L 318 ${y} L 288 ${y + 30} L 258 ${y} Z"/><text x="288" y="${y + 7}">${label}</text></g>`;
   }
-  return `<svg viewBox="0 -80 390 400" role="group" aria-label="賭ける場所。数字・境界・交点に1枚置きます">${body}<g id="chip-layer" aria-hidden="true"></g></svg>`;
+  return `<svg viewBox="0 0 320 320" role="group" aria-label="賭ける場所。数字・境界・交点に1枚置きます">${body}<g id="chip-layer" aria-hidden="true"></g></svg>`;
 }
 export function chipPoint(id) {
-  if (id === "red") return [343, 130];
-  if (id === "black") return [343, 272];
+  if (id === "red") return [288, 46];
+  if (id === "black") return [288, 298];
   if (id === "n0") return [160, 193];
   const n = Number(id.replace(/\D/g, ""));
   if (id.startsWith("n")) return polar(94, angle(n));

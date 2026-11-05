@@ -20,7 +20,7 @@ import {
   landingRotation,
   chipFace,
   placedChipPoint,
-} from "./board.js?v=20261030-roulette7";
+} from "./board.js?v=20261105-layout1";
 import { ChipPlacements } from "./placements.js?v=20261030-roulette5";
 import {
   createRouletteMatch,
@@ -557,16 +557,6 @@ async function connect() {
 }
 $("board").innerHTML = boardMarkup();
 $("wheel").innerHTML = wheelMarkup();
-// Wide and short screens have room beside the betting board; tall phones
-// tuck the wheel into the upper-right space above the circular board.
-const sideBySide = matchMedia("(min-width: 700px), (max-height: 540px), (orientation: landscape)");
-const sizeBoard = () =>
-  $("board").firstElementChild.setAttribute(
-    "viewBox",
-    sideBySide.matches ? "0 0 390 320" : "0 -80 390 400",
-  );
-sideBySide.addEventListener("change", sizeBoard);
-sizeBoard();
 $("invitation").innerHTML = CHARACTERS.map((c) => portrait(c.id)).join("");
 $("characters").innerHTML = CHARACTERS.map(
   (c) =>

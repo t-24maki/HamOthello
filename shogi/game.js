@@ -10,7 +10,7 @@ import {
   isRestricted,
   play,
 } from "./rules.js?v=20261001-shogi7";
-import { pieceArtwork, pieceElement } from "./pieces.js?v=20261001-shogi7";
+import { pieceArtElement, pieceElement } from "./pieces.js?v=20261105-tapi3";
 
 import { chooseMove } from "./cpu.js?v=20261001-shogi7";
 import { ownerForPlayer } from "./online-rules.js?v=20261001-shogi7";
@@ -111,10 +111,7 @@ const handButtons = [0, 1].map((owner) =>
       const button = el("button", "hand-piece");
       button.type = "button";
       button.dataset.type = type;
-      const art = el("img", "hand-art");
-      art.src = pieceArtwork({ type, promoted: false });
-      art.alt = "";
-      art.draggable = false;
+      const art = pieceArtElement({ type, promoted: false }, "hand-art");
       button.append(art, el("span", "hand-count", "0"));
       button.addEventListener("click", () => {
         if (!canInteract() || game.turn !== owner || !game.hands[owner][type]) return;

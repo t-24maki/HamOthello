@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>たくめぐのあそびば</title>
+  <rect width="64" height="64" rx="14" fill="#fff4db"/>
+  <g stroke="#69412e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Taku: lavender fur and round glasses. -->
+    <path d="M8 18C2 8 14 3 19 13Q28 9 36 15C43 7 51 16 45 23Q50 30 45 39C40 48 14 47 7 37Q2 29 8 18Z" fill="#dfb6ee"/>
+    <g fill="#f9dff6"><circle cx="18" cy="28" r="7"/><circle cx="35" cy="28" r="7"/></g>
+    <path d="M25 28H28" fill="none"/>
+    <g fill="#69412e" stroke="none"><circle cx="19" cy="28" r="2.1"/><circle cx="34" cy="28" r="2.1"/></g>
+    <path d="M23 36q3 3 5 0" fill="none" stroke-width="1.6"/>
+    <!-- Megu: cream fur and four forehead marks. -->
+    <path d="M27 33C21 23 33 19 38 28Q46 25 52 30C59 24 65 33 59 39Q64 49 57 56C50 63 30 62 24 53Q19 43 27 33Z" fill="#fff9e9"/>
+    <path d="M35 32q-2 4 0 6m5-7q-2 4 0 6m5-6q-1 4 1 6m4-5q0 4 2 6" fill="none" stroke-width="1.5"/>
+    <g fill="#69412e" stroke="none"><circle cx="33" cy="45" r="2.2"/><circle cx="51" cy="45" r="2.2"/></g>
+    <path d="M38 51q2 3 4 0q2 3 4 0" fill="none" stroke-width="1.6"/>
+    <g fill="#f2a4a0" stroke="none"><ellipse cx="28" cy="50" rx="3.5" ry="2.5"/><ellipse cx="55" cy="50" rx="3.5" ry="2.5"/></g>
+  </g>
+</svg>

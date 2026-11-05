@@ -257,20 +257,24 @@ test('counting question has exactly 12–15 Megs plus decoys, with fixed ascendi
   assert.deepEqual([...counts].sort(),[12,13,14,15]);
 });
 test('factual banks contain the requested variety and each generated question has one distinct answer', () => {
-  assert.equal(PUMPKINS.length,5);assert.equal(PUMPKIN_FAKES.length,20);
+  assert.equal(PUMPKINS.length,10);assert.equal(PUMPKIN_FAKES.length,30);
+  assert.equal(new Set(PUMPKINS.map(p=>p.name)).size,10);
+  assert.equal(new Set(PUMPKIN_FAKES).size,30);
   assert.equal(PRODUCE.length,20);assert.equal(HAMSTER_QUESTIONS.length,20);assert.equal(new Set(PREFECTURES).size,47);
   assert.ok(PUMPKINS.every(p=>!PUMPKIN_FAKES.includes(p.name)&&p.source.startsWith('https://')));
   assert.ok(PRODUCE.every(p=>PREFECTURES.includes(p.prefecture)&&p.year===2024&&p.source.startsWith('https://')));
   assert.equal(new Set(HAMSTER_QUESTIONS.map(q=>q.id)).size,20);
   for(const q of HAMSTER_QUESTIONS){assert.equal(new Set(q.choices).size,4);assert.ok(q.answer>=0&&q.answer<4&&q.source&&q.explanation);}
-  const random=rng(10630), seen=[new Set(),new Set(),new Set()];
+  const random=rng(10630), seen=[new Set(),new Set(),new Set()], seenFakes=new Set();
   for(let i=0;i<300;i++) {
     const qs=createQuestions(random);
     for(let n=2;n<5;n++){const q=qs[n];assert.equal(new Set(q.choices).size,4);seen[n-2].add(n===2?q.choices[q.answer]:q.id);}
     const pumpkin=qs[2];assert.equal(pumpkin.choices.filter(c=>PUMPKINS.some(p=>p.name===c)).length,1);
+    for(const choice of pumpkin.choices.filter(c=>PUMPKIN_FAKES.includes(c)))seenFakes.add(choice);
     assert.ok(qs[3].choices.every(p=>PREFECTURES.includes(p)));
   }
-  assert.deepEqual(seen.map(s=>s.size),[5,20,20]);
+  assert.deepEqual(seen.map(s=>s.size),[10,20,20]);
+  assert.equal(seenFakes.size,30);
 });
 test('question set persists throughout an attempt and is redrawn after failure and replay', () => {
   const random=rng(318);let s=start(random), old=s.questions;

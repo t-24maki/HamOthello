@@ -7,7 +7,7 @@ export function appendCardArtwork(node, card = null) {
         ["span", "card-corner", card.value],
         ["span", "metal-name", card.metal.toUpperCase()],
       ]
-    : [["span", "card-brand", "TAK&MEG"]];
+    : []; // 裏面の文字も画像内に含め、配布中に別レイヤーで遅れて描画しない。
   for (const [tag, className, text] of marks) {
     const mark = document.createElement(tag);
     mark.className = className;

@@ -17,6 +17,7 @@ export const GAME_GROUPS = [
       { id: "shogi", name: "たくめぐしょうぎ", path: "shogi/" },
       { id: "poker", name: "ミニポーカー", path: "poker/" },
       { id: "roulette", name: "ミニルーレット", path: "roulette/" },
+      { id: "sugoroku", name: "たくめぐすごろく", path: "sugoroku/" },
       { id: "mahjong", name: "ミニまーじゃん", path: "mahjong/" },
       { id: "blocks", name: "ブロックつめこみ", path: "blocks/" },
     ],

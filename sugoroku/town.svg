@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 264" role="img" aria-label="パン屋・花畑・写真館を小川がつなぐこもれび町">
+ <defs>
+  <pattern id="meadow" width="34" height="28" patternUnits="userSpaceOnUse"><path d="M5 17l-2-3m2 3 3-5" fill="none" stroke="#92a677" stroke-width="1.2"/><circle cx="24" cy="6" r="1" fill="#a5ae7e"/></pattern>
+  <g id="pine"><path d="M-2 1v13h4V1" fill="#9d8061"/><path d="M0-28l-10 18h4l-8 13q14 6 28 0L6-10h4z" fill="#779c78" stroke="#52765e" stroke-width="1.4"/><path d="M0-19v22" stroke="#638664" fill="none"/></g>
+  <g id="tree"><path d="M-2 0v14h5V-1" fill="#9d8061"/><path d="M-13-5q-7-11 3-17 0-10 11-10 13 0 13 12 11 6 5 16-14 9-32-1z" fill="#acc38a" stroke="#799168" stroke-width="1.6"/><path d="M1 6v-15m0 9 6-6" fill="none" stroke="#829966" stroke-width="2"/></g>
+  <g id="flower"><path d="M0 2v7m0-2-3-2" stroke="#688859" fill="none"/><path d="M0-1c-7-5-8 3-2 3-3 6 4 7 4 1 7 1 6-6 1-5 1-5-5-5-3 1" fill="#f8ce9b" stroke="#b58864" stroke-width=".7"/></g>
+ </defs>
+ <path fill="#edf0d8" d="M0 0h500v264H0z"/>
+ <path fill="#d4e2c5" d="M0 59Q70 1 140 37T287 30T500 32v68H0z"/>
+ <path fill="#baca9d" d="M0 79q72-70 135-31t147 8Q404 7 500 43v221H0z"/>
+ <path fill="#dee1aa" d="M0 87q110-43 200-11t172-17q81-24 128-12v217H0z"/>
+ <path fill="url(#meadow)" d="M0 78h500v186H0z"/>
+ <path d="M306 48q-98 39-43 67t-6 53q-46 31 19 52t41 60" fill="none" stroke="#9eb8a3" stroke-width="28"/>
+ <path d="M306 48q-98 39-43 67t-6 53q-46 31 19 52t41 60" fill="none" stroke="#a5d0c9" stroke-width="22"/>
+ <g fill="none" stroke="#d9ebe1" stroke-width="2" stroke-linecap="round"><path d="M273 70l9-6m-35 33 10 6m11 53-8 4m-17 29 5 8m37 31 10 4"/></g>
+ <path d="M-12 193q61-29 95-14 62 31 107-4l108-51q44-14 91 22t123 9" fill="none" stroke="#cbb68a" stroke-width="20"/>
+ <path d="M-12 193q61-29 95-14 62 31 107-4l108-51q44-14 91 22t123 9" fill="none" stroke="#f5e5be" stroke-width="16"/>
+ <g transform="translate(268 139) rotate(-25)" stroke="#8e7351" stroke-width="2"><path d="M-24-8h48v17h-48z" fill="#d5b685"/><path d="M-17-8v17m8-17v17m9-17v17m8-17v17m8-17v17" opacity=".6"/><path d="M-25-9v-8h50v9m-50 17v-6m50 6v-6" fill="none"/></g>
+ <g><use href="#pine" transform="translate(16 81)"/><use href="#tree" transform="translate(39 82)"/><use href="#pine" transform="translate(61 75)"/><use href="#tree" transform="translate(207 71) scale(.72)"/><use href="#pine" transform="translate(229 65) scale(.68)"/><use href="#pine" transform="translate(337 56) scale(.7)"/><use href="#tree" transform="translate(459 67)"/><use href="#tree" transform="translate(483 73) scale(.8)"/></g>
+ <g transform="translate(92 92)" stroke="#856953" stroke-width="2" stroke-linejoin="round">
+  <ellipse cx="38" cy="67" rx="61" ry="8" fill="#a7ab77" stroke="none" opacity=".55"/>
+  <path d="M1 4l17-28 66-3 12 28-20 9z" fill="#c66e53"/><path d="M16-25 75-28l-8 31-68 3z" fill="#dc8b6a"/>
+  <path d="M0 5h70v61H0z" fill="#f4dfa9"/><path d="M70 5l14-31 15 27v56l-29 9z" fill="#d8bd8b"/>
+  <path d="M16-24l59-3m-56 10 53-2m-59 11 57-3" stroke="#ba715a" stroke-width="1.5"/>
+  <path d="M4 24h61l5 12H0z" fill="#e5a68a"/><path d="M12 25l-3 10m17-10-2 10m16-10v10m15-10 2 10" stroke="#fff1cf" stroke-width="6"/>
+  <path d="M7 39h32v18H7z" fill="#9cbdad"/><path d="M46 39h14v27H46z" fill="#a67f60"/><path d="M12 53q0-11 9-4 8-9 13 4z" fill="#e7b569"/>
+  <rect x="15" y="8" width="40" height="13" rx="3" fill="#fff2cd"/><path d="M25 15q3-9 8-4l6-1q9 1 6 6l-17 2z" fill="#ce935b" stroke-width="1.3"/>
+  <path d="M12-23v-17h9v16" fill="#c69479"/>
+ </g>
+ <g transform="translate(350 80)" stroke="#706d59" stroke-width="2" stroke-linejoin="round">
+  <ellipse cx="25" cy="51" rx="48" ry="7" fill="#aaad79" stroke="none"/>
+  <path d="M-5 4h60v46H-5z" fill="#f1dec1"/><path d="M-11 3L2-20l50-4L64 2z" fill="#79a59d"/>
+  <path d="M2-19l49-4M-3-8l58-3" stroke="#628e88"/><path d="M3 16h23v21H3z" fill="#a8c7bb"/><path d="M34 14h13v36H34z" fill="#aa876c"/><circle cx="24" cy="4" r="10" fill="#f9e9c6"/><rect x="17" y="0" width="14" height="9" rx="2" fill="#879695"/><circle cx="24" cy="4" r="3" fill="#f5e1aa"/>
+ </g>
+ <g transform="translate(348 194)"><path d="M-21 12q27-33 94-28l10 16Q29 6-8 25z" fill="#c1a47b"/><path d="M-14 15q50-35 91-23M-7 21q47-28 83-23" stroke="#a58c66" fill="none"/><use href="#flower" x="0" y="2"/><use href="#flower" x="13" y="-3"/><use href="#flower" x="27" y="-8"/><use href="#flower" x="42" y="-12"/><use href="#flower" x="56" y="-14"/><use href="#flower" x="15" y="7"/><use href="#flower" x="32" y="0"/><use href="#flower" x="52" y="-5"/></g>
+ <g stroke="#967e59" fill="#e7d3ab"><path d="M48 136v17m18-21v15m19-19v15M46 141l42-11" fill="none" stroke-width="3"/><path d="M196 200v24" stroke-width="4"/><path d="M184 196l29-3 7 5-6 6-29 2z"/></g>
+ <use href="#tree" transform="translate(40 228)"/><use href="#pine" transform="translate(15 236)"/><use href="#tree" transform="translate(468 217)"/><use href="#pine" transform="translate(490 225)"/><use href="#flower" x="162" y="225"/><use href="#flower" x="170" y="220"/>
+ <g fill="#fffaf0" opacity=".8"><path d="M69 23q0-6 7-6 1-9 11-6 6 1 6 7 8-2 10 5zM388 19q3-7 9-5 3-8 11-5 4 1 5 6 7-1 9 4z"/></g>
+</svg>

@@ -1,4 +1,4 @@
-import { navigationMarkup } from "./site-navigation.js?v=20261030-site10";
+import { navigationMarkup } from "./site-navigation.js?v=20261106-sugoroku1";
 
 const base = new URL("./", import.meta.url);
 class TakumeguHeader extends HTMLElement {

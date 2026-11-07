@@ -5,8 +5,8 @@
   <meta name="theme-color" content="#f6f1e4"><meta name="description" content="サイコロを選んで、たねを集めよう。全員がゴールしたら、たねが最多の人が優勝！ゾロ目は合計で進むよ。通信は2人まで。">
   <title>たくめぐすごろく｜たくめぐのあそびば</title>
   <link rel="icon" href="../favicon.ico?v=20261105" sizes="16x16 32x32 48x48"><link rel="icon" type="image/svg+xml" href="../assets/site-icon.svg?v=20261105"><link rel="apple-touch-icon" href="../apple-touch-icon.png?v=20261105">
-  <link rel="stylesheet" href="../site-layout.css?v=20261022-site1"><link rel="stylesheet" href="./style.css?v=20261107-roundgraph1">
-  <script type="module" src="../site-header.js?v=20261106-sugoroku1"></script><script type="module" src="./game.js?v=20261107-roundgraph3"></script>
+  <link rel="stylesheet" href="../site-layout.css?v=20261022-site1"><link rel="stylesheet" href="./style.css?v=20261107-motion1">
+  <script type="module" src="../site-header.js?v=20261106-sugoroku1"></script><script type="module" src="./game.js?v=20261107-motion1"></script>
 </head>
 <body data-site-page="sugoroku"><takumegu-header data-page="sugoroku"></takumegu-header>
 <main>
@@ -40,7 +40,7 @@
     <div class="map-key"><span>↻ 時計回り</span><span>たね ＋1〜4個</span><span>★ たね＋6／−3個</span></div>
    </section>
    <div class="side">
-    <div id="roster" class="roster" aria-label="持ちたねと現在の周回"></div>
+    <div id="roster" class="roster" aria-label="左から手番順：持ちたねと現在の周回"></div>
     <section class="console" aria-label="手番の操作"><div class="console-head"><span id="turn-label"></span><small id="phase"></small></div><p id="prompt" aria-live="polite"></p><div id="actions"></div></section>
     <div class="tools"><button id="journal-open">▤ レース記録</button><button id="speed" aria-pressed="false">早送り：切</button><button id="leave">最初に戻る</button></div>
    </div>
@@ -56,6 +56,13 @@
   <p class="brief-effects">たねマス：書かれた＋1〜4個を毎回もらう<br>★：1個振って、奇数ならたね＋6・偶数なら−3<br>近道：さらに3マス。空マスは何もなし。</p>
   <button class="primary" id="brief-ok" autofocus>わかった、出発！</button>
   <button class="text-button" id="brief-back">戻る</button>
+ </dialog>
+ <dialog id="start-order" aria-labelledby="order-title" aria-describedby="order-caption order-direction">
+  <p class="kicker">4匹で、よーいどん！</p><h2 id="order-title">最初はだあれ？</h2>
+  <div class="order-stage" aria-hidden="true"><span class="order-pointer"></span><div id="order-wheel" class="order-wheel"></div><span class="order-hub">↶</span></div>
+  <p id="order-caption" role="status"></p><p id="order-direction">止まった人から、<b>左回り</b>で交代するよ</p>
+  <ol id="order-route" aria-label="サイコロを振る順番"></ol>
+  <button id="order-start" class="primary" disabled>順番を決めています…</button>
  </dialog>
  <dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-top"><h2 id="dialog-title"></h2><button id="close" class="paper-button">閉じる</button></div><div id="dialog-body"></div></dialog>
 </main><noscript>JavaScriptを有効にして遊んでください。</noscript>

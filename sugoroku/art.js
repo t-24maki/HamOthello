@@ -14,5 +14,5 @@ export const die = n => '<span aria-hidden="true" class="die">'+Array.from({leng
 // Six pipped faces on a physical cube. The front always shows the confirmed die.
 export function cube(n) {
   const side=[1,2,3,4,5,6].filter(v=>v!==n&&v!==7-n);
-  return '<span class="cube-space"><span class="cube">'+[n,7-n,side[0],7-side[0],side[1],7-side[1]].map((v,i)=>'<span class="facet f'+i+'">'+die(v)+'</span>').join("")+'</span></span>';
+  return '<span class="die-physical" aria-hidden="true"><span class="die-shadow"></span><span class="die-flight"><span class="cube-space"><span class="cube">'+[n,7-n,side[0],7-side[0],side[1],7-side[1]].map((v,i)=>'<span class="facet f'+i+'">'+die(v)+'</span>').join("")+'</span></span></span></span>';
 }

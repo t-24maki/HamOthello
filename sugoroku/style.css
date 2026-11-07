@@ -43,10 +43,57 @@ dialog,#result{border:1px solid var(--line);border-radius:18px;background:var(--
 .facet{position:absolute;inset:0;backface-visibility:hidden}.facet .die{background:#fff6dc;border:1.5px solid #85734f;border-radius:15%;box-shadow:none;width:100%;height:100%;padding:15%;gap:5%}.facet .die .ink{background:#544e3d;box-shadow:inset 0 1px 1px #443a3066}.table-die:nth-child(2) .die .ink{background:#765878}
 .f0{transform:translateZ(calc(var(--side) / 2))}.f1{transform:rotateY(180deg) translateZ(calc(var(--side) / 2))}.f2{transform:rotateY(90deg) translateZ(calc(var(--side) / 2))}.f3{transform:rotateY(-90deg) translateZ(calc(var(--side) / 2))}.f4{transform:rotateX(90deg) translateZ(calc(var(--side) / 2))}.f5{transform:rotateX(-90deg) translateZ(calc(var(--side) / 2))}
 .f2 .die,.f3 .die{background:#daccaa}.f4 .die,.f5 .die{background:#eee4c9}
+/* Translation, cube rotation and contact shadow are independent: three bounces
+   lose height as the six-faced die rolls to its confirmed front face. */
+.die-physical,.die-flight{display:block;width:var(--side);height:var(--side);position:relative}
+.die-physical{--direction:-1;--roll-ms:1400ms;isolation:isolate}.table-die:nth-child(2) .die-physical{--direction:1}
+.throw-box .die-physical{--roll-ms:inherit}
+.die-shadow{position:absolute;left:-5%;bottom:-14%;width:110%;height:24%;border-radius:50%;background:radial-gradient(ellipse,#55462f66,transparent 70%);transform:scale(1);opacity:.8}
+.die-flight{z-index:1}.tossing .table-die{background:transparent}
+.race-tray:has(.throw-box.tossing)>#roll-caption,#challenge-stage.drawing .challenge-status{visibility:hidden}
 @media(prefers-reduced-motion:no-preference){
-  .tossing .cube{animation:tumble-left 1s cubic-bezier(.2,.05,.3,1) both}.tossing .table-die:nth-child(2) .cube{animation-name:tumble-right}
-  @keyframes tumble-left{0%{transform:translateY(1px) rotateX(16deg) rotateY(-35deg)}38%{transform:translateY(-10px) rotateX(211deg) rotateY(192deg)}100%{transform:rotateX(346deg) rotateY(377deg) rotateZ(-5deg)}}
-  @keyframes tumble-right{0%{transform:rotateX(-40deg) rotateY(10deg)}48%{transform:translateY(-9px) rotateX(180deg) rotateY(-240deg)}100%{transform:rotateX(346deg) rotateY(-377deg) rotateZ(5deg)}}
+ .tossing .die-flight{animation:die-bounce var(--roll-ms) linear both}
+ .tossing .cube{animation:die-tumble var(--roll-ms) linear both}
+ .tossing .table-die:nth-child(2) .cube{animation-name:die-tumble-right}
+ .tossing .die-shadow{animation:die-contact var(--roll-ms) linear both}
+ @keyframes die-bounce{
+  0%{transform:translate(calc(var(--direction) * var(--side) * .65),calc(var(--side) * -.25))}
+  16%{transform:translate(calc(var(--direction) * var(--side) * .42),calc(var(--side) * -.56));animation-timing-function:ease-in}
+  36%{transform:translate(calc(var(--direction) * var(--side) * .14),0);animation-timing-function:ease-out}
+  51%{transform:translate(calc(var(--direction) * var(--side) * -.12),calc(var(--side) * -.28));animation-timing-function:ease-in}
+  68%{transform:translate(calc(var(--direction) * var(--side) * -.1),0);animation-timing-function:ease-out}
+  79%{transform:translate(calc(var(--direction) * var(--side) * .04),calc(var(--side) * -.1));animation-timing-function:ease-in}
+  89%,100%{transform:translate(0,0)}
+ }
+ @keyframes die-tumble{
+  0%{transform:rotateX(-120deg) rotateY(-100deg) rotateZ(-55deg)}
+  16%{transform:rotateX(70deg) rotateY(35deg) rotateZ(10deg)}
+  36%{transform:rotateX(250deg) rotateY(193deg) rotateZ(-22deg)}
+  51%{transform:rotateX(398deg) rotateY(285deg) rotateZ(10deg)}
+  68%{transform:rotateX(530deg) rotateY(340deg) rotateZ(-9deg)}
+  79%{transform:rotateX(658deg) rotateY(377deg) rotateZ(-5deg)}
+  90%{transform:rotateX(713deg) rotateY(381deg) rotateZ(-3deg)}
+  100%{transform:rotateX(706deg) rotateY(377deg) rotateZ(-5deg)}
+ }
+ @keyframes die-tumble-right{
+  0%{transform:rotateX(-60deg) rotateY(150deg) rotateZ(48deg)}
+  16%{transform:rotateX(115deg) rotateY(-15deg) rotateZ(-12deg)}
+  36%{transform:rotateX(290deg) rotateY(-175deg) rotateZ(24deg)}
+  51%{transform:rotateX(425deg) rotateY(-260deg) rotateZ(-13deg)}
+  68%{transform:rotateX(555deg) rotateY(-326deg) rotateZ(10deg)}
+  79%{transform:rotateX(675deg) rotateY(-377deg) rotateZ(5deg)}
+  90%{transform:rotateX(710deg) rotateY(-382deg) rotateZ(3deg)}
+  100%{transform:rotateX(706deg) rotateY(-377deg) rotateZ(5deg)}
+ }
+ @keyframes die-contact{
+  0%{transform:translateX(calc(var(--direction) * var(--side) * .65)) scale(.75);opacity:.4}
+  16%{transform:translateX(calc(var(--direction) * var(--side) * .42)) scale(.6);opacity:.25}
+  36%{transform:translateX(calc(var(--direction) * var(--side) * .14)) scale(1.12);opacity:.95}
+  51%{transform:translateX(calc(var(--direction) * var(--side) * -.12)) scale(.75);opacity:.4}
+  68%{transform:translateX(calc(var(--direction) * var(--side) * -.1)) scale(1.05);opacity:.9}
+  79%{transform:translateX(calc(var(--direction) * var(--side) * .04)) scale(.85);opacity:.55}
+  89%,100%{transform:translateX(0) scale(1);opacity:.8}
+ }
 }
 .cell.bridge{background:#d1e8cc;border-color:#94b78e}.cell.home{background:repeating-linear-gradient(135deg,#f4e6bd 0 7px,#f8ebcd 7px 14px)}
 .cell.bridge .place,.key-plus{color:#346342}.map-key span:last-child{font-family:inherit;letter-spacing:0}
@@ -103,6 +150,37 @@ dialog,#result{border:1px solid var(--line);border-radius:18px;background:var(--
 }
 @media(max-width:740px) and (max-height:590px){
  #challenge-stage{gap:1px}.challenge-title{font-size:10px}.challenge-status{font-size:9px}.challenge-die{--side:24px;flex-basis:48px}.challenge-die .table-die{padding:5px 0;min-height:38px}.challenge-odds{font-size:8px}.challenge-odds b{font-size:10px}.challenge-total{font-size:8px}
+}
+/* Four seats are a quarter-turn apart; increasing seats go counterclockwise. */
+#start-order{width:min(400px,calc(100% - 24px));max-height:94svh;text-align:center;padding:20px 22px;--wheel:252px;--radius:82px;--portrait:68px;--spin-ms:3200ms}
+#start-order .kicker{margin:0 0 4px;font-size:10px}#start-order h2{font-size:24px}
+.order-stage{position:relative;width:var(--wheel);height:var(--wheel);margin:20px auto 12px;isolation:isolate}
+.order-wheel{position:absolute;inset:0;border:6px solid #79906a;border-radius:50%;background:conic-gradient(from -45deg,#eee3f6 0 90deg,#f6dfe5 90deg 180deg,#f9e7bf 180deg 270deg,#ecf1d3 270deg);box-shadow:0 4px 0 #4d674d,0 8px 16px #5e59362a;transform:rotate(var(--stop))}
+.order-wheel:before,.order-wheel:after{content:"";position:absolute;top:50%;left:0;width:100%;height:2px;background:#fff9eb;transform:rotate(45deg)}.order-wheel:after{transform:rotate(-45deg)}
+.wheel-slot{position:absolute;left:50%;top:50%;width:var(--portrait);height:var(--portrait);z-index:1}
+.slot-0{transform:translate(-50%,calc(-50% - var(--radius)))}.slot-1{transform:translate(calc(-50% - var(--radius)),-50%)}.slot-2{transform:translate(-50%,calc(-50% + var(--radius)))}.slot-3{transform:translate(calc(-50% + var(--radius)),-50%)}
+.wheel-face{transform:rotate(var(--counter));height:100%;display:grid;place-items:center;align-content:center}.wheel-face svg{display:block;width:var(--portrait);height:var(--portrait)}.wheel-face b{font-size:10px;line-height:1.1;background:#fff9e9e0;padding:2px 5px;border-radius:5px;white-space:nowrap;margin-top:-6px}
+.order-pointer{position:absolute;left:calc(50% - 11px);top:-11px;width:22px;height:27px;background:#a7593f;clip-path:polygon(0 0,100% 0,50% 100%);z-index:3}
+.order-hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:44px;height:44px;background:#fff9e9;border:2px solid #95a17b;border-radius:50%;color:#55724e;font-size:31px;font-weight:bold;z-index:2}
+#start-order #order-caption{font-size:16px;font-weight:800;color:var(--green);min-height:27px;margin:9px 0 2px}#start-order #order-direction{font-size:12px;margin:0}
+#order-route{list-style:none;padding:0;margin:12px 0 15px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;visibility:hidden}
+.revealed #order-route{visibility:visible}#order-route li{position:relative;display:grid;justify-items:center;background:#f2efdf;border:1px solid #d5cfb4;border-radius:10px;padding:7px 1px 4px}#order-route li:first-child{background:#e8efd8;border-color:#6f8c60}
+#order-route li+li:before{content:"›";position:absolute;top:42%;left:-8px;color:#6d8057;font-size:16px;font-weight:bold}
+.order-number{position:absolute;left:4px;top:3px;font:bold 11px Georgia,serif;color:#58734c}#order-route svg{width:42px;height:36px}#order-route b{font-size:10px}#order-route small{font-size:9px;color:var(--soft)}#order-start{width:100%;min-height:44px;font-size:14px;padding:10px}
+@media(prefers-reduced-motion:no-preference){
+ .spinning .order-wheel{animation:order-spin var(--spin-ms) cubic-bezier(.12,.65,.14,1) both}
+ .spinning .wheel-face{animation:order-upright var(--spin-ms) cubic-bezier(.12,.65,.14,1) both}
+ @keyframes order-spin{from{transform:rotate(0)}to{transform:rotate(var(--stop))}}
+ @keyframes order-upright{from{transform:rotate(0)}to{transform:rotate(var(--counter))}}
+}
+@media(max-width:350px),(max-height:650px){
+ #start-order{--wheel:190px;--radius:60px;--portrait:51px;padding:13px 16px}#start-order h2{font-size:20px}#start-order .kicker{font-size:8px}.order-stage{margin:12px auto 6px}.order-wheel{border-width:5px}.wheel-face b{font-size:9px}.order-hub{width:35px;height:35px;font-size:26px}
+ #start-order #order-caption{font-size:14px;min-height:23px;margin:6px 0 0}#start-order #order-direction{font-size:10px}#order-route{margin:6px 0 7px;gap:6px}#order-route li{padding-top:4px}#order-route svg{height:30px;width:35px}#order-route b{font-size:9px}#order-route li+li:before{left:-6px}#order-start{font-size:12px}
+}
+@media(orientation:landscape) and (max-height:550px) and (min-width:500px){
+ #start-order{width:min(520px,calc(100% - 24px));--wheel:176px;--radius:55px;--portrait:46px;grid-template-columns:190px 1fr;gap:0 14px;align-items:center;padding:12px 16px}
+ #start-order[open]{display:grid}#start-order .kicker,#start-order h2,#order-caption,#order-direction,#order-route,#order-start{grid-column:2}
+ #start-order .order-stage{grid-column:1;grid-row:1/7;margin:12px auto 6px}#start-order h2{font-size:19px}#start-order #order-caption{font-size:13px}#order-route{margin:7px 0 10px}#order-route b{font-size:8px}
 }
 /* Four distinguishable lines; exact values remain available on touch screens. */
 dialog.chart-dialog{width:min(580px,calc(100% - 24px))}.race-record{text-align:left}

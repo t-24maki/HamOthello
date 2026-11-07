@@ -1,16 +1,18 @@
 import {createSugorokuMatch,generateRoomCode,normalizeRoomCode} from "./online.js?v=20261107-roundgraph1";
 import {CAST,BOARD,GOAL,LAPS,createGame,activeSeat,cellAt,lapOf,preview,rankPlayers,act,cpuAction,FINISH_BONUS,SEED_REWARDS} from "./rules.js?v=20261107-roundgraph1";
-import {icon,face,cube} from "./art.js?v=20261107-roundgraph1";
+import {icon,face,cube} from "./art.js?v=20261107-motion1";
 import {raceChart} from "./history.js?v=20261107-roundgraph3";
 const $=id=>document.getElementById(id);
 let humans=1,character=0,state=null,timer=0,fast=false,travel=null,menu=false;
 let mode="solo",roomRole="host",net=null,mySeat=0,generation=0,busy=false,sending=false,broken=false;
 let roomCode="",subscribed=false,lastMeta=null;
 const connectedMode=()=>mode==="online";
-const myTurn=()=>state && !frames.length && state.players[activeSeat(state)].finish===null && state.players[activeSeat(state)].human &&
+const myTurn=()=>state && !opening && !frames.length && state.players[activeSeat(state)].finish===null && state.players[activeSeat(state)].human &&
   (!connectedMode() || (activeSeat(state)===mySeat && !sending && !broken));
 const hero = p=>CAST[p.character], tag=(p,i)=>!p.human?"CPU":connectedMode()?(i===mySeat?"あなた":"相手"):"P"+(i+1);
-let beginAfterBrief=null,frames=[];
+let beginAfterBrief=null,frames=[],opening=null,openingTimer=0;
+const reducedMotion=()=>window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const playOrder=()=>Array.from({length:4},(_,i)=>(state.first+i)%4);
 function setupUI(){
   const modes=[["solo","ひとり","CPU3匹"],["online","ふたり通信","CPU2匹"],["local","1台でふたり","CPU2匹"]];
   $("human-count").innerHTML=modes.map(([id,label,detail])=>'<button data-mode="'+id+'" aria-pressed="'+(id===mode)+'" '+(busy?"disabled":"")+'>'+label+'<small>'+detail+'</small></button>').join("");
@@ -24,6 +26,7 @@ function setupUI(){
   $("setup-note").textContent=(mode==="solo"?"ひとり ＋ CPU3匹":mode==="local"?"1台でふたり ＋ CPU2匹":"別々の端末でふたり ＋ CPU2匹")+"　·　3周・たね集め／約5〜10分";
 }
 function clearRoom(){
+  closeOpening();
   frames=[];generation++;net?.close();net=null;lastMeta=null;sending=false;broken=false;busy=false;subscribed=false;roomCode="";
   $("room-status").textContent="";$("wire-error").textContent="";$("wire-alert").hidden=true;
 }
@@ -84,7 +87,7 @@ function paintDice(){
     b.setAttribute("aria-label",state.phase==="roll"?"サイコロを振る（"+(i?"右":"左")+"）":'出目'+values[i]+'を選ぶ'+(m?'、'+detail+(m.exactBonus?'、ぴったりボーナス5個':'')+'、あと'+(GOAL-m.end)+'マス':""));
   }
   $("roll-caption").textContent=rolling?"ころころ…":travel?.kind==="double"?"ゾロ目！ 合計"+state.lastMove.die+"マス":state.phase==="roll"?"サイコロを振ろう":state.phase==="double"?"ゾロ目！":choosing?(myTurn()?"サイコロをタップ":hero(state.players[activeSeat(state)]).short+"が選んでいるよ"):"進む数："+state.lastMove.die;
-  $("dice-hint").textContent=choosing?(myTurn()?"好きな方にタッチ！":"出目と行き先を見てみよう"):state.phase==="roll"?(myTurn()?"どちらに触れても振れるよ":"サイコロの出番"):"";
+  $("dice-hint").textContent=rolling?"ころころ…":choosing?(myTurn()?"好きな方にタッチ！":"出目と行き先を見てみよう"):state.phase==="roll"?(myTurn()?"どちらに触れても振れるよ":"サイコロの出番"):"";
 }
 function paintChallenge(){
   const panel=$("challenge-stage"),active=challenging();panel.hidden=!active;
@@ -102,9 +105,10 @@ function paintInfo(){
   $("round").textContent="3周でゴール";
   const count=state.finishOrder.length-(m?.finish?1:0);
   $("finish-prizes").innerHTML=FINISH_BONUS.map((n,i)=>'<span class="'+(i<count?'taken':'')+'">'+(i+1)+'着 <b>＋'+n+'</b></span>').join("");
-  $("roster").innerHTML=state.players.map((q,i)=>{
+  $("roster").innerHTML=playOrder().map((i,order)=>{
+    const q=state.players[i];
     const distance=visualDistance(q,i),inMotion=m?.seat===i&&travel.kind!=="challenge-result",seeds=inMotion?m.seedBefore:q.seeds,finish=inMotion?null:q.finish;
-    return '<article class="'+(i===seat?"active":"")+(finish?' arrived':'')+'" style="--token:'+hero(q).color+'"><span class="who">'+tag(q,i)+'</span><strong>'+hero(q).short+'</strong><span class="score">たね '+seeds+'個</span><small>'+(finish?finish+'着・＋'+(q.finishBonus+q.exactBonus)+'個獲得':lapOf({distance})+'周目')+'</small><progress max="'+GOAL+'" value="'+distance+'" aria-label="進んだ距離"></progress></article>';
+    return '<article class="'+(i===seat?"active":"")+(finish?' arrived':'')+'" style="--token:'+hero(q).color+'" aria-label="'+(order+1)+'番目：'+hero(q).name+'"><span class="who">'+'①②③④'[order]+' '+tag(q,i)+'</span><strong>'+hero(q).short+'</strong><span class="score">たね '+seeds+'個</span><small>'+(finish?finish+'着・＋'+(q.finishBonus+q.exactBonus)+'個獲得':lapOf({distance})+'周目')+'</small><progress max="'+GOAL+'" value="'+distance+'" aria-label="進んだ距離"></progress></article>';
   }).join("");
   $("turn-label").textContent=tag(p,seat)+"　"+hero(p).name+"の番";$("turn-label").style.setProperty("--token",hero(p).color);
   $("phase").textContent=lapOf({distance:visualDistance(p,seat)})+"周目／全"+LAPS+"周";
@@ -155,14 +159,15 @@ function finishMotion(){
 }
 function schedule(){
   clearTimeout(timer);
-  if(!state||broken||(!connectedMode()&&paused()))return;
+  if(!state||opening||broken||(!connectedMode()&&paused()))return;
   if(travel?.kind==="roll"){
-    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    timer=setTimeout(finishMotion,reduced||quick()?140:1050);return;
+    const ms=reducedMotion()?140:quick()?480:1450;
+    $("throw-box").style.setProperty("--roll-ms",(ms-50)+"ms");
+    timer=setTimeout(finishMotion,ms);return;
   }
   if(travel?.kind==="double"){timer=setTimeout(finishMotion,1400);return;}
   // Both clients reveal the confirmed result; the visual draw never rolls again.
-  if(challengeMotion()){timer=setTimeout(finishMotion,travel.kind==="challenge-roll"?1050:1800);return;}
+  if(challengeMotion()){timer=setTimeout(finishMotion,travel.kind==="challenge-roll"?(reducedMotion()?140:1450):1800);return;}
   if(travel?.kind==="walk"){
     const m=state.lastMove;
     timer=setTimeout(()=>{
@@ -195,7 +200,7 @@ function present(next,animate){
   render();schedule();
 }
 function dispatch(action){
-  if(paused()||travel||!state||state.phase!==action.type||action.seat!==activeSeat(state))return;
+  if(paused()||opening||travel||!state||state.phase!==action.type||action.seat!==activeSeat(state))return;
   if(connectedMode()){if(myTurn())net?.submit(action);return;}
   const n=act(state,action);if(n!==state)present(n,true);
 }
@@ -211,15 +216,49 @@ $("challenge-stage").onclick=e=>{
 function enterTrack(){
   $("setup").hidden=true;$("result").hidden=true;$("game").hidden=false;window.scrollTo(0,0);
 }
+function closeOpening(){
+  clearTimeout(openingTimer);opening=null;
+  if($("start-order").open)$("start-order").close();
+}
+function revealOpening(){
+  if(!opening)return;
+  clearTimeout(openingTimer);opening.ready=true;
+  $("start-order").className="revealed";
+  $("order-caption").textContent=hero(state.players[state.first]).name+"からスタート！";
+  $("order-start").disabled=false;$("order-start").textContent="この順でスタート！";
+}
+function beginRace(next){
+  closeOpening();opening={ready:false,next:null};frames=[];enterTrack();present(next,false);
+  const angle=1440+state.first*90,dialog=$("start-order");
+  // Seats increase counterclockwise: top, left, bottom, right. The host's
+  // confirmed first seat determines the stop; this animation never draws again.
+  dialog.style.setProperty("--stop",angle+"deg");dialog.style.setProperty("--counter",-angle+"deg");
+  $("order-wheel").innerHTML=state.players.map((p,i)=>'<div class="wheel-slot slot-'+i+'"><div class="wheel-face">'+face(p.character)+'<b>'+hero(p).short+'</b></div></div>').join("");
+  $("order-route").innerHTML=playOrder().map((i,n)=>'<li><span class="order-number">'+(n+1)+'</span>'+face(state.players[i].character)+'<b>'+hero(state.players[i]).short+'</b><small>'+tag(state.players[i],i)+'</small></li>').join("");
+  $("order-caption").textContent="くるくる… 最初の人は？";
+  $("order-start").disabled=true;$("order-start").textContent="順番を決めています…";
+  dialog.className="spinning";dialog.showModal();
+  // A timer also covers reduced motion and browsers that omit animationend.
+  openingTimer=setTimeout(revealOpening,reducedMotion()?100:3300);
+}
+$("order-wheel").addEventListener("animationend",e=>{if(e.target===$("order-wheel"))revealOpening();});
+$("start-order").addEventListener("cancel",e=>e.preventDefault());
+$("order-start").onclick=()=>{
+  if(!opening?.ready)return;
+  const next=opening.next;closeOpening();
+  // A guest may still be reading the order while the host has already started.
+  if(next)present(next,false);else{render();schedule();}
+};
 function startGame(){
-  enterTrack();present(createGame({humans,firstCharacter:character,first:Math.floor(Math.random()*4)}),false);
+  beginRace(createGame({humans,firstCharacter:character,first:Math.floor(Math.random()*4)}));
 }
 function toSetup(){clearRoom();clearTimeout(timer);travel=null;state=null;$("result").hidden=true;$("game").hidden=true;$("setup").hidden=false;setupUI();window.scrollTo(0,0);}
 function acceptOnline(next,meta){
   const fresh=lastMeta?.year!==meta.year;
   const animate=!fresh && lastMeta.revision+1===meta.revision && !document.hidden;
   mySeat=meta.seat;lastMeta=meta;busy=false;
-  if(fresh){frames=[];enterTrack();}
+  if(fresh){beginRace(next);return;}
+  if(opening){opening.next=next;return;}
   if(animate&&(travel||frames.length)){frames.push(next);return;}
   if(!animate)frames=[];
   present(next,animate);
@@ -233,6 +272,7 @@ async function connectRoom(){
   const failed=e=>{
     if(generation!==attempt)return;
     generation++;busy=false;subscribed=false;sending=false;broken=true;clearTimeout(timer);travel=null;
+    if(opening?.next)state=opening.next;closeOpening();
     const message=/[ぁ-んァ-ン一-龯]/.test(e.message)?e.message:"通信サーバーにつながりませんでした。回線を確認して、もう一度試してね。";
     if(!state){$("room-status").textContent=message;setupUI();}
     else{$("wire-error").textContent=message;$("wire-alert").hidden=false;if(state.phase==="finished"&&!travel&&!frames.length)showResult();else render();}
@@ -272,7 +312,7 @@ function brief(next){
 $("brief-back").onclick=()=>$("briefing").close();
 $("briefing").addEventListener("close",()=>{beginAfterBrief=null;});
 $("brief-ok").onclick=()=>{const next=beginAfterBrief;beginAfterBrief=null;$("briefing").close();next?.();};
-$("rules-open").onclick=()=>openDialog("あそびかた",'<p><b>全員が3周（48マス）してゴールしたら、たねが最多の人が優勝！</b> 同数なら先にゴールした人が上位。</p><ol class="rules-list"><li>たね5個で出発。サイコロを2個振り、好きなサイコロをタップ。その目だけ時計回りに進む。ゾロ目は合計の数だけ自動で進むよ（4と4なら8マス）。</li><li>たねマスは＋1・＋2・＋3・＋4個。マスに書かれた数を、止まるたびにもらえるよ。誰が先に着いても変わらない。</li><li>★では自分でサイコロを1個振ってチャレンジ！ 奇数（1・3・5）ならたね＋6個、偶数（2・4・6）ならたね−3個。移動はせず、たねだけが増減するよ。0個より少なくはならない。</li><li>近道はさらに3マス。移動先の効果は追加されないよ。空マスは何も起こらない。</li><li>毎周、ゴールマスにぴったり止まるとたね＋5個（1・2周目も対象）。通り過ぎるだけなら加算なし。3周目はさらに到着順で12・8・4・2個。大きい目で越えてもゴールできるよ。</li></ol><p>ひとりはCPU3匹、ふたりはCPU2匹。通信はキーワードで合流し、再戦はふたりの同意で始まります。</p>');
+$("rules-open").onclick=()=>openDialog("あそびかた",'<p><b>全員が3周（48マス）してゴールしたら、たねが最多の人が優勝！</b> 同数なら先にゴールした人が上位。</p><p>最初の人はルーレットで決定。その人からルーレット上を左回りに交代するよ。対戦中の一覧も①〜④の手番順です（コマは盤面を時計回りに進みます）。通信の再戦は前回の次の人が最初になります。</p><ol class="rules-list"><li>たね5個で出発。サイコロを2個振り、好きなサイコロをタップ。その目だけ時計回りに進む。ゾロ目は合計の数だけ自動で進むよ（4と4なら8マス）。</li><li>たねマスは＋1・＋2・＋3・＋4個。マスに書かれた数を、止まるたびにもらえるよ。誰が先に着いても変わらない。</li><li>★では自分でサイコロを1個振ってチャレンジ！ 奇数（1・3・5）ならたね＋6個、偶数（2・4・6）ならたね−3個。移動はせず、たねだけが増減するよ。0個より少なくはならない。</li><li>近道はさらに3マス。移動先の効果は追加されないよ。空マスは何も起こらない。</li><li>毎周、ゴールマスにぴったり止まるとたね＋5個（1・2周目も対象）。通り過ぎるだけなら加算なし。3周目はさらに到着順で12・8・4・2個。大きい目で越えてもゴールできるよ。</li></ol><p>ひとりはCPU3匹、ふたりはCPU2匹。通信はキーワードで合流し、再戦はふたりの同意で始まります。</p>');
 $("journal-open").onclick=journal;$("result-journal").onclick=journal;
 $("leave").onclick=()=>{openDialog("最初に戻る？","<p>このレースはここで終了します。</p><button id='end-match' class='primary'>対局を終えて戻る</button>");$("end-match").onclick=()=>{toSetup();$("dialog").close();};};
 $("start").onclick=()=>{

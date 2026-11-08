@@ -1,9 +1,10 @@
+import { createConnectionGuard } from "../src/connection-guard.js?v=20261108-recovery1";
 import {
   createOnlineSession,
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "../src/online-game.js?v=poker-rooms-20260908";
+} from "../src/online-game.js?v=20261108-recovery1";
 import {
   createGame,
   drop,
@@ -16,6 +17,7 @@ import {
 } from "./engine.js?v=20261027-gyoza3";
 export { generateRoomCode, normalizeRoomCode, isOnlineConfigured };
 export async function createMatch({
+  signal,
   role,
   roomCode,
   onState = () => {},
@@ -26,6 +28,7 @@ export async function createMatch({
   now = () => Date.now(),
   random = Math.random,
 }) {
+  const recovery = createConnectionGuard(now); now = recovery.now;
   const player = role === "host" ? 0 : 1;
   let transport = null,
     ready = false,
@@ -173,8 +176,12 @@ export async function createMatch({
   }
   try {
     transport = await sessionFactory({
-      role,
-      roomCode,
+      signal, role, roomCode,
+      onConnectionChange(status, detail) {
+        recovery.change(status, detail);
+        if (status === "connected") announce();
+        else if (status !== "waiting") onStatus("reconnecting");
+      },
       hostPlayer: 1,
       ruleMode: "gyoza",
       channelPrefix: "takumegu-gyoza",
@@ -203,6 +210,8 @@ export async function createMatch({
   if (ready) announce();
   else onStatus("waiting");
   interval = timers.setInterval(() => {
+    transport?.check?.();
+    if (recovery.paused) return;
     if (!ready || closed) return;
     if (now() - lastSeen > 15000) {
       fail(new Error("通信を確認できません。へやを作り直してね。"));
@@ -219,6 +228,7 @@ export async function createMatch({
     close,
     getState: () => current,
     request(type, data = {}) {
+      if (recovery.paused) return false;
       if (closed || !ready || !current || pending) return false;
       const action = { ...data, type, round: current.round, move: current.move };
       if (role === "host") {
@@ -240,6 +250,7 @@ export async function createMatch({
       return true;
     },
     advance() {
+      if (recovery.paused) return false;
       if (role !== "host" || closed || !game) return;
       const changed = step(game);
       if (changed || (game.phase === "falling" && now() - lastFrame >= 80)) {

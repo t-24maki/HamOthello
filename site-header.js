@@ -1,4 +1,5 @@
 import { navigationMarkup } from "./site-navigation.js?v=20261106-sugoroku1";
+import { hasGameHelp, installGameHelp } from "./game-shell.js?v=20261108-shell1";
 
 const base = new URL("./", import.meta.url);
 class TakumeguHeader extends HTMLElement {
@@ -6,13 +7,13 @@ class TakumeguHeader extends HTMLElement {
     if (this.shadowRoot) return;
     const root = this.attachShadow({ mode: "open" });
     root.innerHTML = `
-      <link rel="stylesheet" href="${new URL("site-header.css?v=20261022-site1", base)}">
+      <link rel="stylesheet" href="${new URL("site-header.css?v=20261108-shell1", base)}">
       <header class="shell">
         <a class="brand" href="${base}" aria-label="たくめぐのあそびば トップページ">
           <span class="friends" aria-hidden="true"><img src="${base}assets/pink-piece.png" alt=""><img src="${base}assets/cream-piece.png" alt=""></span>
           <span><small>TAK&MEG</small>たくめぐのあそびば</span>
         </a>
-        <div class="tools"><slot name="actions"></slot><button class="toggle" type="button" aria-label="ゲームメニューを開く" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button></div>
+        <div class="tools"><slot name="actions"></slot>${hasGameHelp(this.dataset.page) ? '<button class="help" type="button" aria-haspopup="dialog" aria-expanded="false">あそびかた</button>' : ''}<button class="toggle" type="button" aria-label="ゲームメニューを開く" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button></div>
       </header>
       <dialog id="navigation" aria-labelledby="menu-title">
         <div class="menu-heading"><div><small>TAK&MEG</small><h2 id="menu-title">なにしてあそぶ？</h2></div><button class="close" type="button" aria-label="メニューを閉じる" autofocus>×</button></div>
@@ -20,6 +21,8 @@ class TakumeguHeader extends HTMLElement {
       </dialog>`;
     const dialog = root.querySelector("dialog");
     const toggle = root.querySelector(".toggle");
+    const help = root.querySelector(".help");
+    if (help) installGameHelp(this, help);
     const announce = (open) => {
       toggle.setAttribute("aria-expanded", String(open));
       document.documentElement.classList.toggle("site-menu-open", open);

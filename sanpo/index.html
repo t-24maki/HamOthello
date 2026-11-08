@@ -9,17 +9,25 @@
       content="たくハムとめぐハムと、おやつを50こ集める横スクロールゲーム。スマホでも遊べます。"
     />
     <title>たくめぐのおさんぽ</title>
-    <link rel="stylesheet" href="./game.css?v=20261022-site1" />
+    <link rel="stylesheet" href="./game.css?v=20261108-shell1" />
     <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
-    <script type="module" src="../site-header.js?v=20261106-sugoroku1"></script>
+    <script type="module" src="../site-header.js?v=20261108-shell1"></script>
     <link rel="icon" href="../favicon.ico?v=20261105" sizes="16x16 32x32 48x48" />
     <link rel="icon" type="image/svg+xml" href="../assets/site-icon.svg?v=20261105" sizes="any" />
     <link rel="apple-touch-icon" href="../apple-touch-icon.png?v=20261105" />
+    <link rel="stylesheet" href="../game-shell.css?v=20261108-shell1" />
   </head>
   <body data-site-page="sanpo">
     <takumegu-header data-page="sanpo"></takumegu-header>
     <div id="root"></div>
+    <section id="sanpo-instructions" hidden>
+      <p>好きなキャラを選んで、ピクニックかごを目指そう。3つのエリアでおやつを50こ集められるよ。時間制限はありません。</p>
+      <h3>移動とジャンプ</h3><p>左右ボタンで移動、ジャンプボタンでジャンプ。空中でもう一度押すと2段ジャンプ。左右とジャンプは一緒に押せるよ。PCは左右キー／A・Dで移動、Space／上キー／Wでジャンプ。</p>
+      <h3>キャラのちがい</h3><p>めぐハムはジャンプが高く、うめぼしを集めます。たくハムは足が速く、ブルーベリーを集めます。</p>
+      <h3>道中のしかけ</h3><p>青い台は動き、黄色い台は大ジャンプ。もちスライムは上から踏むと安全に跳ねるよ。横からぶつかるとハートが減ります。山道では少し左へ戻り、光ったボタンを踏んでゲートを開けよう。</p>
+      <h3>ひと休みと再出発</h3><p>説明やメニューを開くと一時停止。閉じたら「おさんぽを続ける」で再開するよ。ハートがなくなっても、おやつを持って再出発できます。「はじめから遊ぶ」はおやつ・ゲート・時間をリセットします。</p>
+    </section>
     <script src="./art-paths.js?v=timer-bgm-20260913"></script>
-    <script src="./game.js?v=20261022-site1" defer></script>
+    <script src="./game.js?v=20261108-shell1" defer></script>
   </body>
 </html>

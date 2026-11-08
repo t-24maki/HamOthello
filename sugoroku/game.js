@@ -1,4 +1,5 @@
-import {createSugorokuMatch,generateRoomCode,normalizeRoomCode} from "./online.js?v=20261107-roundgraph1";
+let connectionAbort = null, reconnecting = false;
+import {createSugorokuMatch,generateRoomCode,normalizeRoomCode} from "./online.js?v=20261108-recovery1";
 import {CAST,BOARD,GOAL,LAPS,createGame,activeSeat,cellAt,lapOf,preview,rankPlayers,act,cpuAction,FINISH_BONUS,SEED_REWARDS} from "./rules.js?v=20261107-roundgraph1";
 import {icon,face,cube} from "./art.js?v=20261107-motion1";
 import {raceChart} from "./history.js?v=20261107-roundgraph3";
@@ -8,7 +9,7 @@ let mode="solo",roomRole="host",net=null,mySeat=0,generation=0,busy=false,sendin
 let roomCode="",subscribed=false,lastMeta=null;
 const connectedMode=()=>mode==="online";
 const myTurn=()=>state && !opening && !frames.length && state.players[activeSeat(state)].finish===null && state.players[activeSeat(state)].human &&
-  (!connectedMode() || (activeSeat(state)===mySeat && !sending && !broken));
+  (!connectedMode() || (activeSeat(state)===mySeat && !sending && !broken && !reconnecting));
 const hero = p=>CAST[p.character], tag=(p,i)=>!p.human?"CPU":connectedMode()?(i===mySeat?"あなた":"相手"):"P"+(i+1);
 let beginAfterBrief=null,frames=[],opening=null,openingTimer=0;
 const reducedMotion=()=>window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -27,7 +28,7 @@ function setupUI(){
 }
 function clearRoom(){
   closeOpening();
-  frames=[];generation++;net?.close();net=null;lastMeta=null;sending=false;broken=false;busy=false;subscribed=false;roomCode="";
+  frames=[];generation++;net?.close();connectionAbort?.abort();connectionAbort=null;net=null;lastMeta=null;reconnecting=false;sending=false;broken=false;busy=false;subscribed=false;roomCode="";
   $("room-status").textContent="";$("wire-error").textContent="";$("wire-alert").hidden=true;
 }
 $("human-count").onclick=e=>{const b=e.target.closest("[data-mode]");if(b&&!busy){clearRoom();mode=b.dataset.mode;humans=mode==="solo"?1:2;$("room-status").textContent="";setupUI();}};
@@ -159,7 +160,7 @@ function finishMotion(){
 }
 function schedule(){
   clearTimeout(timer);
-  if(!state||opening||broken||(!connectedMode()&&paused()))return;
+  if(!state||opening||broken||reconnecting||(!connectedMode()&&paused()))return;
   if(travel?.kind==="roll"){
     const ms=reducedMotion()?140:quick()?480:1450;
     $("throw-box").style.setProperty("--roll-ms",(ms-50)+"ms");
@@ -278,9 +279,16 @@ async function connectRoom(){
     else{$("wire-error").textContent=message;$("wire-alert").hidden=false;if(state.phase==="finished"&&!travel&&!frames.length)showResult();else render();}
   };
   try{
-    const match=await createSugorokuMatch({role:roomRole,roomCode:code,character,
+    connectionAbort?.abort(); connectionAbort = new AbortController();
+    const match=await createSugorokuMatch({signal: connectionAbort.signal,role:roomRole,roomCode:code,character,
       onView(next,meta){if(attempt===generation)acceptOnline(next,meta);},
-      onStatus(status){if(attempt!==generation)return;sending=status==="sending";if(state){if(state.phase==="finished"&&!travel&&!frames.length)showResult();else render();}},
+      onStatus(status){
+        if(attempt!==generation)return;
+        reconnecting=status==="reconnecting";sending=status==="sending";
+        if(reconnecting){clearTimeout(timer);if(frames.length)state=frames.at(-1);frames=[];travel=null;}
+        if(state){if(state.phase==="finished"&&!travel&&!frames.length)showResult();else render();}
+        if(!reconnecting)schedule();
+      },
       onError:failed});
     if(attempt!==generation){match.close();return;}
     net=match;subscribed=true;
@@ -291,7 +299,7 @@ async function connectRoom(){
 function showResult(){
   $("game").hidden=true;$("result").hidden=false;
   const voted=connectedMode() && lastMeta?.votes[mySeat];
-  $("rematch").disabled=Boolean(connectedMode()&&(voted||sending||broken));
+  $("rematch").disabled=Boolean(connectedMode()&&(voted||sending||broken||reconnecting));
   $("rematch").textContent=voted?"再戦の返事を待っています":sending?"送信中…":connectedMode()&&lastMeta?.votes[1-mySeat]?"相手ともう一度あそぶ":"もう一度あそぶ";
   const ranks=rankPlayers(state),winner=state.players[ranks[0].seat];
   $("winner").textContent=hero(winner).name+"が、たね"+winner.seeds+"個で優勝！";

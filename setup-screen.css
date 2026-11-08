@@ -1,0 +1,56 @@
+/* Entry illustrations reuse the site's existing SVG scenes and character art.
+   Load only on the four illustrated setup pages, after their game styles. */
+.setup-art {
+  width: min(100%, 440px);
+  height: 180px;
+  margin: 0 auto 20px;
+  pointer-events: none;
+  user-select: none;
+}
+.setup-art > svg { display: block; width: 100%; height: 100%; }
+.setup-art--quiz {
+  width: min(100%, 480px);
+  height: auto;
+  aspect-ratio: 2;
+  overflow: hidden;
+  border-radius: 18px;
+}
+body[data-site-page="billiards"] #match-setup > .mode-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 440px;
+  margin: auto;
+}
+body[data-site-page="billiards"] #ready-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  text-align: center;
+}
+body[data-site-page="billiards"] #ready-controls p {
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.8;
+  text-wrap: pretty;
+}
+body[data-site-page="billiards"] #ready-controls .primary {
+  justify-self: center;
+  width: 100%;
+  max-width: 340px;
+  min-height: 48px;
+  flex: none;
+  white-space: nowrap;
+}
+@media (max-width: 650px) {
+  .setup-art { height: 116px; margin-bottom: 14px; }
+  .setup-art--quiz { height: auto; }
+  body[data-site-page="billiards"]:has(#match-setup:not([hidden])) .mode-tag { display: none; }
+  body[data-site-page="billiards"]:has(#match-setup:not([hidden])) .heading h1 {
+    font-size: clamp(18px, 5.4vw, 22px);
+    letter-spacing: .02em;
+    white-space: nowrap;
+  }
+  body[data-site-page="billiards"] #ready-controls { gap: 14px; }
+  body[data-site-page="billiards"] #ready-controls p { font-size: 12px; }
+}

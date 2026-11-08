@@ -11,10 +11,12 @@
     <title>まんまるビリヤード — たくめぐのあそびば</title>
     <link rel="stylesheet" href="./style.css?v=20261001-games6" />
     <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
-    <script type="module" src="../site-header.js?v=20261106-sugoroku1"></script>
+    <script type="module" src="../site-header.js?v=20261108-shell1"></script>
     <link rel="icon" href="../favicon.ico?v=20261105" sizes="16x16 32x32 48x48" />
     <link rel="icon" type="image/svg+xml" href="../assets/site-icon.svg?v=20261105" sizes="any" />
     <link rel="apple-touch-icon" href="../apple-touch-icon.png?v=20261105" />
+    <link rel="stylesheet" href="../game-shell.css?v=20261108-shell1" />
+    <link rel="stylesheet" href="../setup-screen.css?v=20261108-entry1" />
   </head>
   <body data-site-page="billiards">
     <takumegu-header data-page="billiards"></takumegu-header>
@@ -33,6 +35,38 @@
         <span id="mode-label" class="mode-tag">1台でふたり</span>
       </header>
       <section id="match-setup" class="match-setup" aria-label="あそび方をえらぶ">
+        <div class="setup-art setup-art--billiards" aria-hidden="true">
+  <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="252" cy="120" r="110" fill="#c5a477" />
+  <circle cx="252" cy="117" r="98" fill="#59846e" />
+  <circle cx="252" cy="117" r="91" fill="#6f9780" />
+  <circle cx="252.0" cy="21.0" r="10" fill="#314d40" />
+  <circle cx="335.1" cy="69.0" r="10" fill="#314d40" />
+  <circle cx="335.1" cy="165.0" r="10" fill="#314d40" />
+  <circle cx="252.0" cy="213.0" r="10" fill="#314d40" />
+  <circle cx="168.9" cy="165.0" r="10" fill="#314d40" />
+  <circle cx="168.9" cy="69.0" r="10" fill="#314d40" />
+  <image href="../billiards/art/tak-meg-yellow-outline.png" x="212" y="78" width="80" height="80" />
+  <circle cx="205" cy="152" r="13" fill="#35594855" />
+  <circle cx="204" cy="149" r="12" fill="#fffef1" />
+  <circle cx="201" cy="145" r="3" fill="#ffffff66" />
+  <circle cx="287" cy="80" r="13" fill="#35594855" />
+  <circle cx="286" cy="77" r="12" fill="#b597d0" />
+  <circle cx="283" cy="73" r="3" fill="#ffffff66" />
+  <circle cx="273" cy="168" r="13" fill="#35594855" />
+  <circle cx="272" cy="165" r="12" fill="#b597d0" />
+  <circle cx="269" cy="161" r="3" fill="#ffffff66" />
+  <circle cx="310" cy="148" r="13" fill="#35594855" />
+  <circle cx="309" cy="145" r="12" fill="#efd7a0" />
+  <circle cx="306" cy="141" r="3" fill="#ffffff66" />
+  <circle cx="216" cy="76" r="13" fill="#35594855" />
+  <circle cx="215" cy="73" r="12" fill="#efd7a0" />
+  <circle cx="212" cy="69" r="3" fill="#ffffff66" />
+  <path d="M63 218l115-55" stroke="#a17b50" stroke-width="9" stroke-linecap="round" />
+  <path d="M176 164l15-8" stroke="#f4e1bd" stroke-width="6" />
+  <path d="M224 137l32-34" stroke="#f1e9cc" stroke-width="2" stroke-dasharray="5 6" />
+  </svg>
+</div>
         <div class="mode-options" aria-label="対戦モード">
           <button type="button" data-mode="local" aria-pressed="true">1台でふたり</button>
           <button type="button" data-mode="online" aria-pressed="false">通信でふたり</button>
@@ -70,6 +104,7 @@
             <button id="cancel-connect" type="button" class="quiet" hidden>もどる</button>
           </div>
         </div>
+        <div id="ready-controls" class="ready-controls"><p>たくハムとめぐハムが交互に各5回。自分の色の球を穴に入れて、得点を競おう。</p><button id="start" class="primary" type="button">この設定ではじめる →</button></div>
       </section>
       <div id="match-toolbar" class="match-toolbar" hidden>
         <p id="match-info"></p>
@@ -222,10 +257,6 @@
             </section>
           </div>
           <div class="table-controls">
-            <div id="ready-controls" class="ready-controls">
-              <button id="shuffle" class="secondary" type="button">ならべなおす ↻</button
-              ><button id="start" class="primary" type="button">はじめる →</button>
-            </div>
             <div id="play-controls" class="play-controls" hidden>
               <div class="power">
                 <span>つよさ <b id="power-label">0%</b></span
@@ -326,6 +357,6 @@
         ><button id="confirm-restart" class="primary" type="button">最初から</button>
       </div>
     </dialog>
-    <script type="module" src="./game.js?v=20261001-games6"></script>
+    <script type="module" src="./game.js?v=20261108-shell1"></script>
   </body>
 </html>

@@ -1,4 +1,5 @@
-import { createOnlineSession, generateRoomCode, normalizeRoomCode } from "../src/online-game.js?v=poker-rooms-20260908";
+import { createConnectionGuard } from "../src/connection-guard.js?v=20261108-recovery1";
+import { createOnlineSession, generateRoomCode, normalizeRoomCode } from "../src/online-game.js?v=20261108-recovery1";
 import { createGame, activeSeat, act, applyRoll, applyMove, applyChallenge, validMove, cpuAction, GOAL } from "./rules.js?v=20261107-roundgraph1";
 export { generateRoomCode, normalizeRoomCode };
 export const PROTOCOL = "sugoroku-challenge-20261107-1";
@@ -30,9 +31,10 @@ function legalInput(s,seat,a) {
 }
 
 export async function createSugorokuMatch({
-  role, roomCode, character, onView=()=>{}, onStatus=()=>{}, onError=()=>{},
+  signal, role, roomCode, character, onView=()=>{}, onStatus=()=>{}, onError=()=>{},
   sessionFactory=createOnlineSession, random=Math.random, timers=globalThis, now=Date.now,
 }) {
+  const recovery = createConnectionGuard(now); now = recovery.now;
   if(!["host","guest"].includes(role) || !seatNumber(character))throw new Error("部屋の設定を確認してね。");
   const host=role==="host", seat=host?0:1;
   let transport, interval, closed=false, ready=false, peer, room="", year=0, setup=null;
@@ -82,7 +84,7 @@ export async function createSugorokuMatch({
         !events.every((e,i)=>same(e,m.events[i])) || votes.some((v,i)=>v&&!m.votes[i])))return;
     if(!continuation && year && (state.phase!=="finished" || (!votes[seat] && pending?.type!=="rematch") ||
        m.setup[0]!==setup[0] || m.setup[2]!==((setup[2]+1)%4)))return;
-    if(continuation && m.events.length===events.length && votes.every((v,i)=>v===m.votes[i]))return;
+    if(continuation && m.events.length===events.length && votes.every((v,i)=>v===m.votes[i])){view();return;}
     let n=continuation?state:initial(m.setup);
     for(let i=continuation?events.length:0;i<m.events.length;i++){
       const next=replayOne(n,m.events[i]);if(next===n)return;n=next;
@@ -102,7 +104,7 @@ export async function createSugorokuMatch({
         if(!state){
           if(!transport)return;
           room=transport.clientId;setup=[character,m.character];newYear(Math.floor(random()*4));
-        }else if(m.year!==year || m.revision!==events.length || m.votes!==votes.join(","))broadcast();
+        }else if(m.force || m.year!==year || m.revision!==events.length || m.votes!==votes.join(","))broadcast();
         else send({type:"pong",room});
         return;
       }
@@ -114,12 +116,17 @@ export async function createSugorokuMatch({
     }else if(m.type==="view"){acceptView(m);lastContact=now();}
     else if(m.type==="pong" && m.room===room)lastContact=now();
   }
-  function sync(){
-    if(!host)send({type:"sync",character,year,revision:events.length,votes:votes.join(",")});
+  function sync(force=false){
+    if(!host)send({type:"sync",force,character,year,revision:events.length,votes:votes.join(",")});
   }
   try {
     transport=await sessionFactory({
-      role,roomCode,hostPlayer:1,ruleMode:"sugoroku",supportedRules:["sugoroku"],
+      signal,role,roomCode,hostPlayer:1,
+      onConnectionChange(status, detail){
+        recovery.change(status, detail);
+        onStatus(status === "connected" ? (pending ? "sending" : "connected") : "reconnecting");
+        if(status === "connected"){if(host && state){view();broadcast();}else sync(true);}
+      },ruleMode:"sugoroku",supportedRules:["sugoroku"],
       channelPrefix:"takumegu-sugoroku",protocolVersion:PROTOCOL,
       onReady(){ready=true;lastContact=now();sync();},onMessage:receive,
       onPeerChange(connected,info={}){
@@ -131,24 +138,25 @@ export async function createSugorokuMatch({
   if(closed){await transport.close();throw failure??new Error("部屋を閉じました。");}
   sync();
   interval=timers.setInterval(()=>{
-    if(!ready || closed)return;
+    transport?.check?.();
+    if(recovery.paused || !ready || closed)return;
     if(now()-lastContact>45000){fail(new Error("相手の返事がありません。部屋をつくり直してね。"));return;}
     if(pending && now()-sentAt>15000){fail(new Error("操作の返事が届きません。部屋をつくり直してね。"));return;}
     if(pending)send(pending);else sync();
   },1200);
   function request(type,action){
-    if(closed || !state || pending || (type==="action"&&state.phase==="double"))return false;
+    if(recovery.paused || closed || !state || pending || (type==="action"&&state.phase==="double"))return false;
     if(type==="rematch"?state.phase!=="finished" || votes[seat]:!legalInput(state,seat,action))return false;
     if(host)return type==="rematch"?vote(0):commit(0,action);
     sentAt=now();pending={type,action,room,year,revision:events.length};onStatus("sending");send(pending);return true;
   }
   return {close,submit:action=>request("action",action),rematch:()=>request("rematch"),
     automatic(){
-      if(!host||closed||!state||!(state.phase==="double"||(state.phase==="settled"&&state.players[activeSeat(state)].finish!==null)))return false;
+      if(recovery.paused||!host||closed||!state||!(state.phase==="double"||(state.phase==="settled"&&state.players[activeSeat(state)].finish!==null)))return false;
       return commit(activeSeat(state),{seat:activeSeat(state),type:state.phase});
     },
     cpu(){
-      if(!host || closed || !state || state.phase==="finished" || activeSeat(state)<2)return false;
+      if(recovery.paused || !host || closed || !state || state.phase==="finished" || activeSeat(state)<2)return false;
       return commit(activeSeat(state),cpuAction(state,random));
     }};
 }

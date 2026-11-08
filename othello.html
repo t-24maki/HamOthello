@@ -11,10 +11,11 @@
     <title>ぷにっとオセロ — ゆるっと遊べるオセロゲーム</title>
     <link rel="stylesheet" href="./styles.css?v=cards-layout-20260909" />
     <link rel="stylesheet" href="./site-layout.css?v=20261022-site1" />
-    <script type="module" src="./site-header.js?v=20261106-sugoroku1"></script>
+    <script type="module" src="./site-header.js?v=20261108-shell1"></script>
     <link rel="icon" href="./favicon.ico?v=20261105" sizes="16x16 32x32 48x48" />
     <link rel="icon" type="image/svg+xml" href="./assets/site-icon.svg?v=20261105" sizes="any" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=20261105" />
+    <link rel="stylesheet" href="./game-shell.css?v=20261108-shell1" />
   </head>
   <body data-site-page="othello">
     <takumegu-header data-page="othello"></takumegu-header>
@@ -82,8 +83,7 @@
       <section
         class="setup-overlay"
         id="setup-overlay"
-        role="dialog"
-        aria-modal="true"
+        role="region"
         aria-labelledby="setup-title"
         hidden
       >
@@ -263,7 +263,7 @@
             <p class="hero-lead">たくハムとめぐハム、どっちがたくさんになるかな？</p>
           </div>
           <button class="back-home-button" id="back-home" type="button">
-            <span aria-hidden="true">←</span> トップにもどる
+            <span aria-hidden="true">←</span> 設定に戻る
           </button>
         </section>
 
@@ -310,7 +310,7 @@
             <div class="sidebar-actions">
               <button class="primary-button" id="new-game" type="button">
                 <span class="button-icon" aria-hidden="true">↻</span>
-                ゲームをえらぶ
+                設定を変える
               </button>
               <button class="secondary-button" id="undo" type="button">
                 <span class="button-icon" aria-hidden="true">↶</span>
@@ -433,6 +433,6 @@
       </footer>
     </main>
 
-    <script type="module" src="./src/game.js?v=cards-20260908-r2"></script>
+    <script type="module" src="./src/game.js?v=20261108-shell1"></script>
   </body>
 </html>

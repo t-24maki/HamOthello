@@ -1,12 +1,14 @@
+import { createConnectionGuard } from "../src/connection-guard.js?v=20261108-recovery1";
 import {
   createOnlineSession,
   generateRoomCode,
   normalizeRoomCode,
-} from "../src/online-game.js?v=poker-rooms-20260908";
-import { createBattlePeer } from "./online-peer.js?v=20261021-battle21";
+} from "../src/online-game.js?v=20261108-recovery1";
+import { createBattlePeer } from "./online-peer.js?v=20261108-recovery1";
 import { PROTOCOL, SEND_MS } from "./online-protocol.js?v=20261021-battle21";
 export { generateRoomCode, normalizeRoomCode };
 export async function createBattleOnline({
+  signal,
   role,
   roomCode,
   character,
@@ -20,6 +22,7 @@ export async function createBattleOnline({
   timers = globalThis,
   now = () => performance.now(),
 }) {
+  const recovery = createConnectionGuard(now); now = recovery.now;
   let transport = null,
     peer = null,
     ready = false,
@@ -49,8 +52,13 @@ export async function createBattleOnline({
   }
   try {
     transport = await sessionFactory({
-      role,
-      roomCode,
+      signal, role, roomCode,
+      onConnectionChange(status, detail) {
+        const wasPaused = recovery.paused;
+        recovery.change(status, detail);
+        if (recovery.paused && !wasPaused) peer?.suspend();
+        if (status === "connected") peer?.recover();
+      },
       hostPlayer: 1,
       ruleMode: "battle",
       supportedRules: ["battle"],
@@ -97,11 +105,11 @@ export async function createBattleOnline({
     begin();
     for (const m of early) peer.receive(m);
     if (stopped) throw failure || new Error("接続を終了しました。");
-    interval = timers.setInterval(() => peer.flush(), SEND_MS);
+    interval = timers.setInterval(() => { transport?.check?.(); if (!recovery.paused) peer.flush(); }, SEND_MS);
     return {
       close,
-      update: (...args) => peer.update(...args),
-      request: (type) => peer.request(type),
+      update: (...args) => { transport?.check?.(); if (!recovery.paused) peer.update(...args); },
+      request: (type) => !recovery.paused && peer.request(type),
       renderGame: (dt) => peer.renderGame(dt),
       info: () => peer.info(),
     };

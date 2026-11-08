@@ -1,3 +1,4 @@
+let connectionAbort = null;
 import { createControls, pieceControlsPosition } from "./controls.js?v=20261027-gyoza6";
 import {
   createGame,
@@ -17,7 +18,7 @@ import {
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js?v=20261027-gyoza3";
+} from "./online.js?v=20261108-recovery1";
 const $ = (id) => document.getElementById(id),
   names = ["たくハム", "めぐハム"];
 const faces = [
@@ -216,7 +217,7 @@ function startLocal() {
 $("start").onclick = startLocal;
 function cleanup() {
   epoch++;
-  online?.close();
+  online?.close();connectionAbort?.abort();connectionAbort=null;
   online = null;
   if (game) dispose(game);
   game = null;
@@ -293,7 +294,7 @@ window.addEventListener("blur", () => {
   requestPause();
 });
 window.addEventListener("pagehide", () => {
-  online?.close();
+  online?.close();connectionAbort?.abort();connectionAbort=null;
   worker?.terminate();
 });
 function move(x = draft.x, angle = draft.angle) {
@@ -367,7 +368,8 @@ async function connect(role) {
   $("connection-note").textContent =
     role === "host" ? "合言葉を相手に教えてね。" : "へやを探しています…";
   try {
-    const match = await createMatch({
+    connectionAbort?.abort(); connectionAbort = new AbortController();
+    const match = await createMatch({signal: connectionAbort.signal,
       role,
       roomCode: code,
       onState(v, p) {

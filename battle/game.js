@@ -1,3 +1,4 @@
+let connectionAbort = null;
 import {
   createMatch,
   createRoster,
@@ -18,7 +19,7 @@ import {
   createBattleOnline,
   generateRoomCode,
   normalizeRoomCode,
-} from "./online.js?v=20261021-battle21";
+} from "./online.js?v=20261108-recovery1";
 const $ = (id) => document.getElementById(id);
 const arena = $("arena"),
   preview = $("preview"),
@@ -103,7 +104,7 @@ function setupOptions() {
 }
 function leaveOnline() {
   connectionToken++;
-  online?.close();
+  online?.close();connectionAbort?.abort();connectionAbort=null;
   online = null;
   connecting = false;
   networkError = "";
@@ -390,7 +391,8 @@ async function connectRoom() {
   unlockAudio();
   if (soundEnabled) music.unlock();
   try {
-    const session = await createBattleOnline({
+    connectionAbort?.abort(); connectionAbort = new AbortController();
+    const session = await createBattleOnline({signal: connectionAbort.signal,
       role: roomRole,
       roomCode,
       character: data.get("character"),

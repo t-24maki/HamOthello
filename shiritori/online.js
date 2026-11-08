@@ -1,9 +1,10 @@
+import { createConnectionGuard } from "../src/connection-guard.js?v=20261108-recovery1";
 import {
   createOnlineSession,
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "../src/online-game.js?v=poker-rooms-20260908";
+} from "../src/online-game.js?v=20261108-recovery1";
 import {
   createGame,
   playWord,
@@ -114,6 +115,7 @@ export function validateRound(view) {
   };
 }
 export async function createShiritoriMatch({
+  signal,
   role,
   roomCode,
   onState = () => {},
@@ -124,6 +126,7 @@ export async function createShiritoriMatch({
   timers = globalThis,
   now = () => Date.now(),
 }) {
+  const recovery = createConnectionGuard(now); now = recovery.now;
   const player = role === "host" ? 0 : 1;
   let transport = null,
     ready = false,
@@ -172,7 +175,8 @@ export async function createShiritoriMatch({
     return clockAnchor.host + Math.max(0, now() - clockAnchor.local);
   }
   function settleTimeout() {
-    if (stopped || role !== "host" || !state) return;
+    transport?.check?.();
+    if (recovery.paused || stopped || role !== "host" || !state) return;
     const next = expireRound(state, now());
     if (next !== state) {
       state = next;
@@ -223,7 +227,7 @@ export async function createShiritoriMatch({
       )
         return;
       clockAnchor = {
-        host: clockAnchor ? Math.max(hostNow(), message.sentAt) : message.sentAt,
+        host: message.sentAt,
         local: now(),
       };
       const ownAck = pending && message.ack?.id === pending.id;
@@ -243,8 +247,12 @@ export async function createShiritoriMatch({
   }
   try {
     transport = await sessionFactory({
-      role,
-      roomCode,
+      signal, role, roomCode,
+      onConnectionChange(status, detail) {
+        recovery.change(status, detail);
+        if (status === "connected") announce();
+        else if (status !== "waiting") onStatus("reconnecting");
+      },
       hostPlayer: 1,
       ruleMode: "shiritori",
       channelPrefix: "takumegu-food-shiritori",
@@ -273,6 +281,8 @@ export async function createShiritoriMatch({
   announce();
   if (role === "host") clockInterval = timers.setInterval(settleTimeout, 100);
   interval = timers.setInterval(() => {
+    transport?.check?.();
+    if (recovery.paused) return;
     if (pending) {
       if (now() - pending.since > 15000) {
         fail(new Error("返事が届かないみたい。へやをつくり直してね。"));
@@ -289,6 +299,7 @@ export async function createShiritoriMatch({
         : Math.max(0, Math.min(TURN_LIMIT_MS, view.turnEndsAt - hostNow()));
     },
     submit(type, word) {
+      if (recovery.paused) return false;
       settleTimeout();
       if (stopped || !ready || !view || pending) return false;
       const action = {

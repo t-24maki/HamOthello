@@ -1,9 +1,10 @@
+import { createConnectionGuard } from "../src/connection-guard.js?v=20261108-recovery1";
 import {
   createOnlineSession,
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "../src/online-game.js?v=poker-rooms-20260908";
+} from "../src/online-game.js?v=20261108-recovery1";
 import {
   PROTOCOL,
   createRound,
@@ -15,6 +16,7 @@ import {
 export { generateRoomCode, normalizeRoomCode, isOnlineConfigured };
 
 export async function createBlocksMatch({
+  signal,
   role,
   roomCode,
   onState = () => {},
@@ -26,6 +28,7 @@ export async function createBlocksMatch({
   now = () => Date.now(),
   random = Math.random,
 }) {
+  const recovery = createConnectionGuard(now); now = recovery.now;
   const player = role === "host" ? 0 : 1;
   let transport = null,
     ready = false,
@@ -122,8 +125,12 @@ export async function createBlocksMatch({
   }
   try {
     transport = await sessionFactory({
-      role,
-      roomCode,
+      signal, role, roomCode,
+      onConnectionChange(status, detail) {
+        recovery.change(status, detail);
+        if (status === "connected") announce();
+        else if (status !== "waiting") onStatus("reconnecting");
+      },
       hostPlayer: 1,
       ruleMode: "blocks",
       channelPrefix: "takumegu-blocks",
@@ -151,6 +158,8 @@ export async function createBlocksMatch({
   }
   announce();
   interval = timers.setInterval(() => {
+    transport?.check?.();
+    if (recovery.paused) return;
     if (pending) {
       if (now() - pending.since > 15000) {
         fail(new Error("返事が届かないみたい。へやを出て、つなぎ直してね。"));
@@ -162,6 +171,7 @@ export async function createBlocksMatch({
   return {
     close,
     submit(type, move) {
+      if (recovery.paused) return false;
       if (stopped || !ready || !view || pending) return false;
       const action = {
         type,

@@ -1,10 +1,11 @@
+import { createConnectionGuard } from "../src/connection-guard.js?v=20261108-recovery1";
 import { isCharacter, tableCharacters } from "./characters.js?v=poker-dilemma-20261025";
 import {
   createOnlineSession,
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "../src/online-game.js?v=poker-rooms-20260908";
+} from "../src/online-game.js?v=20261108-recovery1";
 import {
   POKER_PROTOCOL,
   createOnlineRound,
@@ -16,6 +17,7 @@ import { matchResult } from "./rules.js?v=poker-dilemma-20261025";
 export { generateRoomCode, normalizeRoomCode, isOnlineConfigured };
 
 export async function createPokerMatch({
+  signal,
   role,
   roomCode,
   character = role === "host" ? "tak" : "meg",
@@ -25,7 +27,9 @@ export async function createPokerMatch({
   sessionFactory = createOnlineSession,
   random = Math.random,
   timers = globalThis,
+  now = Date.now,
 }) {
+  const recovery = createConnectionGuard(now); now = recovery.now;
   if (!isCharacter(character)) throw new Error("キャラを選んでね。");
   let guestCharacter = null;
   let transport = null,
@@ -125,8 +129,12 @@ export async function createPokerMatch({
   }
   try {
     transport = await sessionFactory({
-      role,
-      roomCode,
+      signal, role, roomCode,
+      onConnectionChange(status, detail) {
+        recovery.change(status, detail);
+        if (status === "connected") announce();
+        else if (status !== "waiting") onStatus("reconnecting");
+      },
       hostPlayer: 1,
       ruleMode: "poker",
       channelPrefix: "takumegu-mini-poker",
@@ -157,8 +165,10 @@ export async function createPokerMatch({
   // Sync repairs lost broadcasts. Repeating a pending action is safe because
   // Each round allows one exchange, one reveal, and one continuation vote per seat.
   interval = timers.setInterval(() => {
+    transport?.check?.();
+    if (recovery.paused) return;
     if (pending) {
-      if (Date.now() - pending.since > 15000) {
+      if (now() - pending.since > 15000) {
         fail(new Error("通信の返事が届かないみたい。へやをつくり直してね。"));
         return;
       }
@@ -168,6 +178,7 @@ export async function createPokerMatch({
   return {
     close,
     submit(type, indices) {
+      if (recovery.paused) return false;
       if (stopped || !ready || !view || pending) return false;
       if (type === "exchange") {
         if (
@@ -197,7 +208,7 @@ export async function createPokerMatch({
         state = next;
         publish();
       } else {
-        pending = { ...action, since: Date.now() };
+        pending = { ...action, since: now() };
         onStatus("sending");
         send({ type: "action", action: pending });
       }

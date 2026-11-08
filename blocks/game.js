@@ -1,3 +1,5 @@
+let siteOverlayOpen = false;
+let connectionAbort = null;
 import {
   SIZE,
   PIECES,
@@ -12,7 +14,7 @@ import {
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js?v=20261010-blocks3";
+} from "./online.js?v=20261108-recovery1";
 import { createCpuTurn } from "./cpu-turn.js?v=20261010-blocks3";
 import {
   nearestGrip,
@@ -484,7 +486,7 @@ function acceptLocal(result) {
   scheduleCPU();
 }
 function scheduleCPU() {
-  if (mode !== "cpu" || phase !== "playing" || game.turn === localOwner) return;
+  if (siteOverlayOpen || mode !== "cpu" || phase !== "playing" || game.turn === localOwner) return;
   const position = game;
   cpuTurn.start(position, difficulty, (action) => {
     if (mode !== "cpu" || phase !== "playing" || game !== position) return;
@@ -493,7 +495,7 @@ function scheduleCPU() {
 }
 function closeOnline() {
   epoch++;
-  match?.close();
+  match?.close();connectionAbort?.abort();connectionAbort=null;
   match = null;
   onlineRound = null;
   connecting = false;
@@ -534,7 +536,8 @@ async function connect() {
   connectionNote = roomAction === "create" ? "へやをつくっているよ…" : "へやを探しているよ…";
   render();
   try {
-    const opened = await createBlocksMatch({
+    connectionAbort?.abort(); connectionAbort = new AbortController();
+    const opened = await createBlocksMatch({signal: connectionAbort.signal,
       role: roomAction === "create" ? "host" : "guest",
       roomCode,
       onState(next, owner) {
@@ -666,3 +669,9 @@ window.addEventListener("pagehide", () => {
   }
 });
 render();
+
+window.addEventListener("takumegu-menu", event => {
+  siteOverlayOpen = event.detail.open;
+  if (siteOverlayOpen) { cpuTurn.cancel(); pointerDrag.cancel(); }
+  else scheduleCPU();
+});

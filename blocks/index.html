@@ -11,10 +11,12 @@
     <title>ブロックつめこみ — たくめぐのあそびば</title>
     <link rel="stylesheet" href="./style.css?v=20261010-blocks3" />
     <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
-    <script type="module" src="../site-header.js?v=20261106-sugoroku1"></script>
+    <script type="module" src="../site-header.js?v=20261108-shell1"></script>
     <link rel="icon" href="../favicon.ico?v=20261105" sizes="16x16 32x32 48x48" />
     <link rel="icon" type="image/svg+xml" href="../assets/site-icon.svg?v=20261105" sizes="any" />
     <link rel="apple-touch-icon" href="../apple-touch-icon.png?v=20261105" />
+    <link rel="stylesheet" href="../game-shell.css?v=20261108-shell1" />
+    <link rel="stylesheet" href="../setup-screen.css?v=20261108-entry1" />
   </head>
   <body data-site-page="blocks">
     <takumegu-header data-page="blocks"></takumegu-header>
@@ -34,6 +36,51 @@
         </div>
       </header>
       <section id="setup" class="setup" aria-label="対戦の設定">
+        <div class="setup-art setup-art--blocks" aria-hidden="true">
+  <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+  <rect x="144" y="16" width="208" height="208" rx="12" fill="#dac6a6" stroke="none" />
+  <rect x="152" y="24" width="192" height="192" rx="4" fill="#fff8e9" stroke="none" />
+  <path d="M152 24v192M152 24h192" stroke="#d9c7ad" />
+  <path d="M176 24v192M152 48h192" stroke="#d9c7ad" />
+  <path d="M200 24v192M152 72h192" stroke="#d9c7ad" />
+  <path d="M224 24v192M152 96h192" stroke="#d9c7ad" />
+  <path d="M248 24v192M152 120h192" stroke="#d9c7ad" />
+  <path d="M272 24v192M152 144h192" stroke="#d9c7ad" />
+  <path d="M296 24v192M152 168h192" stroke="#d9c7ad" />
+  <path d="M320 24v192M152 192h192" stroke="#d9c7ad" />
+  <path d="M344 24v192M152 216h192" stroke="#d9c7ad" />
+  <rect x="154" y="26" width="20" height="20" rx="3" fill="#b19cc9" stroke="none" />
+  <rect x="154" y="50" width="20" height="20" rx="3" fill="#b19cc9" stroke="none" />
+  <rect x="154" y="74" width="20" height="20" rx="3" fill="#b19cc9" stroke="none" />
+  <rect x="178" y="74" width="20" height="20" rx="3" fill="#b19cc9" stroke="none" />
+  <rect x="202" y="26" width="20" height="20" rx="3" fill="#efd293" stroke="none" />
+  <rect x="226" y="26" width="20" height="20" rx="3" fill="#efd293" stroke="none" />
+  <rect x="250" y="26" width="20" height="20" rx="3" fill="#efd293" stroke="none" />
+  <rect x="226" y="50" width="20" height="20" rx="3" fill="#efd293" stroke="none" />
+  <rect x="274" y="74" width="20" height="20" rx="3" fill="#c3a8cc" stroke="none" />
+  <rect x="298" y="74" width="20" height="20" rx="3" fill="#c3a8cc" stroke="none" />
+  <rect x="274" y="98" width="20" height="20" rx="3" fill="#c3a8cc" stroke="none" />
+  <rect x="298" y="98" width="20" height="20" rx="3" fill="#c3a8cc" stroke="none" />
+  <rect x="154" y="146" width="20" height="20" rx="3" fill="#e6bc75" stroke="none" />
+  <rect x="178" y="146" width="20" height="20" rx="3" fill="#e6bc75" stroke="none" />
+  <rect x="202" y="146" width="20" height="20" rx="3" fill="#e6bc75" stroke="none" />
+  <rect x="226" y="146" width="20" height="20" rx="3" fill="#e6bc75" stroke="none" />
+  <rect x="298" y="170" width="20" height="20" rx="3" fill="#b39ac8" stroke="none" />
+  <rect x="322" y="170" width="20" height="20" rx="3" fill="#b39ac8" stroke="none" />
+  <rect x="274" y="194" width="20" height="20" rx="3" fill="#b39ac8" stroke="none" />
+  <rect x="298" y="194" width="20" height="20" rx="3" fill="#b39ac8" stroke="none" />
+  <rect x="178" y="98" width="20" height="20" rx="3" fill="#5f5b5a" stroke="none" />
+  <rect x="298" y="26" width="20" height="20" rx="3" fill="#5f5b5a" stroke="none" />
+  <rect x="250" y="122" width="20" height="20" rx="3" fill="#5f5b5a" stroke="none" />
+  <rect x="178" y="194" width="20" height="20" rx="3" fill="#5f5b5a" stroke="none" />
+  <rect x="64" y="76" width="22" height="22" rx="4" fill="#c3a7d6" stroke="#9676b0" />
+  <rect x="88" y="76" width="22" height="22" rx="4" fill="#c3a7d6" stroke="#9676b0" />
+  <rect x="88" y="100" width="22" height="22" rx="4" fill="#c3a7d6" stroke="#9676b0" />
+  <rect x="88" y="124" width="22" height="22" rx="4" fill="#c3a7d6" stroke="#9676b0" />
+  <path d="M72 162q38 15 59-10m-16 0 16 0-3 15" fill="none" stroke="#af9581" stroke-width="3" stroke-linecap="round" />
+  <image href="../assets/cream-piece.png" x="377" y="134" width="63" height="63" />
+  </svg>
+</div>
         <div class="mode-choices" role="group" aria-label="対戦モード">
           <button type="button" data-mode="cpu" aria-pressed="true">CPUとあそぶ</button>
           <button type="button" data-mode="local" aria-pressed="false">1台でふたり</button
@@ -193,6 +240,6 @@
     <div class="drag-layer" aria-hidden="true">
       <div id="drag-piece" class="drag-piece" hidden></div>
     </div>
-    <script type="module" src="./game.js?v=20261010-blocks3"></script>
+    <script type="module" src="./game.js?v=20261108-shell1"></script>
   </body>
 </html>

@@ -374,6 +374,17 @@ export function createPeer({
     return view;
   }
   return {
+    suspend() {
+      if (stopped) return;
+      if (role === "host" && game && game.phase !== "finished") pauseBoth();
+      reset();
+    },
+    recover() {
+      if (stopped) return;
+      lastReceive = now();
+      flush();
+      notify();
+    },
     info,
     receive,
     request,

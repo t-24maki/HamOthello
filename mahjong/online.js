@@ -1,9 +1,10 @@
+import { createConnectionGuard } from "../src/connection-guard.js?v=20261108-recovery1";
 import {
   createOnlineSession,
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "../src/online-game.js?v=poker-rooms-20260908";
+} from "../src/online-game.js?v=20261108-recovery1";
 import {
   PROTOCOL,
   createMatch,
@@ -14,6 +15,7 @@ import {
 } from "./online-rules.js?v=20261022-mahjong7";
 export { generateRoomCode, normalizeRoomCode, isOnlineConfigured };
 export async function createMahjongMatch({
+  signal,
   role,
   roomCode,
   onState = () => {},
@@ -25,6 +27,7 @@ export async function createMahjongMatch({
   now = () => Date.now(),
   random = Math.random,
 }) {
+  const recovery = createConnectionGuard(now); now = recovery.now;
   const player = role === "host" ? 0 : 1;
   let transport = null,
     ready = false,
@@ -125,8 +128,12 @@ export async function createMahjongMatch({
   }
   try {
     transport = await sessionFactory({
-      role,
-      roomCode,
+      signal, role, roomCode,
+      onConnectionChange(status, detail) {
+        recovery.change(status, detail);
+        if (status === "connected") announce();
+        else if (status !== "waiting") onStatus("reconnecting");
+      },
       hostPlayer: 1,
       ruleMode: "mahjong",
       channelPrefix: "takumegu-mini-mahjong",
@@ -154,6 +161,8 @@ export async function createMahjongMatch({
   }
   announce();
   interval = timers.setInterval(() => {
+    transport?.check?.();
+    if (recovery.paused) return;
     if (pending) {
       if (now() - pending.since > 15000) {
         fail(new Error("返事が届かないみたい。設定にもどって、つなぎ直してね。"));
@@ -165,6 +174,7 @@ export async function createMahjongMatch({
   return {
     close,
     submit(type, tile) {
+      if (recovery.paused) return false;
       if (stopped || !ready || !view || pending || !canAct(view, player, type, tile)) return false;
       const action = {
         type,

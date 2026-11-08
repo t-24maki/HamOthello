@@ -1,3 +1,4 @@
+let connectionAbort = null;
 import {
   createGame,
   PLAYERS,
@@ -17,7 +18,7 @@ import { createCPU, cpuInput } from "./cpu.js?v=20261027-jintori7";
 import { bindStick } from "./stick.js?v=20261026-jintori6";
 import { createInput, KEYS } from "./input.js?v=20261026-jintori6";
 import { protectGameSurface } from "../battle/controls.js?v=20261021-battle21";
-import { createOnline, generateRoomCode, normalizeRoomCode } from "./online.js?v=20261027-jintori7";
+import { createOnline, generateRoomCode, normalizeRoomCode } from "./online.js?v=20261108-recovery1";
 import { loadArt, render, renderPaintMap, portrait } from "./renderer.js?v=20261026-jintori6";
 import { createResultGate } from "./presentation.js?v=20261026-jintori6";
 import { createMatchMusic, prepareMusicSource } from "./music.js?v=20261026-jintori6";
@@ -252,7 +253,7 @@ function startCPU() {
 function leaveRoom() {
   music.reset();
   generation++;
-  online?.close();
+  online?.close();connectionAbort?.abort();connectionAbort=null;
   online = null;
   onlineInfo = null;
   $("host").disabled = $("join").disabled = $("room-input").disabled = false;
@@ -326,7 +327,8 @@ async function connect(role, code) {
     }
   };
   try {
-    const session = await createOnline({
+    connectionAbort?.abort(); connectionAbort = new AbortController();
+    const session = await createOnline({signal: connectionAbort.signal,
       role,
       roomCode: code,
       character,
@@ -447,7 +449,7 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("pagehide", () => {
   music.reset();
   clearInput();
-  online?.close();
+  online?.close();connectionAbort?.abort();connectionAbort=null;
 });
 window.addEventListener("unload", () => {
   if (musicSource) URL.revokeObjectURL(musicSource);

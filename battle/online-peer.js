@@ -449,6 +449,17 @@ export function createBattlePeer({
     return view;
   }
   return {
+    suspend() {
+      if (stopped) return;
+      if (role === "host" && game && game.phase !== "finished") pauseBoth();
+      resetInputs();
+    },
+    recover() {
+      if (stopped) return;
+      lastReceive = now();
+      flush();
+      notify();
+    },
     connect() {
       if (connected || stopped) return;
       connected = true;

@@ -1,3 +1,4 @@
+import { createRecoverableSession } from "./online-recovery.js?v=20261108-recovery1";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config.js";
 import { ONLINE_VERSION, RULE_LABELS } from "./card-rules.js?v=cards-20260908-r2";
 
@@ -36,201 +37,19 @@ export function generateRoomCode() {
   return `HAMU-${suffix}`;
 }
 
-function flattenPresence(state) {
-  return Object.values(state).flatMap((entries) => entries);
-}
-
 export async function createOnlineSession({
-  role,
-  roomCode,
-  hostPlayer,
-  ruleMode = "classic",
-  channelPrefix = "punitto-othello",
-  protocolVersion = ONLINE_VERSION,
-  supportedRules = Object.keys(RULE_LABELS),
-  clientFactory,
-  onReady = () => {},
-  onMessage = () => {},
-  onPeerChange = () => {},
-  onError = () => {},
+  role, roomCode, hostPlayer, ruleMode = "classic", channelPrefix = "punitto-othello",
+  protocolVersion = ONLINE_VERSION, supportedRules = Object.keys(RULE_LABELS),
+  clientFactory, ...callbacks
 }) {
-  if (!isOnlineConfigured()) {
-    throw new Error("Supabaseの接続情報がまだ設定されていません。");
-  }
-
+  if (!isOnlineConfigured()) throw new Error("Supabaseの接続情報がまだ設定されていません。");
   const normalizedRoomCode = normalizeRoomCode(roomCode);
-  if (!/^HAMU-[A-Z2-9]{6}$/.test(normalizedRoomCode)) {
+  if (!/^HAMU-[A-Z2-9]{6}$/.test(normalizedRoomCode))
     throw new Error("キーワードは HAMU- から始まる6文字で入力してね。");
-  }
-
-  const createClient = clientFactory ?? (await import(SUPABASE_MODULE_URL)).createClient;
-  const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
+  return createRecoverableSession({
+    ...callbacks, role, roomCode: normalizedRoomCode, hostPlayer, ruleMode,
+    channelPrefix, protocolVersion, supportedRules,
+    url: SUPABASE_URL, key: SUPABASE_PUBLISHABLE_KEY,
+    loadClient: async attempt => clientFactory ?? (await import(SUPABASE_MODULE_URL + (attempt ? `&retry=${attempt}` : ""))).createClient,
   });
-  const clientId =
-    globalThis.crypto?.randomUUID?.() ??
-    `client-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const joinedAt = Date.now();
-  let peerId = null;
-  let readyNotified = false;
-  let closed = false;
-  let hostLookupTimer = null;
-
-  const channel = client.channel(`${channelPrefix}:${normalizedRoomCode}`, {
-    config: {
-      private: false,
-      broadcast: { ack: true, self: false },
-      presence: { key: clientId },
-    },
-  });
-
-  const close = async () => {
-    if (closed) return;
-    closed = true;
-    if (hostLookupTimer !== null) window.clearTimeout(hostLookupTimer);
-    try {
-      await channel.untrack();
-    } finally {
-      await client.removeChannel(channel);
-    }
-  };
-
-  const session = {
-    clientId,
-    role,
-    roomCode: normalizedRoomCode,
-    send: async (message) => {
-      if (closed || !peerId) return false;
-      const response = await channel.send({
-        type: "broadcast",
-        event: "game-event",
-        payload: { ...message, senderId: clientId, senderRole: role },
-      });
-      return response === "ok";
-    },
-    close,
-  };
-
-  const syncPresence = () => {
-    if (closed) return;
-    const people = flattenPresence(channel.presenceState());
-    const hosts = people
-      .filter((person) => person.role === "host")
-      .sort((a, b) => a.joinedAt - b.joinedAt);
-    const guests = people
-      .filter((person) => person.role === "guest")
-      .sort((a, b) => a.joinedAt - b.joinedAt);
-    const previousPeerId = peerId;
-
-    if (role === "host") {
-      const otherHost = hosts.find((person) => person.clientId !== clientId);
-      if (otherHost && otherHost.joinedAt <= joinedAt) {
-        onError(new Error("同じキーワードのへやが見つかりました。もう一度つくり直してね。"));
-        void close();
-        return;
-      }
-      peerId = guests[0]?.clientId ?? null;
-    } else {
-      const ownGuestIndex = guests.findIndex((person) => person.clientId === clientId);
-      if (ownGuestIndex > 0) {
-        onError(new Error("このへやは、もう2人で遊んでいるみたい。"));
-        void close();
-        return;
-      }
-      peerId = hosts[0]?.clientId ?? null;
-    }
-
-    const peer = people.find((person) => person.clientId === peerId);
-    if (peer && (peer.version !== protocolVersion || !supportedRules.includes(peer.ruleMode))) {
-      onError(
-        new Error(
-          "ゲームの版がちがうみたい。ふたりともページを読み込み直して、へやをつくり直してね。",
-        ),
-      );
-      void close();
-      return;
-    }
-
-    if (previousPeerId !== peerId) {
-      onPeerChange(Boolean(peerId), { peerId, previousPeerId });
-    }
-
-    if (!peerId || readyNotified) return;
-    readyNotified = true;
-    if (hostLookupTimer !== null) window.clearTimeout(hostLookupTimer);
-    const host = hosts[0];
-    const localPlayer = role === "host" ? hostPlayer : 3 - host.player;
-    if (![1, 2].includes(host.player)) {
-      onError(new Error("へやの設定を確認できませんでした。つくり直してね。"));
-      void close();
-      return;
-    }
-    onReady({ localPlayer, remotePlayer: 3 - localPlayer, ruleMode: host.ruleMode });
-  };
-
-  channel
-    .on("presence", { event: "sync" }, syncPresence)
-    .on("broadcast", { event: "game-event" }, ({ payload }) => {
-      if (!closed && payload?.senderId === peerId) onMessage(payload);
-    });
-
-  await new Promise((resolve, reject) => {
-    let settled = false;
-    const connectTimer = window.setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      reject(new Error("通信サーバーへの接続に時間がかかっています。もう一度試してね。"));
-      void close();
-    }, 12000);
-
-    channel.subscribe(async (status) => {
-      if (status === "SUBSCRIBED" && !settled) {
-        try {
-          await channel.track({
-            clientId,
-            role,
-            player: role === "host" ? hostPlayer : null,
-            ruleMode,
-            version: protocolVersion,
-            joinedAt,
-          });
-          settled = true;
-          window.clearTimeout(connectTimer);
-          resolve();
-        } catch (error) {
-          settled = true;
-          window.clearTimeout(connectTimer);
-          reject(error);
-          void close();
-        }
-        return;
-      }
-
-      if (!settled && (status === "TIMED_OUT" || status === "CHANNEL_ERROR")) {
-        settled = true;
-        window.clearTimeout(connectTimer);
-        reject(new Error("通信サーバーにつながりませんでした。設定と回線を確認してね。"));
-        void close();
-      } else if (settled && !closed && ["TIMED_OUT", "CHANNEL_ERROR", "CLOSED"].includes(status)) {
-        onError(new Error("通信が切れたみたい。へやをつくり直してね。"));
-        void close();
-      }
-    });
-  });
-
-  if (role === "guest") {
-    hostLookupTimer = window.setTimeout(() => {
-      if (!peerId && !closed) {
-        onError(new Error("そのキーワードのへやが見つかりませんでした。"));
-        void close();
-      }
-    }, 9000);
-  }
-
-  syncPresence();
-  return session;
 }

@@ -11,10 +11,12 @@
     <title>たくめぐしょうぎ — たくめぐのあそびば</title>
     <link rel="stylesheet" href="./style.css?v=20261105-tapi3" />
     <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
-    <script type="module" src="../site-header.js?v=20261106-sugoroku1"></script>
+    <script type="module" src="../site-header.js?v=20261108-shell1"></script>
     <link rel="icon" href="../favicon.ico?v=20261105" sizes="16x16 32x32 48x48" />
     <link rel="icon" type="image/svg+xml" href="../assets/site-icon.svg?v=20261105" sizes="any" />
     <link rel="apple-touch-icon" href="../apple-touch-icon.png?v=20261105" />
+    <link rel="stylesheet" href="../game-shell.css?v=20261108-shell1" />
+    <link rel="stylesheet" href="../setup-screen.css?v=20261108-entry1" />
   </head>
   <body data-site-page="shogi">
     <takumegu-header data-page="shogi"></takumegu-header>
@@ -36,6 +38,33 @@
       </header>
 
       <section id="match-setup" class="match-setup" aria-label="対戦モードの設定">
+        <div class="setup-art setup-art--shogi" aria-hidden="true">
+  <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg">
+  <rect x="137" y="17" width="206" height="206" rx="12" fill="#cba573" stroke="none" />
+  <rect x="148" y="28" width="184" height="184" rx="2" fill="#f4dfb9" stroke="none" />
+  <path d="M148 28v184M148 28h184" stroke="#b99a6d" />
+  <path d="M194 28v184M148 74h184" stroke="#b99a6d" />
+  <path d="M240 28v184M148 120h184" stroke="#b99a6d" />
+  <path d="M286 28v184M148 166h184" stroke="#b99a6d" />
+  <path d="M332 28v184M148 212h184" stroke="#b99a6d" />
+  <rect x="198" y="31" width="38" height="39" rx="5" fill="#ffedcd" stroke="#c19a65" />
+  <image href="../shogi/art/king-mawashi-v1.png" x="199" y="32" width="36" height="37" />
+  <rect x="244" y="31" width="38" height="39" rx="5" fill="#ffedcd" stroke="#c19a65" />
+  <image href="../shogi/art/taku.png" x="245" y="32" width="36" height="37" />
+  <rect x="152" y="77" width="38" height="39" rx="5" fill="#ffedcd" stroke="#c19a65" />
+  <image href="../shogi/art/ham.png" x="153" y="78" width="36" height="37" />
+  <rect x="244" y="123" width="38" height="39" rx="5" fill="#ffedcd" stroke="#c19a65" />
+  <svg x="245" y="124" width="36" height="37" viewBox="934 40 320 285" style="width: 36px; height: 37px">
+  <image href="../baccarat/art/table-friends-v3.png" width="1254" height="1254" />
+  </svg>
+  <rect x="198" y="169" width="38" height="39" rx="5" fill="#ffedcd" stroke="#c19a65" />
+  <image href="../shogi/art/megu.png" x="199" y="170" width="36" height="37" />
+  <rect x="244" y="169" width="38" height="39" rx="5" fill="#ffedcd" stroke="#c19a65" />
+  <image href="../shogi/art/king-mawashi-v1.png" x="245" y="170" width="36" height="37" />
+  <image href="../assets/pink-piece.png" x="35" y="104" width="75" height="75" />
+  <image href="../assets/cream-piece.png" x="375" y="51" width="70" height="70" />
+  </svg>
+</div>
         <div class="mode-choices" role="group" aria-label="対戦モード">
           <button type="button" data-mode="cpu" aria-pressed="true">CPUとあそぶ</button>
           <button type="button" data-mode="local" aria-pressed="false">1台でふたり</button>
@@ -227,6 +256,6 @@
         ><button id="dialog-cancel" class="quiet" type="button" hidden>盤面をみる</button>
       </div>
     </dialog>
-    <script type="module" src="./game.js?v=20261105-tapi3"></script>
+    <script type="module" src="./game.js?v=20261108-shell1"></script>
   </body>
 </html>

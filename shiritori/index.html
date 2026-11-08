@@ -11,10 +11,11 @@
     <title>たべものしりとり — たくめぐのあそびば</title>
     <link rel="stylesheet" href="./style.css?v=20260909-arrow" />
     <link rel="stylesheet" href="../site-layout.css?v=20261022-site1" />
-    <script type="module" src="../site-header.js?v=20261106-sugoroku1"></script>
+    <script type="module" src="../site-header.js?v=20261108-shell1"></script>
     <link rel="icon" href="../favicon.ico?v=20261105" sizes="16x16 32x32 48x48" />
     <link rel="icon" type="image/svg+xml" href="../assets/site-icon.svg?v=20261105" sizes="any" />
     <link rel="apple-touch-icon" href="../apple-touch-icon.png?v=20261105" />
+    <link rel="stylesheet" href="../game-shell.css?v=20261108-shell1" />
   </head>
   <body data-site-page="shiritori">
     <takumegu-header data-page="shiritori"></takumegu-header>
@@ -207,6 +208,7 @@
             <p id="rematch-note" role="status"></p>
           </div>
         </div>
+        <details class="site-records"><summary>つながった言葉</summary>
         <section class="history-panel" aria-labelledby="history-title">
           <header>
             <h2 id="history-title">つながった言葉</h2>
@@ -214,7 +216,7 @@
           </header>
           <ol id="history" aria-label="これまでの言葉" tabindex="0"></ol>
           <p id="empty-history">最初のひとこと、なんにしよう？</p>
-        </section>
+        </section></details>
       </section>
       <details class="rules">
         <summary>あそびかた</summary>
@@ -266,6 +268,6 @@
         ><button id="confirm-giveup" type="button" class="primary">まいった！</button>
       </div>
     </dialog>
-    <script type="module" src="./game.js?v=20261026-1300words"></script>
+    <script type="module" src="./game.js?v=20261108-shell1"></script>
   </body>
 </html>

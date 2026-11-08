@@ -1,3 +1,4 @@
+let connectionAbort = null;
 import {
   METALS,
   WINS_TO_WIN,
@@ -24,7 +25,7 @@ import {
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js?v=poker-dilemma-20261025";
+} from "./online.js?v=20261108-recovery1";
 
 const $ = (id) => document.getElementById(id);
 const names = Object.fromEntries(CHARACTERS.map((c) => [c.id, c.name]));
@@ -188,7 +189,7 @@ async function startCpu(next = createRound("cpu", Math.random, tableCharacters(c
 function stopOnline() {
   cancelPresentation();
   networkEpoch++;
-  onlineMatch?.close();
+  onlineMatch?.close();connectionAbort?.abort();connectionAbort=null;
   onlineMatch = null;
   connecting = false;
   pendingAction = false;
@@ -269,7 +270,7 @@ async function drainOnlineViews() {
 }
 async function connectOnline() {
   if (connecting || !character) return;
-  onlineMatch?.close();
+  onlineMatch?.close();connectionAbort?.abort();connectionAbort=null;
   const epoch = ++networkEpoch;
   networkError = "";
   pendingAction = false;
@@ -289,7 +290,8 @@ async function connectOnline() {
   connectionStatus = roomAction === "create" ? "へやをつくっているよ…" : "へやを探しているよ…";
   renderSetup();
   try {
-    const match = await createPokerMatch({
+    connectionAbort?.abort(); connectionAbort = new AbortController();
+    const match = await createPokerMatch({signal: connectionAbort.signal,
       role: roomAction === "create" ? "host" : "guest",
       roomCode,
       character,
@@ -711,7 +713,7 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("resize", () => dealer.finish());
 window.addEventListener("pagehide", () => {
   dealer.finish();
-  onlineMatch?.close();
+  onlineMatch?.close();connectionAbort?.abort();connectionAbort=null;
 });
 window.addEventListener("pageshow", (e) => {
   if (e.persisted && mode === "online" && round) {

@@ -1,3 +1,4 @@
+let connectionAbort = null, reconnecting = false;
 import { CHARACTERS } from "../poker/characters.js?v=poker-dilemma-20261025";
 import { pokerPortrait as portrait } from "../poker/portraits.js?v=poker-uneasy-20261025";
 import {
@@ -26,7 +27,7 @@ import {
   createRouletteMatch,
   generateRoomCode,
   normalizeRoomCode,
-} from "./online.js?v=20261030-roulette7";
+} from "./online.js?v=20261108-recovery1";
 const $ = (id) => document.getElementById(id);
 const names = Object.fromEntries(CHARACTERS.map((c) => [c.id, c.name]));
 let character = null,
@@ -55,6 +56,7 @@ let placements = null,
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const coin = '<span class="coin-icon" aria-hidden="true">●</span>';
 const paused = () =>
+  reconnecting ||
   document.hidden || menuOpen || $("rules").open || $("spot-dialog").open || Boolean(error);
 const identity = (p) => (p === seat ? "あなた" : mode === "online" && p < 2 ? "相手" : "CPU");
 const key = (s) => `${s.matchId}:${s.roundId}`;
@@ -480,8 +482,9 @@ function beginSpin() {
   frame = requestAnimationFrame(tick);
 }
 function stopOnline() {
+  reconnecting = false;
   epoch++;
-  online?.close();
+  online?.close();connectionAbort?.abort();connectionAbort=null;
   online = null;
   connecting = false;
   sending = false;
@@ -517,7 +520,8 @@ async function connect() {
   const token = ++epoch;
   renderSetup();
   try {
-    const match = await createRouletteMatch({
+    connectionAbort?.abort(); connectionAbort = new AbortController();
+    const match = await createRouletteMatch({signal: connectionAbort.signal,
       role: roomAction === "create" ? "host" : "guest",
       roomCode,
       character,
@@ -526,7 +530,10 @@ async function connect() {
       },
       onStatus(status) {
         if (token !== epoch) return;
+        reconnecting = status === "reconnecting";
         sending = status === "sending";
+        if(status === "connected" && visualDone && round?.phase === "result" && !round.seen[seat])
+          queueMicrotask(() => online?.submit("seen"));
         connectionText = status === "connected" ? "つながったよ" : "通信中…";
         render();
       },
@@ -667,7 +674,7 @@ document.addEventListener("visibilitychange", render);
 window.addEventListener("pagehide", () => {
   stopSpin();
   stopPlacements();
-  online?.close();
+  online?.close();connectionAbort?.abort();connectionAbort=null;
 });
 window.addEventListener("pageshow", (e) => {
   if (e.persisted && round) {

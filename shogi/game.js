@@ -1,3 +1,5 @@
+let siteOverlayOpen = false;
+let connectionAbort = null;
 import {
   createGame,
   PIECES,
@@ -19,7 +21,7 @@ import {
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js?v=20261001-shogi7";
+} from "./online.js?v=20261108-recovery1";
 
 let mode = "cpu",
   localOwner = 0,
@@ -390,6 +392,7 @@ function cancelCPU() {
   cpuWorker = null;
 }
 function scheduleCPU() {
+  if (siteOverlayOpen) return;
   if (
     mode !== "cpu" ||
     phase !== "playing" ||
@@ -437,7 +440,7 @@ function scheduleCPU() {
 }
 function closeOnline() {
   epoch++;
-  match?.close();
+  match?.close();connectionAbort?.abort();connectionAbort=null;
   match = null;
   onlineRound = null;
   connecting = false;
@@ -555,7 +558,8 @@ async function connect() {
   connectionNote = roomAction === "create" ? "へやをつくっているよ…" : "へやを探しているよ…";
   render();
   try {
-    const opened = await createShogiMatch({
+    connectionAbort?.abort(); connectionAbort = new AbortController();
+    const opened = await createShogiMatch({signal: connectionAbort.signal,
       role: roomAction === "create" ? "host" : "guest",
       roomCode,
       hamlessPlayer: selectedHamlessOwner(),
@@ -720,3 +724,9 @@ window.addEventListener("pageshow", (event) => {
 });
 showGuide("king", false);
 render();
+
+window.addEventListener("takumegu-menu", event => {
+  siteOverlayOpen = event.detail.open;
+  if (siteOverlayOpen) cancelCPU();
+  else scheduleCPU();
+});

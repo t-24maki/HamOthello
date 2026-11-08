@@ -1,3 +1,5 @@
+let siteOverlayOpen = false;
+let connectionAbort = null;
 import {
   boardHand,
   roundPresentation,
@@ -19,7 +21,7 @@ import {
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js?v=20261022-mahjong7";
+} from "./online.js?v=20261108-recovery1";
 const $ = (id) => document.getElementById(id);
 const names = ["たくハム", "めぐハム"];
 const empty = '<span class="empty-tile" aria-hidden="true"></span>';
@@ -60,7 +62,7 @@ function closeDialogs() {
 function reset() {
   epoch++;
   stopTimer();
-  network?.close();
+  network?.close();connectionAbort?.abort();connectionAbort=null;
   network = null;
   game = null;
   onlineView = null;
@@ -122,7 +124,7 @@ function commit(next) {
 function scheduleTurn() {
   stopTimer();
   const g = current();
-  if (!g || ended(g) || pending || errorMessage || $("leave-dialog").open) return;
+  if (siteOverlayOpen || !g || ended(g) || pending || errorMessage || $("leave-dialog").open) return;
   const player = mode === "cpu" ? g.turn : self();
   const isCPU = mode === "cpu" && player === 1;
   const automatic = g.phase === "draw" || isCPU || (g.phase === "discard" && g.riichi[player]);
@@ -430,7 +432,8 @@ $("connect").addEventListener("click", async () => {
   $("cancel-connect").hidden = false;
   updateSetup();
   try {
-    const connection = await createMahjongMatch({
+    connectionAbort?.abort(); connectionAbort = new AbortController();
+    const connection = await createMahjongMatch({signal: connectionAbort.signal,
       role,
       roomCode: code,
       onState(view) {
@@ -490,7 +493,7 @@ $("copy-room").addEventListener("click", async () => {
 });
 window.addEventListener("pagehide", () => {
   stopTimer();
-  network?.close();
+  network?.close();connectionAbort?.abort();connectionAbort=null;
 });
 $("tile-intro").innerHTML = [0, 18, 30].map((id) => tileMarkup(id)).join("");
 $("rules-content").innerHTML = `
@@ -508,3 +511,9 @@ prepareTileArt().catch(() => {
   $("load-note").textContent = "たぴの絵を読み込めませんでした。ページを再読み込みしてね。";
 });
 updateSetup();
+
+window.addEventListener("takumegu-menu", event => {
+  siteOverlayOpen = event.detail.open;
+  if (siteOverlayOpen) stopTimer();
+  else scheduleTurn();
+});

@@ -1,12 +1,14 @@
+import { createConnectionGuard } from "../src/connection-guard.js?v=20261108-recovery1";
 import {
   createOnlineSession,
   generateRoomCode,
   normalizeRoomCode,
-} from "../src/online-game.js?v=poker-rooms-20260908";
-import { createPeer } from "./online-peer.js?v=20261027-jintori7";
+} from "../src/online-game.js?v=20261108-recovery1";
+import { createPeer } from "./online-peer.js?v=20261108-recovery1";
 import { PROTOCOL, SEND_MS } from "./protocol.js?v=20261026-jintori6";
 export { generateRoomCode, normalizeRoomCode };
 export async function createOnline({
+  signal,
   role,
   roomCode,
   character,
@@ -16,6 +18,7 @@ export async function createOnline({
   timers = globalThis,
   now = () => performance.now(),
 }) {
+  const recovery = createConnectionGuard(now); now = recovery.now;
   let transport,
     peer,
     interval,
@@ -42,8 +45,13 @@ export async function createOnline({
   }
   try {
     transport = await sessionFactory({
-      role,
-      roomCode,
+      signal, role, roomCode,
+      onConnectionChange(status, detail) {
+        const wasPaused = recovery.paused;
+        recovery.change(status, detail);
+        if (recovery.paused && !wasPaused) peer?.suspend();
+        if (status === "connected") peer?.recover();
+      },
       hostPlayer: 1,
       ruleMode: "jintori",
       supportedRules: ["jintori"],
@@ -86,11 +94,11 @@ export async function createOnline({
     if (ready) peer.connect();
     for (const m of early) peer.receive(m);
     if (stopped) throw failure;
-    interval = timers.setInterval(() => peer.flush(), SEND_MS);
+    interval = timers.setInterval(() => { transport?.check?.(); if (!recovery.paused) peer.flush(); }, SEND_MS);
     return {
       close,
-      request: (type) => peer.request(type),
-      update: (...args) => peer.update(...args),
+      request: (type) => !recovery.paused && peer.request(type),
+      update: (...args) => { transport?.check?.(); if (!recovery.paused) peer.update(...args); },
       info: () => peer.info(),
       renderGame: (dt) => peer.renderGame(dt),
     };

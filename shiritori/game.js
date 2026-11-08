@@ -1,3 +1,5 @@
+let helpPausedAt = null;
+let connectionAbort = null;
 import {
   FOODS,
   PLAYERS,
@@ -14,7 +16,7 @@ import {
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js?v=20261026-1300words";
+} from "./online.js?v=20261108-recovery1";
 const $ = (id) => document.getElementById(id);
 const CHARACTER_ART = [
   {
@@ -62,7 +64,7 @@ function stopClock() {
 function remainingMs() {
   if (!game || game.winner !== null) return 0;
   return mode === "local"
-    ? Math.max(0, Math.min(TURN_LIMIT_MS, localDeadline - Date.now()))
+    ? Math.max(0, Math.min(TURN_LIMIT_MS, localDeadline - (helpPausedAt ?? Date.now())))
     : (match?.remainingMs() ?? TURN_LIMIT_MS);
 }
 function renderClock() {
@@ -96,7 +98,7 @@ function renderClock() {
     $("timer-warning").textContent = `${PLAYERS[game.turn]}、あと${seconds}秒だよ。`;
 }
 function tickClock() {
-  if (!game || networkError) return;
+  if (!game || networkError || (mode === "local" && helpPausedAt !== null)) return;
   if (mode === "local" && game.winner === null && Date.now() >= localDeadline) {
     game = timeOut(game);
     notice = "";
@@ -141,7 +143,7 @@ function renderNotice() {
 }
 function closeOnline() {
   epoch++;
-  match?.close();
+  match?.close();connectionAbort?.abort();connectionAbort=null;
   match = null;
   connecting = false;
   pending = false;
@@ -390,7 +392,8 @@ async function connect() {
   connectionNote = roomAction === "create" ? "へやをつくっているよ…" : "へやを探しているよ…";
   renderSetup();
   try {
-    const opened = await createShiritoriMatch({
+    connectionAbort?.abort(); connectionAbort = new AbortController();
+    const opened = await createShiritoriMatch({signal: connectionAbort.signal,
       role: roomAction === "create" ? "host" : "guest",
       roomCode: code,
       onState(next, player) {
@@ -549,7 +552,7 @@ $("dictionary-search").addEventListener("input", renderDictionary);
 window.addEventListener("pagehide", () => {
   stopClock();
   epoch++;
-  match?.close();
+  match?.close();connectionAbort?.abort();connectionAbort=null;
   match = null;
 });
 window.addEventListener("pageshow", (event) => {
@@ -566,3 +569,12 @@ document.addEventListener("visibilitychange", () => {
   if (!document.hidden) tickClock();
 });
 render();
+
+window.addEventListener("takumegu-menu", event => {
+  if (mode !== "local") return;
+  if (event.detail.open && helpPausedAt === null) helpPausedAt = Date.now();
+  else if (!event.detail.open && helpPausedAt !== null) {
+    if (game && game.winner === null) localDeadline += Date.now() - helpPausedAt;
+    helpPausedAt = null; tickClock();
+  }
+});

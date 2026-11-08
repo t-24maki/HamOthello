@@ -69,6 +69,7 @@ button {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
+.help { min-height: 44px; padding: 8px 12px; border: 1px solid #e4d8ca; border-radius: 12px; background: #fffdf7; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .toggle,
 .close {
   display: flex;
@@ -205,6 +206,11 @@ nav .home {
   dialog {
     padding: 18px;
   }
+}
+@media (max-width: 430px) {
+  .shell:has(.help) .brand > span:last-child { display: none; }
+  .tools { gap: 4px; }
+  .help { padding-inline: 9px; font-size: 11px; }
 }
 /* Keep the action controls within the viewport in landscape. */
 @media (orientation: landscape) and (max-height: 560px) {

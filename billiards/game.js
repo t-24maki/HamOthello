@@ -1,3 +1,5 @@
+let siteOverlayOpen = false;
+let connectionAbort = null;
 import {
   createGame,
   startGame,
@@ -21,7 +23,7 @@ import {
   generateRoomCode,
   normalizeRoomCode,
   isOnlineConfigured,
-} from "./online.js?v=20261001-games6";
+} from "./online.js?v=20261108-recovery1";
 const $ = (id) => document.getElementById(id);
 const table = $("table");
 const NS = "http://www.w3.org/2000/svg";
@@ -125,7 +127,7 @@ function renderConnection() {
 }
 function closeOnline() {
   epoch++;
-  match?.close();
+  match?.close();connectionAbort?.abort();connectionAbort=null;
   match = null;
   onlineRound = null;
   connecting = false;
@@ -194,7 +196,8 @@ async function connect() {
     renderHUD();
   }
   try {
-    const opened = await createBilliardsMatch({
+    connectionAbort?.abort(); connectionAbort = new AbortController();
+    const opened = await createBilliardsMatch({signal: connectionAbort.signal,
       role: roomAction === "create" ? "host" : "guest",
       roomCode,
       onState(next, owner) {
@@ -592,6 +595,7 @@ function requestFrame() {
     frameId === null &&
     game.phase === "moving" &&
     !document.hidden &&
+    (mode === "online" || !siteOverlayOpen) &&
     !networkError &&
     (mode === "online" || !$("restart-dialog").open)
   ) {
@@ -601,7 +605,7 @@ function requestFrame() {
 }
 function frame(now) {
   frameId = null;
-  if (document.hidden || networkError) return;
+  if (document.hidden || networkError || (mode === "local" && siteOverlayOpen)) return;
   advance(game, Math.min((now - lastFrame) / 1000, 0.05));
   lastFrame = now;
   renderBalls();
@@ -773,7 +777,6 @@ function reset(starter = game.starter) {
   makeTable();
   renderHUD();
 }
-$("shuffle").addEventListener("click", () => reset());
 $("start").addEventListener("click", () => {
   if (mode === "local" && startGame(game)) renderHUD();
 });
@@ -868,3 +871,9 @@ $("copy-room").addEventListener("click", async () => {
 });
 makeTable();
 renderHUD();
+
+window.addEventListener("takumegu-menu", event => {
+  siteOverlayOpen = event.detail.open;
+  if (siteOverlayOpen) cancelAim();
+  else requestFrame();
+});

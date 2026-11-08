@@ -1,3 +1,4 @@
+let connectionAbort = null, connectionHeld = false;
 import {
   BLACK,
   BOARD_SIZE,
@@ -25,7 +26,7 @@ import {
   generateRoomCode,
   isOnlineConfigured,
   normalizeRoomCode,
-} from "./online-game.js?v=cards-20260908-r2";
+} from "./online-game.js?v=20261108-recovery1";
 import { getResultCharacterImages } from "./result-images.js";
 
 const boardElement = document.querySelector("#board");
@@ -110,6 +111,7 @@ let history = [];
 let lastMove = null;
 let passNotice = "";
 let cpuTimer = null;
+let siteOverlayOpen = false;
 let cpuIsThinking = false;
 let gameStarted = false;
 let onlineAction = "create";
@@ -144,6 +146,7 @@ function getCpuPlayer() {
 }
 
 function canHumanPlay() {
+  if (gameMode === "online" && connectionHeld) return false;
   if (!gameStarted || cpuIsThinking || gameOver()) return false;
   if (gameMode === "local") return true;
   if (gameMode === "online") {
@@ -236,6 +239,7 @@ function setOnlineStatus(message = "", tone = "") {
 
 function closeOnlineSession({ clearRoom = true } = {}) {
   onlineAttemptId += 1;
+  connectionHeld=false;
   const session = onlineSession;
   onlineSession = null;
   onlineConnecting = false;
@@ -248,19 +252,11 @@ function closeOnlineSession({ clearRoom = true } = {}) {
     onlineRoomCard.hidden = true;
   }
   if (session) void session.close();
+  connectionAbort?.abort(); connectionAbort=null;
 }
 
 function showLanding() {
-  closeOnlineSession();
-  resetBoard();
-  gameStarted = false;
-  setupOverlay.hidden = true;
-  gameScreen.hidden = true;
-  landingScreen.hidden = false;
-  document.body.classList.remove("is-setting-up");
-  setOnlineStatus();
-  render();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  showGameSetup();
 }
 
 function showGameSetup() {
@@ -331,7 +327,7 @@ function commitMove(index, { broadcast = true, kind = "place" } = {}) {
 }
 
 function scheduleCpuTurn() {
-  if (!gameStarted || gameMode !== "cpu") return;
+  if (siteOverlayOpen || !gameStarted || gameMode !== "cpu" || gameOver() || currentPlayer !== getCpuPlayer()) return;
 
   cpuIsThinking = true;
   render();
@@ -819,7 +815,15 @@ async function startOnlineFlow() {
   syncControls();
 
   try {
+    connectionAbort = new AbortController();
     const session = await createOnlineSession({
+      signal: connectionAbort.signal,
+      onConnectionChange(status) {
+        if (attemptId !== onlineAttemptId) return;
+        connectionHeld = !["connected", "waiting"].includes(status);
+        if (status === "connected" && gameStarted) requestOnlineState();
+        if (gameStarted) render();
+      },
       role: onlineRole,
       roomCode: onlineRoomCode,
       hostPlayer: humanPlayer,
@@ -1023,3 +1027,9 @@ window.addEventListener("pagehide", () => {
 syncControls();
 render();
 showLanding();
+
+window.addEventListener("takumegu-menu", event => {
+  siteOverlayOpen = event.detail.open;
+  if (siteOverlayOpen) cancelCpuTurn();
+  else scheduleCpuTurn();
+});
